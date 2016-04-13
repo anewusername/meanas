@@ -1,3 +1,3 @@
 # fdfd-tools
 
-Tools for creating FDFD simulations
+Python tools for creating finite-difference frequency-domain (FDFD) electromagnetic simulations.
