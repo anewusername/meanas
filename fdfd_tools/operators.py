@@ -62,8 +62,10 @@ def e_full(omega: complex,
     :param mu: Vectorized magnetic permeability (default 1 everywhere).
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
         as containing a perfect electrical conductor (PEC).
+        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
+        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
     :return: Sparse matrix containing the wave operator
     """
     ce = curl_e(dxes)
@@ -132,8 +134,10 @@ def h_full(omega: complex,
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
         as containing a perfect electrical conductor (PEC).
+        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
+        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
     :return: Sparse matrix containing the wave operator
     """
     ec = curl_e(dxes)
@@ -177,8 +181,10 @@ def eh_full(omega, dxes, epsilon, mu=None, pec=None, pmc=None):
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
         as containing a perfect electrical conductor (PEC).
+        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
+        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
     :return: Sparse matrix containing the wave operator
     """
     if numpy.any(numpy.equal(pec, None)):
@@ -227,6 +233,7 @@ def curl_e(dxes: dx_lists_t) -> sparse.spmatrix:
 def e2h(omega: complex,
         dxes: dx_lists_t,
         mu: vfield_t = None,
+        pmc: vfield_t = None,
         ) -> sparse.spmatrix:
     """
     Utility operator for converting the E field into the H field.
@@ -235,12 +242,18 @@ def e2h(omega: complex,
     :param omega: Angular frequency of the simulation
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
+    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
+        as containing a perfect magnetic conductor (PMC).
+        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
     :return: Sparse matrix for converting E to H
     """
     op = curl_e(dxes) / (-1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
         op = sparse.diags(1 / mu) @ op
+
+    if not numpy.any(numpy.equal(pmc, None)):
+        op = sparse.diags(numpy.where(pmc, 0, 1)) @ op
 
     return op
 
