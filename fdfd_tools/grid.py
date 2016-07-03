@@ -2,7 +2,7 @@
 Functions for creating stretched coordinate PMLs.
 """
 
-from typing import List, Tuple, Callable
+from typing import List, Callable
 import numpy
 
 __author__ = 'Jan Petykiewicz'
