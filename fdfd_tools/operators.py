@@ -45,7 +45,8 @@ __author__ = 'Jan Petykiewicz'
 def e_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: vfield_t,
-           mu: vfield_t = None
+           mu: vfield_t = None,
+           pec: vfield_t = None,
            ) -> sparse.spmatrix:
     """
     Wave operator del x (1/mu * del x) - omega**2 * epsilon, for use with E-field,
@@ -57,19 +58,28 @@ def e_full(omega: complex,
     :param omega: Angular frequency of the simulation
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param epsilon: Vectorized dielectric constant
-    :param mu: Vectorized magnetic permeability (default 1 everywhere)..
+    :param mu: Vectorized magnetic permeability (default 1 everywhere).
+    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
+        as containing a perfect electrical conductor (PEC).
     :return: Sparse matrix containing the wave operator
     """
     ce = curl_e(dxes)
     ch = curl_h(dxes)
 
-    e = sparse.diags(epsilon)
+    ev = epsilon
+    if numpy.any(numpy.equal(pec, None)):
+        pm = sparse.eye(epsilon.size)
+    else:
+        pm = sparse.diags(numpy.where(pec, 0, 1))     # Set pm to (not PEC)
+        ev = numpy.where(pec, 1.0, ev)                # Set epsilon to 1 at PEC
+
+    e = sparse.diags(ev)
     if numpy.any(numpy.equal(mu, None)):
         m_div = sparse.eye(epsilon.size)
     else:
         m_div = sparse.diags(1 / mu)
 
-    op = ch @ m_div @ ce - omega**2 * e
+    op = pm @ ch @ m_div @ ce @ pm - omega**2 * e
     return op
 
 
@@ -99,7 +109,8 @@ def e_full_preconditioners(dxes: dx_lists_t
 def h_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: vfield_t,
-           mu: vfield_t = None
+           mu: vfield_t = None,
+           pmc: vfield_t = None,
            ) -> sparse.spmatrix:
     """
     Wave operator del x (1/epsilon * del x) - omega**2 * mu, for use with H-field,
@@ -110,18 +121,28 @@ def h_full(omega: complex,
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
+    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
+        as containing a perfect magnetic conductor (PMC).
     :return: Sparse matrix containing the wave operator
     """
     ec = curl_e(dxes)
     hc = curl_h(dxes)
 
-    e_div = sparse.diags(1 / epsilon)
-    if numpy.any(numpy.equal(mu, None)):
-        m = sparse.eye(epsilon.size)
+    if mu is None:
+        mv = numpy.ones_like(epsilon)
     else:
-        m = sparse.diags(mu)
+        mv = mu
 
-    A = ec @ e_div @ hc - omega**2 * m
+    if numpy.any(numpy.equal(pmc, None)):
+        pe = sparse.eye(epsilon.size)
+    else:
+        pe = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
+        mv = numpy.where(pmc, 1.0, mv)               # Set mu to 1 at PMC
+
+    e_div = sparse.diags(1 / epsilon)
+    m = sparse.diags(mv)
+
+    A = pe @ ec @ e_div @ hc @ pe - omega**2 * m
     return A
 
 
