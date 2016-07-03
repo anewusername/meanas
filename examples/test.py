@@ -177,7 +177,12 @@ def test1():
     J = waveguide_mode.compute_source(**wg_args, **wg_results)
     H_overlap = waveguide_mode.compute_overlap_e(**wg_args, **wg_results)
 
-    A = fdfd_tools.operators.e_full(omega, dxes, vec(grid.grids)).tocsr()
+    pecg = gridlock.Grid(edge_coords, initial=0, num_grids=3)
+    # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
+    pecg.grids = [numpy.sign(r) for r in pecg.grids]
+    # pecg.visualize_isosurface()
+
+    A = fdfd_tools.operators.e_full(omega, dxes, vec(grid.grids), pec=vec(pecg.grids)).tocsr()
     b = -1j * omega * vec(J)
     x = solve_A(A, b)
     E = unvec(x, grid.shape)
