@@ -13,7 +13,7 @@ from . import dx_lists_t, field_t
 __author__ = 'Jan Petykiewicz'
 
 
-functional_matrix = Callable[[List[numpy.ndarray]], List[numpy.ndarray]]
+functional_matrix = Callable[[field_t], field_t]
 
 
 def curl_h(dxes: dx_lists_t) -> functional_matrix:
@@ -28,11 +28,11 @@ def curl_h(dxes: dx_lists_t) -> functional_matrix:
     def dH(f, ax):
         return (f - numpy.roll(f, 1, axis=ax)) / dxyz_b[ax]
 
-    def ch_fun(H: List[numpy.ndarray]) -> List[numpy.ndarray]:
-        E = [dH(H[2], 1) - dH(H[1], 2),
-             dH(H[0], 2) - dH(H[2], 0),
-             dH(H[1], 0) - dH(H[0], 1)]
-        return E
+    def ch_fun(h: field_t) -> field_t:
+        e = [dh(h[2], 1) - dh(h[1], 2),
+             dh(h[0], 2) - dh(h[2], 0),
+             dh(h[1], 0) - dh(h[0], 1)]
+        return e
 
     return ch_fun
 
@@ -49,11 +49,11 @@ def curl_e(dxes: dx_lists_t) -> functional_matrix:
     def dE(f, ax):
         return (numpy.roll(f, -1, axis=ax) - f) / dxyz_a[ax]
 
-    def ce_fun(E: List[numpy.ndarray]) -> List[numpy.ndarray]:
-        H = [dE(E[2], 1) - dE(E[1], 2),
-             dE(E[0], 2) - dE(E[2], 0),
-             dE(E[1], 0) - dE(E[0], 1)]
-        return H
+    def ce_fun(e: field_t) -> field_t:
+        h = [de(e[2], 1) - de(e[1], 2),
+             de(e[0], 2) - de(e[2], 0),
+             de(e[1], 0) - de(e[0], 1)]
+        return h
 
     return ce_fun
 
@@ -77,13 +77,13 @@ def e_full(omega: complex,
     ch = curl_h(dxes)
     ce = curl_e(dxes)
 
-    def op_1(E):
-        curls = ch(ce(E))
-        return [c - omega ** 2 * e * x for c, e, x in zip(curls, epsilon, E)]
+    def op_1(e):
+        curls = ch(ce(e))
+        return [c - omega ** 2 * e * x for c, e, x in zip(curls, epsilon, e)]
 
-    def op_mu(E):
-        curls = ch([m * y for m, y in zip(mu, ce(E))])
-        return [c - omega ** 2 * e * x for c, e, x in zip(curls, epsilon, E)]
+    def op_mu(e):
+        curls = ch([m * y for m, y in zip(mu, ce(e))])
+        return [c - omega ** 2 * p * x for c, p, x in zip(curls, epsilon, e)]
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -108,13 +108,13 @@ def eh_full(omega: complex,
     ch = curl_h(dxes)
     ce = curl_e(dxes)
 
-    def op_1(E, H):
-        return ([c - 1j * omega * e * x for c, e, x in zip(ch(H), epsilon, E)],
-                [c + 1j * omega * y for c, y in zip(ce(E), H)])
+    def op_1(e, h):
+        return ([c - 1j * omega * p * x for c, p, x in zip(ch(h), epsilon, e)],
+                [c + 1j * omega * y for c, y in zip(ce(e), h)])
 
-    def op_mu(E, H):
-        return ([c - 1j * omega * e * x for c, e, x in zip(ch(H), epsilon, E)],
-                [c + 1j * omega * m * y for c, m, y in zip(ce(E), mu, H)])
+    def op_mu(e, h):
+        return ([c - 1j * omega * p * x for c, p, x in zip(ch(h), epsilon, e)],
+                [c + 1j * omega * m * y for c, m, y in zip(ce(e), mu, h)])
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -137,11 +137,11 @@ def e2h(omega: complex,
    """
     A2 = curl_e(dxes)
 
-    def e2h_1_1(E):
-        return [y / (-1j * omega) for y in A2(E)]
+    def e2h_1_1(e):
+        return [y / (-1j * omega) for y in A2(e)]
 
-    def e2h_mu(E):
-        return [y / (-1j * omega * m) for y, m in zip(A2(E), mu)]
+    def e2h_mu(e):
+        return [y / (-1j * omega * m) for y, m in zip(A2(e), mu)]
 
     if numpy.any(numpy.equal(mu, None)):
         return e2h_1_1
