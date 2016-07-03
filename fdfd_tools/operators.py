@@ -47,6 +47,7 @@ def e_full(omega: complex,
            epsilon: vfield_t,
            mu: vfield_t = None,
            pec: vfield_t = None,
+           pmc: vfield_t = None,
            ) -> sparse.spmatrix:
     """
     Wave operator del x (1/mu * del x) - omega**2 * epsilon, for use with E-field,
@@ -61,6 +62,8 @@ def e_full(omega: complex,
     :param mu: Vectorized magnetic permeability (default 1 everywhere).
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
         as containing a perfect electrical conductor (PEC).
+    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
+        as containing a perfect magnetic conductor (PMC).
     :return: Sparse matrix containing the wave operator
     """
     ce = curl_e(dxes)
@@ -68,10 +71,15 @@ def e_full(omega: complex,
 
     ev = epsilon
     if numpy.any(numpy.equal(pec, None)):
+        pe = sparse.eye(epsilon.size)
+    else:
+        pe = sparse.diags(numpy.where(pec, 0, 1))     # Set pe to (not PEC)
+        ev = numpy.where(pec, 1.0, ev)                # Set epsilon to 1 at PEC
+
+    if numpy.any(numpy.equal(pmc, None)):
         pm = sparse.eye(epsilon.size)
     else:
-        pm = sparse.diags(numpy.where(pec, 0, 1))     # Set pm to (not PEC)
-        ev = numpy.where(pec, 1.0, ev)                # Set epsilon to 1 at PEC
+        pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
 
     e = sparse.diags(ev)
     if numpy.any(numpy.equal(mu, None)):
@@ -79,7 +87,7 @@ def e_full(omega: complex,
     else:
         m_div = sparse.diags(1 / mu)
 
-    op = pm @ ch @ m_div @ ce @ pm - omega**2 * e
+    op = pe @ ch @ pm @ m_div @ ce @ pe - omega**2 * e
     return op
 
 
@@ -110,6 +118,7 @@ def h_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: vfield_t,
            mu: vfield_t = None,
+           pec: vfield_t = None,
            pmc: vfield_t = None,
            ) -> sparse.spmatrix:
     """
@@ -121,6 +130,8 @@ def h_full(omega: complex,
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
+    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
+        as containing a perfect electrical conductor (PEC).
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
     :return: Sparse matrix containing the wave operator
@@ -134,19 +145,24 @@ def h_full(omega: complex,
         mv = mu
 
     if numpy.any(numpy.equal(pmc, None)):
+        pm = sparse.eye(epsilon.size)
+    else:
+        pm = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
+        mv = numpy.where(pmc, 1.0, mv)               # Set mu to 1 at PMC
+
+    if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
     else:
-        pe = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
-        mv = numpy.where(pmc, 1.0, mv)               # Set mu to 1 at PMC
+        pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
     e_div = sparse.diags(1 / epsilon)
     m = sparse.diags(mv)
 
-    A = pe @ ec @ e_div @ hc @ pe - omega**2 * m
+    A = pm @ ec @ pe @ e_div @ hc @ pm - omega**2 * m
     return A
 
 
-def eh_full(omega, dxes, epsilon, mu=None):
+def eh_full(omega, dxes, epsilon, mu=None, pec=None, pmc=None):
     """
     Wave operator for [E, H] field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
@@ -159,18 +175,32 @@ def eh_full(omega, dxes, epsilon, mu=None):
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
+    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
+        as containing a perfect electrical conductor (PEC).
+    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
+        as containing a perfect magnetic conductor (PMC).
     :return: Sparse matrix containing the wave operator
     """
-    A2 = curl_e(dxes)
-    A1 = curl_h(dxes)
+    if numpy.any(numpy.equal(pec, None)):
+        pe = sparse.eye(epsilon.size)
+    else:
+        pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
-    iwe = 1j * omega * sparse.diags(epsilon)
-    iwm = 1j * omega
+    if numpy.any(numpy.equal(pmc, None)):
+        pm = sparse.eye(epsilon.size)
+    else:
+        pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
+
+    iwe = pe @ (1j * omega * sparse.diags(epsilon))
+    iwm = pm * 1j * omega
     if not numpy.any(numpy.equal(mu, None)):
         iwm *= sparse.diags(mu)
 
+    A1 = pe @ curl_h(dxes) @ pm
+    A2 = pm @ curl_e(dxes) @ pe
+
     A = sparse.bmat([[-iwe, A1],
-                     [A2, +iwm]])
+                     [A2,  iwm]])
     return A
 
 
