@@ -148,7 +148,7 @@ def stretch_with_scpml(dxes: dx_lists_t,
     return dxes
 
 
-def generate_periodic_dx(pos: List[numpy.ndarray]) -> DXList:
+def generate_periodic_dx(pos: List[numpy.ndarray]) -> dx_lists_t:
     """
     Given a list of 3 ndarrays cell centers, creates the cell width parameters for a periodic grid.
 
