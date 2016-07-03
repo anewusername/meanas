@@ -26,7 +26,7 @@ def prepare_s_function(ln_R: float = -16,
                 use.
     """
     def s_factor(distance: numpy.ndarray) -> numpy.ndarray:
-        s_max = (m + 1) * ln_R / 2  # / 2 because we have assume boundaries
+        s_max = (m + 1) * ln_R / 2  # / 2 because we assume periodic boundaries
         return s_max * (distance ** m)
     return s_factor
 
@@ -43,13 +43,16 @@ def uniform_grid_scpml(shape: numpy.ndarray or List[int],
     If you want something more fine-grained, check out stretch_with_scpml(...).
 
     :param shape: Shape of the grid, including the PMLs (which are 2*thicknesses thick)
-    :param thicknesses: [th_x, th_y, th_z] Thickness of the PML in each direction. Both polarities are added.
+    :param thicknesses: [th_x, th_y, th_z] Thickness of the PML in each direction.
+        Both polarities are added.
         Each th_ of pml is applied twice, once on each edge of the grid along the given axis.
         th_* may be zero, in which case no pml is added.
     :param omega: Angular frequency for the simulation
-    :param epsilon_effective: Effective epsilon of the PML. Match this to the material at the edge of your grid.
+    :param epsilon_effective: Effective epsilon of the PML. Match this to the material
+        at the edge of your grid.
         Default 1.
-    :param s_function: s_function created by prepare_s_function(...), allowing customization of pml parameters.
+    :param s_function: s_function created by prepare_s_function(...), allowing
+        customization of pml parameters.
         Default uses prepare_s_function() with no parameters.
     :return: Complex cell widths (dx_lists)
     """
@@ -145,9 +148,9 @@ def stretch_with_scpml(dxes: dx_lists_t,
     return dxes
 
 
-def generate_dx(pos: List[numpy.ndarray]) -> dx_lists_t:
+def generate_periodic_dx(pos: List[numpy.ndarray]) -> DXList:
     """
-    Given a list of 3 ndarrays cell centers, creates the cell width parameters.
+    Given a list of 3 ndarrays cell centers, creates the cell width parameters for a periodic grid.
 
     :param pos: List of 3 ndarrays of cell centers
     :return: (dx_a, dx_b) cell widths (no pml)
