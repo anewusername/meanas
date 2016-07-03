@@ -25,7 +25,7 @@ def curl_h(dxes: dx_lists_t) -> functional_matrix:
     """
     dxyz_b = numpy.meshgrid(*dxes[1], indexing='ij')
 
-    def dH(f, ax):
+    def dh(f, ax):
         return (f - numpy.roll(f, 1, axis=ax)) / dxyz_b[ax]
 
     def ch_fun(h: field_t) -> field_t:
@@ -46,7 +46,7 @@ def curl_e(dxes: dx_lists_t) -> functional_matrix:
     """
     dxyz_a = numpy.meshgrid(*dxes[0], indexing='ij')
 
-    def dE(f, ax):
+    def de(f, ax):
         return (numpy.roll(f, -1, axis=ax) - f) / dxyz_a[ax]
 
     def ce_fun(e: field_t) -> field_t:
