@@ -104,9 +104,7 @@ def test0():
                        eps=n_air ** 2,
                        num_points=24)
 
-    dx0_a = grid.dxyz
-    dx0_b = [grid.shifted_dxyz(which_shifts=a)[a] for a in range(3)]
-    dxes = [dx0_a, dx0_b]
+    dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
         for p in (-1, 1):
             dxes = fdfd_tools.grid.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
@@ -156,9 +154,7 @@ def test1():
     grid = gridlock.Grid(edge_coords, initial=n_air**2, num_grids=3)
     grid.draw_cuboid(center=center, dimensions=[8e3, w, th], eps=n_wg**2)
 
-    dx0_a = grid.dxyz
-    dx0_b = [grid.shifted_dxyz(which_shifts=a)[a] for a in range(3)]
-    dxes = [dx0_a, dx0_b]
+    dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
         for p in (-1, 1):
             dxes = fdfd_tools.grid.stretch_with_scpml(dxes,omega=omega, axis=a, polarity=p,
