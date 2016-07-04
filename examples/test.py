@@ -10,6 +10,8 @@ import gridlock
 
 from matplotlib import pyplot
 
+from opencl_fdfd import cg_solver
+
 __author__ = 'Jan Petykiewicz'
 
 
@@ -185,16 +187,25 @@ def test1():
     # pmcg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
     # pmcg.visualize_isosurface()
 
+    '''
+    Solve!
+    '''
     A = fdfd_tools.operators.e_full(omega, dxes,
                                     epsilon=vec(grid.grids),
                                     pec=vec(pecg.grids),
                                     pmc=vec(pmcg.grids)).tocsr()
     b = -1j * omega * vec(J)
-    x = solve_A(A, b)
+    # x = solve_A(A, b)
+
+    x = cg_solver(omega, dxes, J=vec(J), epsilon=vec(grid.grids),
+                  pec=vec(pecg.grids), pmc=vec(pmcg.grids))
     E = unvec(x, grid.shape)
 
     print('Norm of the residual is ', numpy.linalg.norm(A @ x - b))
 
+    '''
+    Plot results
+    '''
     def pcolor(v):
         vmax = numpy.max(numpy.abs(v))
         pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
