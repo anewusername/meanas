@@ -71,25 +71,23 @@ def e_full(omega: complex,
     ce = curl_e(dxes)
     ch = curl_h(dxes)
 
-    ev = epsilon
     if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
     else:
         pe = sparse.diags(numpy.where(pec, 0, 1))     # Set pe to (not PEC)
-        ev = numpy.where(pec, 1.0, ev)                # Set epsilon to 1 at PEC
 
     if numpy.any(numpy.equal(pmc, None)):
         pm = sparse.eye(epsilon.size)
     else:
-        pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
+        pm = sparse.diags(numpy.where(pmc, 0, 1))     # set pm to (not PMC)
 
-    e = sparse.diags(ev)
+    e = sparse.diags(epsilon)
     if numpy.any(numpy.equal(mu, None)):
         m_div = sparse.eye(epsilon.size)
     else:
         m_div = sparse.diags(1 / mu)
 
-    op = pe @ ch @ pm @ m_div @ ce @ pe - omega**2 * e
+    op = pe @ (ch @ pm @ m_div @ ce - omega**2 * e) @ pe
     return op
 
 
@@ -143,26 +141,23 @@ def h_full(omega: complex,
     ec = curl_e(dxes)
     hc = curl_h(dxes)
 
-    if mu is None:
-        mv = numpy.ones_like(epsilon)
-    else:
-        mv = mu
-
-    if numpy.any(numpy.equal(pmc, None)):
-        pm = sparse.eye(epsilon.size)
-    else:
-        pm = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
-        mv = numpy.where(pmc, 1.0, mv)               # Set mu to 1 at PMC
-
     if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
     else:
         pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
-    e_div = sparse.diags(1 / epsilon)
-    m = sparse.diags(mv)
+    if numpy.any(numpy.equal(pmc, None)):
+        pm = sparse.eye(epsilon.size)
+    else:
+        pm = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
 
-    A = pm @ ec @ pe @ e_div @ hc @ pm - omega**2 * m
+    e_div = sparse.diags(1 / epsilon)
+    if mu is None:
+        m = sparse.eye(epsilon.size)
+    else:
+        m = sparse.diags(mu)
+
+    A = pm @ (ec @ pe @ e_div @ hc - omega**2 * m) @ pm
     return A
 
 
@@ -197,10 +192,11 @@ def eh_full(omega, dxes, epsilon, mu=None, pec=None, pmc=None):
     else:
         pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
 
-    iwe = pe @ (1j * omega * sparse.diags(epsilon))
-    iwm = pm * 1j * omega
+    iwe = pe @ (1j * omega * sparse.diags(epsilon)) @ pe
+    iwm = 1j * omega
     if not numpy.any(numpy.equal(mu, None)):
         iwm *= sparse.diags(mu)
+    iwm = pm @ iwm @ pm
 
     A1 = pe @ curl_h(dxes) @ pm
     A2 = pm @ curl_e(dxes) @ pe

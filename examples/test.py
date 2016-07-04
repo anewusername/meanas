@@ -178,7 +178,7 @@ def test1():
     H_overlap = waveguide_mode.compute_overlap_e(**wg_args, **wg_results)
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
-    # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
+    pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
     # pecg.visualize_isosurface()
 
     pmcg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
