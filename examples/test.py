@@ -10,7 +10,7 @@ import gridlock
 
 from matplotlib import pyplot
 
-from opencl_fdfd import cg_solver
+from opencl_fdfd import cg_solver, csr
 
 __author__ = 'Jan Petykiewicz'
 
@@ -180,7 +180,7 @@ def test1():
     H_overlap = waveguide_mode.compute_overlap_e(**wg_args, **wg_results)
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
-    pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
+    # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
     # pecg.visualize_isosurface()
 
     pmcg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
@@ -190,15 +190,21 @@ def test1():
     '''
     Solve!
     '''
-    A = fdfd_tools.operators.e_full(omega, dxes,
-                                    epsilon=vec(grid.grids),
-                                    pec=vec(pecg.grids),
-                                    pmc=vec(pmcg.grids)).tocsr()
-    b = -1j * omega * vec(J)
-    # x = solve_A(A, b)
+    sim_args = {
+        'omega': omega,
+        'dxes': dxes,
+        'epsilon': vec(grid.grids),
+        'pec': vec(pecg.grids),
+        'pmc': vec(pmcg.grids),
+    }
 
-    x = cg_solver(omega, dxes, J=vec(J), epsilon=vec(grid.grids),
-                  pec=vec(pecg.grids), pmc=vec(pmcg.grids))
+    b = -1j * omega * vec(J)
+    A = fdfd_tools.operators.e_full(**sim_args).tocsr()
+#    x = solve_A(A, b)
+
+#    x = csr.cg_solver(J=vec(J), **sim_args)
+    x = cg_solver(J=vec(J), **sim_args)
+
     E = unvec(x, grid.shape)
 
     print('Norm of the residual is ', numpy.linalg.norm(A @ x - b))
@@ -211,7 +217,7 @@ def test1():
         pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
         pyplot.axis('equal')
         pyplot.colorbar()
-    
+
     center = grid.pos2ind([0, 0, 0], None).astype(int)
     pyplot.figure()
     pyplot.subplot(2, 2, 1)
