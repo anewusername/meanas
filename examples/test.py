@@ -1,8 +1,4 @@
 import numpy
-from numpy.ctypeslib import ndpointer
-import ctypes
-
-# h5py used by (uncalled) h5_write(); not used in currently-called code
 
 from fdfd_tools import vec, unvec, waveguide_mode
 import fdfd_tools, fdfd_tools.functional, fdfd_tools.grid
@@ -10,62 +6,10 @@ import gridlock
 
 from matplotlib import pyplot
 
+#import magma_fdfd
 from opencl_fdfd import cg_solver, csr
 
 __author__ = 'Jan Petykiewicz'
-
-
-def complex_to_alternating(x: numpy.ndarray) -> numpy.ndarray:
-    stacked = numpy.vstack((numpy.real(x), numpy.imag(x)))
-    return stacked.T.astype(numpy.float64).flatten()
-
-
-def solve_A(A, b: numpy.ndarray) -> numpy.ndarray:
-    A_vals = complex_to_alternating(A.data)
-    b_vals = complex_to_alternating(b)
-    x_vals = numpy.zeros_like(b_vals)
-
-    args = ['dummy',
-            '--solver', 'QMR',
-            '--maxiter', '40000',
-            '--atol', '1e-6',
-            '--verbose', '100']
-    argc = ctypes.c_int(len(args))
-    argv_arr_t = ctypes.c_char_p * len(args)
-    argv_arr = argv_arr_t()
-    argv_arr[:] = [s.encode('ascii') for s in args]
-
-    A_dim = ctypes.c_int(A.shape[0])
-    A_nnz = ctypes.c_int(A.nnz)
-    npdouble = ndpointer(ctypes.c_double)
-    npint = ndpointer(ctypes.c_int)
-
-    lib = ctypes.cdll.LoadLibrary('/home/jan/magma_solve/zsolve_shared.so')
-    c_solver = lib.zsolve
-    c_solver.argtypes = [ctypes.c_int, argv_arr_t,
-                         ctypes.c_int, ctypes.c_int,
-                         npdouble, npint, npint, npdouble, npdouble]
-
-    c_solver(argc, argv_arr, A_dim, A_nnz, A_vals,
-             A.indptr.astype(numpy.intc),
-             A.indices.astype(numpy.intc),
-             b_vals, x_vals)
-
-    x = (x_vals[::2] + 1j * x_vals[1::2]).flatten()
-    return x
-
-
-def write_h5(filename, A, b):
-    import h5py
-    # dtype=np.dtype([('real', 'float64'), ('imag', 'float64')])
-    h5py.get_config().complex_names = ('real', 'imag')
-    with h5py.File(filename, 'w') as mat_file:
-        mat_file.create_group('/A')
-        mat_file['/A/ir'] = A.indices.astype(numpy.intc)
-        mat_file['/A/jc'] = A.indptr.astype(numpy.intc)
-        mat_file['/A/data'] = A.data
-        mat_file['/b'] = b
-        mat_file['/x'] = numpy.zeros_like(b)
 
 
 def test0():
@@ -200,7 +144,7 @@ def test1():
 
     b = -1j * omega * vec(J)
     A = fdfd_tools.operators.e_full(**sim_args).tocsr()
-#    x = solve_A(A, b)
+#    x = magma_fdfd.solve_A(A, b)
 
 #    x = csr.cg_solver(J=vec(J), **sim_args)
     x = cg_solver(J=vec(J), **sim_args)
