@@ -21,9 +21,9 @@ def prepare_s_function(ln_R: float = -16,
 
     :param ln_R: Natural logarithm of the desired reflectance
     :param m: Polynomial order for the PML (imaginary part increases as distance ** m)
-    :return: An s_function, which takes an ndarray (distances) and returns an ndarray (complex part of
-                the cell width; needs to be divided by sqrt(epilon_effective) * real(omega)) before
-                use.
+    :return: An s_function, which takes an ndarray (distances) and returns an ndarray (complex part
+                of the cell width; needs to be divided by sqrt(epilon_effective) * real(omega))
+                before use.
     """
     def s_factor(distance: numpy.ndarray) -> numpy.ndarray:
         s_max = (m + 1) * ln_R / 2  # / 2 because we assume periodic boundaries
@@ -96,11 +96,11 @@ def stretch_with_scpml(dxes: dx_lists_t,
         :param axis: axis to stretch (0=x, 1=y, 2=z)
         :param polarity: direction to stretch (-1 for -ve, +1 for +ve)
         :param omega: Angular frequency for the simulation
-        :param epsilon_effective: Effective epsilon of the PML. Match this to the material at the edge of your grid.
-            Default 1.
+        :param epsilon_effective: Effective epsilon of the PML. Match this to the material at the
+            edge of your grid. Default 1.
         :param thickness: number of cells to use for pml (default 10)
-        :param s_function: s_function created by prepare_s_function(...), allowing customization of pml parameters.
-            Default uses prepare_s_function() with no parameters.
+        :param s_function: s_function created by prepare_s_function(...), allowing customization
+            of pml parameters. Default uses prepare_s_function() with no parameters.
         :return: Complex cell widths
     """
     if s_function is None:
