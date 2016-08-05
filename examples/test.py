@@ -222,4 +222,3 @@ if __name__ == '__main__':
     #     test1(magma_solver)
     else:
         test1()
-
