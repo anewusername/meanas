@@ -13,11 +13,17 @@ electromagnetic simulations.
 * Functional versions of most operators
 * Anisotropic media (eps_xx, eps_yy, eps_zz, mu_xx, ...)
 
-This package does *not* provide a matrix solver. The waveguide mode solver
-uses scipy's eigenvalue solver; I recommend a GPU-based iterative solver (eg.
-those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html)). You will
-need the ability to solve complex symmetric (non-Hermitian) linear systems,
-ideally with double precision.
+This package does *not* provide a fast matrix solver, though by default
+```fdfd_tools.solvers.generic(...)``` will call
+```scipy.sparse.linalg.qmr(...)``` to perform a solve.
+For 2D problems this should be fine; likewise,  the waveguide mode
+solver uses scipy's eigenvalue solver, with reasonable results.
+
+For solving large (or 3D) problems, I recommend a GPU-based iterative
+solver, such as [opencl_fdfd](https://mpxd.net/gogs/jan/opencl_fdfd) or
+those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html)). Your
+solver will need the ability to solve complex symmetric (non-Hermitian)
+linear systems, ideally with double precision.
 
 ## Installation
 
@@ -31,3 +37,9 @@ Install with pip, via git:
 ```bash
 pip install git+https://mpxd.net/gogs/jan/fdfd_tools.git@release
 ```
+
+## Use
+
+See examples/test.py for some simple examples; you may need additional
+packages such as [gridlock](https://mpxd.net/gogs/jan/gridlock)
+to run the examples.
