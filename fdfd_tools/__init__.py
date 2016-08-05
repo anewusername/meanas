@@ -3,7 +3,7 @@ Electromagnetic FDFD simulation tools
 
 Tools for 3D and 2D Electromagnetic Finite Difference Frequency Domain (FDFD)
 simulations. These tools handle conversion of fields to/from vector form,
-creation of the wave operator matrix, stretched-coordinate PMLs,
+creation of the wave operator matrix, stretched-coordinate PMLs, PECs and PMCs,
 field conversion operators, waveguide mode operator, and waveguide mode
 solver.
 

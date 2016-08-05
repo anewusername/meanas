@@ -12,6 +12,7 @@ electromagnetic simulations.
 * Stretched-coordinate PML boundaries (SCPML)
 * Functional versions of most operators
 * Anisotropic media (eps_xx, eps_yy, eps_zz, mu_xx, ...)
+* Arbitrary distributions of perfect electric and magnetic conductors (PEC / PMC)
 
 This package does *not* provide a fast matrix solver, though by default
 ```fdfd_tools.solvers.generic(...)``` will call
