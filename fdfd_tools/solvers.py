@@ -12,9 +12,9 @@ from . import operators
 
 
 def _scipy_qmr(A: scipy.sparse.csr_matrix,
-              b: numpy.ndarray,
-              **kwargs
-              ) -> numpy.ndarray:
+               b: numpy.ndarray,
+               **kwargs
+               ) -> numpy.ndarray:
     """
     Wrapper for scipy.sparse.linalg.qmr
 
