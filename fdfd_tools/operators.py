@@ -161,7 +161,13 @@ def h_full(omega: complex,
     return A
 
 
-def eh_full(omega, dxes, epsilon, mu=None, pec=None, pmc=None):
+def eh_full(omega: complex,
+            dxes: dx_lists_t,
+            epsilon: vfield_t,
+            mu: vfield_t = None,
+            pec: vfield_t = None,
+            pmc: vfield_t = None
+            ) -> sparse.spmatrix:
     """
     Wave operator for [E, H] field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
@@ -256,7 +262,8 @@ def e2h(omega: complex,
 
 def m2j(omega: complex,
         dxes: dx_lists_t,
-        mu: vfield_t = None):
+        mu: vfield_t = None
+        ) -> sparse.spmatrix:
     """
     Utility operator for converting M field into J.
     Converts a magnetic current M into an electric current J.
