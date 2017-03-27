@@ -27,7 +27,7 @@ def vec(f: field_t) -> vfield_t:
     """
     if numpy.any(numpy.equal(f, None)):
         return None
-    return numpy.hstack(tuple((fi.flatten(order='F') for fi in f)))
+    return numpy.hstack(tuple((fi.flatten(order='C') for fi in f)))
 
 
 def unvec(v: vfield_t, shape: numpy.ndarray) -> field_t:
@@ -45,5 +45,5 @@ def unvec(v: vfield_t, shape: numpy.ndarray) -> field_t:
     """
     if numpy.any(numpy.equal(v, None)):
         return None
-    return [vi.reshape(shape, order='F') for vi in numpy.split(v, 3)]
+    return [vi.reshape(shape, order='C') for vi in numpy.split(v, 3)]
 
