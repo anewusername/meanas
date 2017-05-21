@@ -304,7 +304,7 @@ def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmat
     i_ind = numpy.arange(n)
     j_ind = numpy.ravel_multi_index(ijk, shape, order='C')
 
-    vij = (numpy.ones(n), (i_ind, j_ind.flatten(order='C')))
+    vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
 
     d = sparse.csr_matrix(vij, shape=(n, n))
 
@@ -348,7 +348,7 @@ def shift_with_mirror(axis: int, shape: List[int], shift_distance: int=1) -> spa
     if len(shape) == 3:
         j_ind += ijk[2] * shape[0] * shape[1]
 
-    vij = (numpy.ones(n), (i_ind, j_ind.flatten(order='C')))
+    vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
 
     d = sparse.csr_matrix(vij, shape=(n, n))
     return d
@@ -369,7 +369,7 @@ def deriv_forward(dx_e: List[numpy.ndarray]) -> List[sparse.spmatrix]:
     def deriv(axis):
         return rotation(axis, shape, 1) - sparse.eye(n)
 
-    Ds = [sparse.diags(+1 / dx.flatten(order='C')) @ deriv(a)
+    Ds = [sparse.diags(+1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_e_expanded)]
 
     return Ds
@@ -390,7 +390,7 @@ def deriv_back(dx_h: List[numpy.ndarray]) -> List[sparse.spmatrix]:
     def deriv(axis):
         return rotation(axis, shape, -1) - sparse.eye(n)
 
-    Ds = [sparse.diags(-1 / dx.flatten(order='C')) @ deriv(a)
+    Ds = [sparse.diags(-1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_h_expanded)]
 
     return Ds
@@ -461,8 +461,8 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     fx, fy, fz = [avgf(i, shape) for i in range(3)]
     bx, by, bz = [avgb(i, shape) for i in range(3)]
 
-    dxag = [dx.flatten(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
-    dbgx, dbgy, dbgz = [sparse.diags(dx.flatten(order='C'))
+    dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
+    dbgx, dbgy, dbgz = [sparse.diags(dx.ravel(order='C'))
                         for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
 
     Ex, Ey, Ez = [sparse.diags(ei * da) for ei, da in zip(numpy.split(e, 3), dxag)]
@@ -490,8 +490,8 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     fx, fy, fz = [avgf(i, shape) for i in range(3)]
     bx, by, bz = [avgb(i, shape) for i in range(3)]
 
-    dxbg = [dx.flatten(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    dagx, dagy, dagz = [sparse.diags(dx.flatten(order='C'))
+    dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
+    dagx, dagy, dagz = [sparse.diags(dx.ravel(order='C'))
                         for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
 
     Hx, Hy, Hz = [sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg)]
