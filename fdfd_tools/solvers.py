@@ -3,12 +3,16 @@ Solvers for FDFD problems.
 """
 
 from typing import List, Callable, Dict, Any
+import logging
 
 import numpy
 from numpy.linalg import norm
 import scipy.sparse.linalg
 
 from . import operators
+
+
+logger = logging.getLogger(__name__)
 
 
 def _scipy_qmr(A: scipy.sparse.csr_matrix,
@@ -29,20 +33,20 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     '''
     iter = 0
 
-    def print_residual(xk):
+    def log_residual(xk):
         nonlocal iter
         iter += 1
         if iter % 100 == 0:
-            print('Solver residual at iteration', iter, ':', norm(A @ xk - b))
+            logger.info('Solver residual at iteration {} : {}'.format(iter, norm(A @ xk - b)))
 
     if 'callback' in kwargs:
         def augmented_callback(xk):
-            print_residual(xk)
+            log_residual(xk)
             kwargs['callback'](xk)
 
         kwargs['callback'] = augmented_callback
     else:
-        kwargs['callback'] = print_residual
+        kwargs['callback'] = log_residual
 
     '''
     Run the actual solve
@@ -83,7 +87,7 @@ def generic(omega: complex,
               b: numpy.ndarray
               x: numpy.ndarray
         Default is a wrapped version of scipy.sparse.linalg.qmr()
-         which doesn't return convergence info and prints the residual
+         which doesn't return convergence info and logs the residual
          every 100 iterations.
     :param matrix_solver_opts: Passed as kwargs to matrix_solver(...)
     :return: E-field which solves the system.
