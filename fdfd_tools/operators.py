@@ -284,7 +284,8 @@ def m2j(omega: complex,
 
 def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
     """
-    Utility operator for performing a circular shift along a specified axis by 1 element.
+    Utility operator for performing a circular shift along a specified axis by a
+     specified number of elements.
 
     :param axis: Axis to shift along. x=0, y=1, z=2
     :param shape: Shape of the grid being shifted
