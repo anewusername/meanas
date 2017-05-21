@@ -190,7 +190,6 @@ def test1(solver=generic_solver):
 
     s1x, s2x = poyntings(E)
     pyplot.plot(s1x[0].sum(axis=2).sum(axis=1))
-    pyplot.hold(True)
     pyplot.plot(s2x[0].sum(axis=2).sum(axis=1))
     pyplot.show()
 
