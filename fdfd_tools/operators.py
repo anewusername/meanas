@@ -182,10 +182,10 @@ def eh_full(omega: complex,
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
         as containing a perfect electrical conductor (PEC).
-        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
+        The PEC is applied per-field-component (i.e., pec.size == epsilon.size)
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
-        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
+        The PMC is applied per-field-component (i.e., pmc.size == epsilon.size)
     :return: Sparse matrix containing the wave operator
     """
     if numpy.any(numpy.equal(pec, None)):
