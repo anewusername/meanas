@@ -1,10 +1,10 @@
 from typing import Dict, List
 import numpy
 import scipy.sparse as sparse
-import scipy.sparse.linalg as spalg
 
 from . import vec, unvec, dx_lists_t, vfield_t, field_t
 from . import operators, waveguide, functional
+from .eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
 def solve_waveguide_mode_2d(mode_number: int,
@@ -12,12 +12,12 @@ def solve_waveguide_mode_2d(mode_number: int,
                             dxes: dx_lists_t,
                             epsilon: vfield_t,
                             mu: vfield_t = None,
-                            wavenumber_correction: bool = True
+                            wavenumber_correction: bool = True,
                             ) -> Dict[str, complex or field_t]:
     """
     Given a 2d region, attempts to solve for the eigenmode with the specified mode number.
 
-    :param mode_number: Number of the mode, 0-indexed
+    :param mode_number: Number of the mode, 0-indexed.
     :param omega: Angular frequency of the simulation
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
     :param epsilon: Dielectric constant
@@ -29,46 +29,19 @@ def solve_waveguide_mode_2d(mode_number: int,
 
     '''
     Solve for the largest-magnitude eigenvalue of the real operator
-     by using power iteration.
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-
     A_r = waveguide.operator(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
 
-    # Use power iteration for 20 steps to estimate the dominant eigenvector
-    v = numpy.random.rand(A_r.shape[0])
-    for _ in range(20):
-        v = A_r @ v
-        v /= numpy.linalg.norm(v)
-
-    lm_eigval = v @ A_r @ v
-
-    '''
-    Shift by the absolute value of the largest eigenvalue, then find a few of the
-     largest-magnitude (shifted) eigenvalues. The shift ensures that we find the largest
-     _positive_ eigenvalues, since any negative eigenvalues will be shifted to the range
-     0 >= neg_eigval + abs(lm_eigval) > abs(lm_eigval)
-    '''
-    shifted_A_r = A_r + abs(lm_eigval) * sparse.eye(A_r.shape[0])
-    eigvals, eigvecs = spalg.eigs(shifted_A_r, which='LM', k=mode_number + 3, ncv=50)
-
-    # Pick the eigenvalue we want from the few we found
-    k = eigvals.argsort()[-(mode_number+1)]
-    v = eigvecs[:, k]
+    eigvals, eigvecs = signed_eigensolve(A_r, mode_number+3)
+    v = eigvecs[:, -(mode_number + 1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
     A = waveguide.operator(omega, dxes, epsilon, mu)
-
-    eigval = None
-    for _ in range(40):
-        eigval = v.conj() @ A @ v
-        if numpy.linalg.norm(A @ v - eigval * v) < 1e-13:
-            break
-        v = spalg.spsolve(A - eigval * sparse.eye(A.shape[0]), v)
-        v /= numpy.linalg.norm(v)
+    v, eigval = rayleigh_quotient_iteration(A, v)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)

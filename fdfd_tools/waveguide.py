@@ -23,7 +23,7 @@ import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
 
-from . import unvec, dx_lists_t, field_t, vfield_t
+from . import vec, unvec, dx_lists_t, field_t, vfield_t
 from . import operators
 
 
