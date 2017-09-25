@@ -41,7 +41,7 @@ def solve_waveguide_mode_2d(mode_number: int,
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
     A = waveguide.operator(omega, dxes, epsilon, mu)
-    v, eigval = rayleigh_quotient_iteration(A, v)
+    eigval, v = rayleigh_quotient_iteration(A, v)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
