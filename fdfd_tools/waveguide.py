@@ -307,3 +307,62 @@ def e_err(e: vfield_t,
         op = ch @ mu_inv @ ce @ e - omega ** 2 * (epsilon * e)
 
     return norm(op) / norm(e)
+
+
+def cylindrical_operator(omega: complex,
+                         dxes: dx_lists_t,
+                         epsilon: vfield_t,
+                         r0: float,
+                         ) -> sparse.spmatrix:
+    """
+    Cylindrical coordinate waveguide operator of the form
+
+    TODO
+
+    for use with a field vector of the form [E_r, E_y].
+
+    This operator can be used to form an eigenvalue problem of the form
+    A @ [E_r, E_y] = wavenumber**2 * [E_r, E_y]
+
+    which can then be solved for the eigenmodes of the system (an exp(-i * wavenumber * theta)
+     theta-dependence is assumed for the fields).
+
+    :param omega: The angular frequency of the system
+    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param epsilon: Vectorized dielectric constant grid
+    :param r0: Radius of curvature for the simulation. This should be the minimum value of
+        r within the simulation domain.
+    :return: Sparse matrix representation of the operator
+    """
+
+    Dfx, Dfy = operators.deriv_forward(dxes[0])
+    Dbx, Dby = operators.deriv_back(dxes[1])
+
+    rx = r0 + numpy.cumsum(dxes[0][0])
+    ry = r0 + dxes[0][0]/2.0 + numpy.cumsum(dxes[1][0])
+    tx = 1 + rx/r0
+    ty = 1 + ry/r0
+
+    Tx = sparse.diags(vec(tx[:, None].repeat(dxes[0][1].size, axis=1)))
+    Ty = sparse.diags(vec(ty[:, None].repeat(dxes[1][1].size, axis=1)))
+
+    eps_parts = numpy.split(epsilon, 3)
+    eps_x = sparse.diags(eps_parts[0])
+    eps_y = sparse.diags(eps_parts[1])
+    eps_z_inv = sparse.diags(1 / eps_parts[2])
+
+    pa = sparse.vstack((Dfx, Dfy)) @ Tx @ eps_z_inv @ sparse.hstack((Dbx, Dby))
+    pb = sparse.vstack((Dfx, Dfy)) @ Tx @ eps_z_inv @ sparse.hstack((Dby, Dbx))
+    a0 = Ty @ eps_x + omega**-2 * Dby @ Ty @ Dfy
+    a1 = Tx @ eps_y + omega**-2 * Dbx @ Ty @ Dfx
+    b0 = Dbx @ Ty @ Dfy
+    b1 = Dby @ Ty @ Dfx
+
+    diag = sparse.block_diag
+    op = (omega**2 * diag((Tx, Ty)) + pa) @ diag((a0, a1)) + \
+        - (sparse.bmat(((None, Ty), (Tx, None))) + omega**-2 * pb) @ diag((b0, b1))
+
+    return op
+
+
+

@@ -272,3 +272,69 @@ def compute_overlap_e(E: field_t,
     overlap_e /= norm_factor * dx_forward
 
     return unvec(overlap_e, E[0].shape)
+
+
+def solve_waveguide_mode_cylindrical(mode_number: int,
+                                     omega: complex,
+                                     dxes: dx_lists_t,
+                                     epsilon: vfield_t,
+                                     r0: float,
+                                     wavenumber_correction: bool = True,
+                                     ) -> Dict[str, complex or field_t]:
+    """
+    Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
+     of the bent waveguide with the specified mode number.
+
+    :param mode_number: Number of the mode, 0-indexed
+    :param omega: Angular frequency of the simulation
+    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header.
+        The first coordinate is assumed to be r, the second is y.
+    :param epsilon: Dielectric constant
+    :param r0: Radius of curvature for the simulation. This should be the minimum value of
+        r within the simulation domain.
+    :param wavenumber_correction: Whether to correct the wavenumber to
+        account for numerical dispersion (default True)
+    :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
+    """
+
+    '''
+    Solve for the largest-magnitude eigenvalue of the real operator
+    '''
+    dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
+
+    A_r = waveguide.cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
+    eigvals, eigvecs = signed_eigensolve(A_r, mode_number + 3)
+    v = eigvecs[:, -(mode_number+1)]
+
+    '''
+    Now solve for the eigenvector of the full operator, using the real operator's
+     eigenvector as an initial guess for Rayleigh quotient iteration.
+    '''
+    A = waveguide.cylindrical_operator(omega, dxes, epsilon, r0)
+    eigval, v = rayleigh_quotient_iteration(A, v)
+
+    # Calculate the wave-vector (force the real part to be positive)
+    wavenumber = numpy.sqrt(eigval)
+    wavenumber *= numpy.sign(numpy.real(wavenumber))
+
+    '''
+    Perform correction on wavenumber to account for numerical dispersion.
+
+     See Numerical Dispersion in Taflove's FDTD book.
+     This correction term reduces the error in emitted power, but additional
+      error is introduced into the E_err and H_err terms. This effect becomes
+      more pronounced as beta increases.
+    '''
+    if wavenumber_correction:
+        wavenumber -= 2 * numpy.sin(numpy.real(wavenumber / 2)) - numpy.real(wavenumber)
+
+    shape = [d.size for d in dxes[0]]
+    v = numpy.hstack((v, numpy.zeros(shape[0] * shape[1])))
+    fields = {
+        'wavenumber': wavenumber,
+        'E': unvec(v, shape),
+#        'E': unvec(e, shape),
+#        'H': unvec(h, shape),
+    }
+
+    return fields
