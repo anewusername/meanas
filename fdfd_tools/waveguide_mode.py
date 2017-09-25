@@ -67,8 +67,8 @@ def solve_waveguide_mode_2d(mode_number: int,
         eigval = v.conj() @ A @ v
         if numpy.linalg.norm(A @ v - eigval * v) < 1e-13:
             break
-        w = spalg.spsolve(A - eigval * sparse.eye(A.shape[0]), v)
-        v = w / numpy.linalg.norm(w)
+        v = spalg.spsolve(A - eigval * sparse.eye(A.shape[0]), v)
+        v /= numpy.linalg.norm(v)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
