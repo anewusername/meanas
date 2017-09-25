@@ -45,7 +45,7 @@ def solve_waveguide_mode_2d(mode_number: int,
 
     '''
     Shift by the absolute value of the largest eigenvalue, then find a few of the
-     largest (shifted) eigenvalues. The shift ensures that we find the largest
+     largest-magnitude (shifted) eigenvalues. The shift ensures that we find the largest
      _positive_ eigenvalues, since any negative eigenvalues will be shifted to the range
      0 >= neg_eigval + abs(lm_eigval) > abs(lm_eigval)
     '''
