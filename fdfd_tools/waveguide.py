@@ -340,8 +340,8 @@ def cylindrical_operator(omega: complex,
 
     rx = r0 + numpy.cumsum(dxes[0][0])
     ry = r0 + dxes[0][0]/2.0 + numpy.cumsum(dxes[1][0])
-    tx = 1 + rx/r0
-    ty = 1 + ry/r0
+    tx = rx/r0
+    ty = ry/r0
 
     Tx = sparse.diags(vec(tx[:, None].repeat(dxes[0][1].size, axis=1)))
     Ty = sparse.diags(vec(ty[:, None].repeat(dxes[1][1].size, axis=1)))
