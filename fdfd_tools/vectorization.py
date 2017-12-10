@@ -1,7 +1,7 @@
 """
 Functions for moving between a vector field (list of 3 ndarrays, [f_x, f_y, f_z])
 and a 1D array representation of that field [f_x0, f_x1, f_x2,... f_y0,... f_z0,...].
-Vectorized versions of the field use column-major (ie., Fortran, Matlab) ordering.
+Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
 

@@ -29,7 +29,7 @@ def power_iteration(operator: sparse.spmatrix,
         v = operator @ v
         v /= norm(v)
 
-    lm_eigval = v.conj() @ operator @ v
+    lm_eigval = v.conj() @ (operator @ v)
     return lm_eigval, v
 
 
@@ -59,7 +59,7 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix,
     return eigval, v
 
 
-def signed_eigensolve(operator: sparse.spmatrix,
+def signed_eigensolve(operator: sparse.spmatrix or spalg.LinearOperator,
                       how_many: int,
                       negative: bool = False,
                       ) -> Tuple[numpy.ndarray, numpy.ndarray]:
@@ -83,12 +83,19 @@ def signed_eigensolve(operator: sparse.spmatrix,
      largest _positive_ eigenvalues, since any negative eigenvalues will be shifted to the
      range 0 >= neg_eigval + abs(lm_eigval) > abs(lm_eigval)
     '''
+    shift = numpy.abs(lm_eigval)
     if negative:
-        shifted_operator = operator - abs(lm_eigval) * sparse.eye(operator.shape[0])
-    else:
-        shifted_operator = operator + abs(lm_eigval) * sparse.eye(operator.shape[0])
+        shift *= -1
 
-    eigenvalues, eigenvectors = spalg.eigs(shifted_operator, which='LM', k=how_many, ncv=50)
+    # Try to combine, use general LinearOperator if we fail
+    try:
+        shifted_operator = operator + shift * sparse.eye(operator.shape[0])
+    except TypeError:
+        shifted_operator = operator + spalg.LinearOperator(shape=operator.shape,
+                                                           matvec=lambda v: shift * v)
+
+    shifted_eigenvalues, eigenvectors = spalg.eigs(shifted_operator, which='LM', k=how_many, ncv=50)
+    eigenvalues = shifted_eigenvalues - shift
 
     k = eigenvalues.argsort()
     return eigenvalues[k], eigenvectors[:, k]
