@@ -47,12 +47,10 @@ This module contains functions for generating and solving the
   h_mn = fftn(1/mu * ifftn(b_m * m + b_n * n))
  which forms the operator from the left side of the equation.
 
- We can then use ARPACK in shift-invert mode (via scipy.linalg.eigs)
-  to find the eigenvectors for this operator.
-
- This approach is similar to the one used in MPB and derived at the start of
- SG Johnson and JD Joannopoulos, Block-iterative frequency-domain methods
+ We can then use a preconditioned block Rayleigh iteration algorithm, as in
+  SG Johnson and JD Joannopoulos, Block-iterative frequency-domain methods
   for Maxwell's equations in a planewave basis, Optics Express 8, 3, 173-190 (2001)
+ (similar to that used in MPB) to find the eigenvectors for this operator.
 
  ===
 
@@ -76,13 +74,18 @@ This module contains functions for generating and solving the
 '''
 
 from typing import List, Tuple, Callable, Dict
+import logging
 import numpy
 from numpy.fft import fftn, ifftn, fftfreq
 import scipy
+import scipy.optimize
 from scipy.linalg import norm
 import scipy.sparse.linalg as spalg
 
+from .eigensolvers import rayleigh_quotient_iteration
 from . import field_t
+
+logger = logging.getLogger(__name__)
 
 
 def generate_kmn(k0: numpy.ndarray,
@@ -338,7 +341,8 @@ def eigsolve(num_modes: int,
              k0: numpy.ndarray,
              G_matrix: numpy.ndarray,
              epsilon: field_t,
-             mu: field_t = None
+             mu: field_t = None,
+             tolerance = 1e-8,
              ) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
@@ -355,15 +359,102 @@ def eigsolve(num_modes: int,
     """
     h_size = 2 * epsilon[0].size
 
+    '''
+    Generate the operators
+    '''
     mop = maxwell_operator(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
     imop = inverse_maxwell_operator_approx(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
 
     scipy_op = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=mop)
     scipy_iop = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=imop)
 
-    _eigvals, eigvecs = spalg.eigs(scipy_op, num_modes, sigma=0, OPinv=scipy_iop, which='LM')
-    eigvals = numpy.sum(eigvecs * (scipy_op @ eigvecs), axis=0) / numpy.sum(eigvecs * eigvecs, axis=0)
-    order = numpy.argsort(-eigvals)
+    y_shape = (h_size, num_modes)
+
+    def rayleigh_quotient(Z: numpy.ndarray, approx_grad: bool = True):
+        """
+        Absolute value of the block Rayleigh quotient, and the associated gradient.
+
+        See Johnson and Joannopoulos, Opt. Expr. 8, 3 (2001) for details (full
+         citation in module docstring).
+
+        ===
+
+        Notes on my understanding of the procedure:
+
+        Minimize f(Y) = |trace((Y.H @ A @ Y)|, making use of Y = Z @ inv(Z.H @ Z)^(1/2)
+         (a polar orthogonalization of Y). This gives f(Z) = |trace(Z.H @ A @ Z @ U)|,
+         where U = inv(Z.H @ Z). We minimize the absolute value to find the eigenvalues
+         with smallest magnitude.
+
+        The gradient is P @ (A @ Z @ U), where P = (1 - Z @ U @ Z.H) is a projection
+         onto the space orthonormal to Z. If approx_grad is True, the approximate
+         inverse of the maxwell operator is used to precondition the gradient.
+        """
+        z = Z.reshape(y_shape)
+        U = numpy.linalg.inv(z.conj().T @ z)
+        zU = z @ U
+        AzU = scipy_op @ zU
+        zTAzU = z.conj().T @ AzU
+        f = numpy.real(numpy.trace(zTAzU))
+        if approx_grad:
+            df_dy = scipy_iop @ (AzU - zU @ zTAzU)
+        else:
+            df_dy = (AzU - zU @ zTAzU)
+        return numpy.abs(f), numpy.sign(f) * df_dy.ravel()
+
+    '''
+    Use the conjugate gradient method and the approximate gradient calculation to
+     quickly find approximate eigenvectors.
+    '''
+    result = scipy.optimize.minimize(rayleigh_quotient,
+                                     numpy.random.rand(*y_shape),
+                                     jac=True,
+                                     method='CG',
+                                     tol=1e-5,
+                                     options={'maxiter': 30, 'disp':True})
+
+    result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
+                                     result.x,
+                                     jac=True,
+                                     method='CG',
+                                     tol=1e-13,
+                                     options={'maxiter': 100, 'disp':True})
+
+    z = result.x.reshape(y_shape)
+
+    '''
+    Recover eigenvectors from Z
+    '''
+    U = numpy.linalg.inv(z.conj().T @ z)
+    y = z @ scipy.linalg.sqrtm(U)
+    w = y.conj().T @ (scipy_op @ y)
+
+    eigvals, w_eigvecs = numpy.linalg.eig(w)
+    eigvecs = y @ w_eigvecs
+
+    for i in range(len(eigvals)):
+        v = eigvecs[:, i]
+        n = eigvals[i]
+        v /= norm(v)
+        logger.info('eigness {}: {}'.format(i, norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )))
+
+    ev2 = eigvecs.copy()
+    for i in range(len(eigvals)):
+        logger.info('Refining eigenvector {}'.format(i))
+        eigvals[i], ev2[:, i] = rayleigh_quotient_iteration(scipy_op,
+                                                            guess_vector=eigvecs[:, i],
+                                                            iterations=40,
+                                                            tolerance=tolerance * numpy.real(numpy.sqrt(eigvals[i])) * 2,
+                                                            solver = lambda A, b: spalg.bicgstab(A, b, maxiter=200)[0])
+    eigvecs = ev2
+    order = numpy.argsort(numpy.abs(eigvals))
+
+    for i in range(len(eigvals)):
+        v = eigvecs[:, i]
+        n = eigvals[i]
+        v /= norm(v)
+        logger.info('eigness {}: {}'.format(i, norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )))
+
     return eigvals[order], eigvecs.T[order]
 
 
