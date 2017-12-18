@@ -400,7 +400,7 @@ def eigsolve(num_modes: int,
             df_dy = scipy_iop @ (AzU - zU @ zTAzU)
         else:
             df_dy = (AzU - zU @ zTAzU)
-        return numpy.abs(f), numpy.sign(f) * df_dy.ravel()
+        return numpy.abs(f), numpy.sign(f) * numpy.real(df_dy).ravel()
 
     '''
     Use the conjugate gradient method and the approximate gradient calculation to
