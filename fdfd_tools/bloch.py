@@ -68,7 +68,7 @@ This module contains functions for generating and solving the
 
     k, f = find_k(frequency=1/1550,
                   tolerance=(1/1550 - 1/1551),
-                  search_direction=[1, 0, 0],
+                  direction=[1, 0, 0],
                   G_matrix=recip_lattice,
                   epsilon=epsilon,
                   band=0)
@@ -369,7 +369,7 @@ def eigsolve(num_modes: int,
 
 def find_k(frequency: float,
            tolerance: float,
-           search_direction: numpy.ndarray,
+           direction: numpy.ndarray,
            G_matrix: numpy.ndarray,
            epsilon: field_t,
            mu: field_t = None,
@@ -380,7 +380,7 @@ def find_k(frequency: float,
 
     :param frequency: Target frequency.
     :param tolerance: Target frequency tolerance.
-    :param search_direction: k-vector direction to search along.
+    :param direction: k-vector direction to search along.
     :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
     :param epsilon: Dielectric constant distribution for the simulation.
         All fields are sampled at cell centers (i.e., NOT Yee-gridded)
@@ -390,10 +390,10 @@ def find_k(frequency: float,
     return: (k, actual_frequency) The found k-vector and its frequency
     """
 
-    search_direction = numpy.array(search_direction) / norm(search_direction)
+    direction = numpy.array(direction) / norm(direction)
 
     def get_f(k0_mag: float, band: int = 0):
-        k0 = search_direction * k0_mag
+        k0 = direction * k0_mag
         n, _v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
         return f
@@ -401,6 +401,6 @@ def find_k(frequency: float,
     res = scipy.optimize.minimize_scalar(lambda x: abs(get_f(x, band) - frequency), 0.25,
                                          method='Bounded', bounds=(0, 0.5),
                                          options={'xatol': abs(tolerance)})
-    return res.x * search_direction, res.fun + frequency
+    return res.x * direction, res.fun + frequency
 
 
