@@ -173,7 +173,7 @@ def maxwell_operator(k0: numpy.ndarray,
                  m * hin_n) * k_mag
 
         # divide by epsilon
-        e_xyz = ifftn(fftn(d_xyz, axes=range(3)) / epsilon, axes=range(3))
+        e_xyz = fftn(ifftn(d_xyz, axes=range(3)) / epsilon, axes=range(3))
 
         # cross product and transform into mn basis
         b_m = numpy.sum(e_xyz * n, axis=3)[:, :, :, None] * -k_mag
@@ -187,7 +187,7 @@ def maxwell_operator(k0: numpy.ndarray,
                      n * b_n[:, :, :, None])
 
             # divide by mu
-            h_xyz = ifftn(fftn(b_xyz, axes=range(3)) / mu, axes=range(3))
+            h_xyz = fftn(ifftn(b_xyz, axes=range(3)) / mu, axes=range(3))
 
             # transform back to mn
             h_m = numpy.sum(h_xyz * m, axis=3)
@@ -227,7 +227,7 @@ def hmn_2_exyz(k0: numpy.ndarray,
                  m * hin_n) * k_mag
 
         # divide by epsilon
-        return [ei for ei in numpy.rollaxis(fftn(d_xyz, axes=range(3)) / epsilon, 3)]
+        return [ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)]
 
     return operator
 
@@ -258,7 +258,7 @@ def hmn_2_hxyz(k0: numpy.ndarray,
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m +
                  n * hin_n)
-        return [fftn(hi) for hi in numpy.rollaxis(h_xyz, 3)]
+        return [ifftn(hi) for hi in numpy.rollaxis(h_xyz, 3)]
 
     return operator
 
@@ -312,7 +312,7 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
                      n * hin_n[:, :, :, None])
 
             # multiply by mu
-            b_xyz = ifftn(fftn(h_xyz, axes=range(3)) * mu, axes=range(3))
+            b_xyz = fftn(ifftn(h_xyz, axes=range(3)) * mu, axes=range(3))
 
             # transform back to mn
             b_m = numpy.sum(b_xyz * m, axis=3)
@@ -323,7 +323,7 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
                  m * b_n) / k_mag
 
         # multiply by epsilon
-        d_xyz = ifftn(fftn(e_xyz, axes=range(3)) * epsilon, axes=range(3))
+        d_xyz = fftn(ifftn(e_xyz, axes=range(3)) * epsilon, axes=range(3))
 
         # cross product and transform into mn basis   crossinv_t2c
         h_m = numpy.sum(e_xyz * n, axis=3)[:, :, :, None] / +k_mag
