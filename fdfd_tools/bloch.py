@@ -359,6 +359,8 @@ def eigsolve(num_modes: int,
     """
     h_size = 2 * epsilon[0].size
 
+    kmag = norm(G_matrix @ k0)
+
     '''
     Generate the operators
     '''
@@ -409,16 +411,26 @@ def eigsolve(num_modes: int,
     result = scipy.optimize.minimize(rayleigh_quotient,
                                      numpy.random.rand(*y_shape),
                                      jac=True,
-                                     method='CG',
-                                     tol=1e-5,
-                                     options={'maxiter': 30, 'disp':True})
+                                     method='L-BFGS-B',
+                                     tol=1e-20,
+                                     options={'maxiter': 2000, 'gtol':0, 'ftol':1e-20 , 'disp':True})#, 'maxls':80, 'm':30})
+
 
     result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
                                      result.x,
                                      jac=True,
-                                     method='CG',
-                                     tol=1e-13,
-                                     options={'maxiter': 100, 'disp':True})
+                                     method='L-BFGS-B',
+                                     tol=1e-20,
+                                     options={'maxiter': 2000, 'ptol':1e-18, 'disp':True})
+
+    for i in range(20):
+        result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
+                                     result.x,
+                                     jac=True,
+                                     method='L-BFGS-B',
+                                     tol=1e-20,
+                                     options={'maxiter': 70, 'gtol':1e-18, 'disp':True})
+
 
     z = result.x.reshape(y_shape)
 
@@ -436,25 +448,13 @@ def eigsolve(num_modes: int,
         v = eigvecs[:, i]
         n = eigvals[i]
         v /= norm(v)
-        logger.info('eigness {}: {}'.format(i, norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )))
+        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )
+        f = numpy.sqrt(-numpy.real(n))
+        df = numpy.sqrt(-numpy.real(n + eigness))
+        neff_err = kmag * (1/df - 1/f)
+        logger.info('eigness {}: {}\n neff_err: {}'.format(i, eigness, neff_err))
 
-    ev2 = eigvecs.copy()
-    for i in range(len(eigvals)):
-        logger.info('Refining eigenvector {}'.format(i))
-        eigvals[i], ev2[:, i] = rayleigh_quotient_iteration(scipy_op,
-                                                            guess_vector=eigvecs[:, i],
-                                                            iterations=40,
-                                                            tolerance=tolerance * numpy.real(numpy.sqrt(eigvals[i])) * 2,
-                                                            solver = lambda A, b: spalg.bicgstab(A, b, maxiter=200)[0])
-    eigvecs = ev2
     order = numpy.argsort(numpy.abs(eigvals))
-
-    for i in range(len(eigvals)):
-        v = eigvecs[:, i]
-        n = eigvals[i]
-        v /= norm(v)
-        logger.info('eigness {}: {}'.format(i, norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )))
-
     return eigvals[order], eigvecs.T[order]
 
 
