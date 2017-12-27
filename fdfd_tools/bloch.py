@@ -392,7 +392,7 @@ def eigsolve(num_modes: int,
          onto the space orthonormal to Z. If approx_grad is True, the approximate
          inverse of the maxwell operator is used to precondition the gradient.
         """
-        z = Z.reshape(y_shape)
+        z = Z.view(dtype=complex).reshape(y_shape)
         U = numpy.linalg.inv(z.conj().T @ z)
         zU = z @ U
         AzU = scipy_op @ zU
@@ -402,26 +402,35 @@ def eigsolve(num_modes: int,
             df_dy = scipy_iop @ (AzU - zU @ zTAzU)
         else:
             df_dy = (AzU - zU @ zTAzU)
-        return numpy.abs(f), numpy.sign(f) * numpy.real(df_dy).ravel()
+        
+        df_dy_flat = df_dy.view(dtype=float).ravel()
+        return numpy.abs(f), numpy.sign(f) * df_dy_flat
 
     '''
     Use the conjugate gradient method and the approximate gradient calculation to
      quickly find approximate eigenvectors.
     '''
     result = scipy.optimize.minimize(rayleigh_quotient,
-                                     numpy.random.rand(*y_shape),
+                                     numpy.random.rand(*y_shape, 2),
                                      jac=True,
                                      method='L-BFGS-B',
                                      tol=1e-20,
                                      options={'maxiter': 2000, 'gtol':0, 'ftol':1e-20 , 'disp':True})#, 'maxls':80, 'm':30})
 
 
+    result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, True),
+                                     result.x,
+                                     jac=True,
+                                     method='L-BFGS-B',
+                                     tol=1e-20,
+                                     options={'maxiter': 2000, 'gtol':0, 'disp':True})
+
     result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
                                      result.x,
                                      jac=True,
                                      method='L-BFGS-B',
                                      tol=1e-20,
-                                     options={'maxiter': 2000, 'ptol':1e-18, 'disp':True})
+                                     options={'maxiter': 2000, 'gtol':0, 'disp':True})
 
     for i in range(20):
         result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
@@ -429,10 +438,13 @@ def eigsolve(num_modes: int,
                                      jac=True,
                                      method='L-BFGS-B',
                                      tol=1e-20,
-                                     options={'maxiter': 70, 'gtol':1e-18, 'disp':True})
+                                     options={'maxiter': 70, 'gtol':0, 'disp':True})
+        if result.nit == 0:
+            # We took 0 steps, so re-running won't help
+            break
 
 
-    z = result.x.reshape(y_shape)
+    z = result.x.view(dtype=complex).reshape(y_shape)
 
     '''
     Recover eigenvectors from Z
