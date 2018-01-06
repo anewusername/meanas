@@ -53,7 +53,7 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperato
     :return: (eigenvalue, eigenvector)
     """
     try:
-        _test = operator - sparse.eye(operator.shape)
+        _test = operator - sparse.eye(operator.shape[0])
         shift = lambda eigval: eigval * sparse.eye(operator.shape[0])
         if solver is None:
             solver = spalg.spsolve
