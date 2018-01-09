@@ -447,15 +447,10 @@ def eigsolve(num_modes: int,
             continue
         break
 
-    def rtrace_AtB(A, B):
-        return real(numpy.sum(A.conj() * B))
-
-    def symmetrize(A):
-        return (A + A.conj().T) * 0.5
-
     max_iters = 10000
     for iter in range(max_iters):
-        U = numpy.linalg.inv(Z.conj().T @ Z)
+        ZtZ = Z.conj().T @ Z
+        U = numpy.linalg.inv(ZtZ)
         AZ = scipy_op @ Z
         AZU = AZ @ U
         ZtAZU = Z.conj().T @ AZU
@@ -469,47 +464,44 @@ def eigsolve(num_modes: int,
             break
 
         KG = scipy_iop @ G
-        traceGtKG = rtrace_AtB(G, KG)
-        gamma_numerator = traceGtKG
+        traceGtKG = _rtrace_AtB(G, KG)
 
-        reset_iters = 100
+        reset_iters = 100    # TODO
         if prev_traceGtKG == 0 or iter % reset_iters == 0:
-            print('RESET!')
+            logger.inf('CG reset')
             gamma = 0
         else:
-            gamma = gamma_numerator / prev_traceGtKG
+            gamma = traceGtKG / prev_traceGtKG
 
         D = gamma * d_scale * D + KG
-        d_scale = numpy.sqrt(rtrace_AtB(D, D)) / num_modes
+        d_scale = numpy.sqrt(_rtrace_AtB(D, D)) / num_modes
         D /= d_scale
+
+        ZtAZ = Z.conj().T @ AZ
 
         AD = scipy_op @ D
         DtD = D.conj().T @ D
         DtAD = D.conj().T @ AD
 
-        ZtD = Z.conj().T @ D
-        ZtAD = Z.conj().T @ AD
-        symZtD = symmetrize(ZtD)
-        symZtAD = symmetrize(ZtAD)
+        symZtD = _symmetrize(Z.conj().T @ D)
+        symZtAD = _symmetrize(Z.conj().T @ AD)
 
+        '''
         U_sZtD = U @ symZtD
 
-        dE = 2.0 * (rtrace_AtB(U, symZtAD) - rtrace_AtB(ZtAZU, U_sZtD))
+        dE = 2.0 * (_rtrace_AtB(U, symZtAD) -
+                    _rtrace_AtB(ZtAZU, U_sZtD))
 
-        S2 = DtD - 4 * symZtD @ U_sZtD
-        d2E = 2 * (rtrace_AtB(U, DtAD) -
-                   rtrace_AtB(ZtAZU, U @ S2) -
-               4 * rtrace_AtB(U, symZtAD @ U_sZtD))
+        d2E = 2 * (_rtrace_AtB(U, DtAD) -
+                   _rtrace_AtB(ZtAZU, U @ (DtD - 4 * symZtD @ U_sZtD)) -
+               4 * _rtrace_AtB(U, symZtAD @ U_sZtD))
 
         # Newton-Raphson to find a root of the first derivative:
         theta = -dE/d2E
 
         if d2E < 0 or abs(theta) >= pi:
             theta = -abs(prev_theta) * numpy.sign(dE)
-
-        # ZtAZU * ZtZ = ZtAZ for use in line search
-        ZtZ = Z.conj().T @ Z
-        ZtAZ = ZtAZU @ ZtZ.conj().T
+        '''
 
         def Qi_func(theta, memo=[None, None]):
             if memo[0] == theta:
@@ -525,10 +517,10 @@ def eigsolve(num_modes: int,
                 # if c or s small, taylor expand
                 if c < 1e-4 * s and c != 0:
                     Qi = numpy.linalg.inv(DtD)
-                    Qi = Qi / (s*s) - 2*c/(s*s*s) * (Qi @ symZtD.conj().T @ Qi.conj().T)
+                    Qi = Qi / (s*s) - 2*c/(s*s*s) * (Qi @ (Qi @ symZtD).conj().T)
                 elif s < 1e-4 * c and s != 0:
                     Qi = numpy.linalg.inv(ZtZ)
-                    Qi = Qi / (c*c) - 2*s/(c*c*c) * (Qi @ symZtD.conj().T @ Qi.conj().T)
+                    Qi = Qi / (c*c) - 2*s/(c*c*c) * (Qi @ (Qi @ symZtD).conj().T)
                 else:
                     raise Exception('Inexplicable singularity in trace_func')
             memo[0] = theta
@@ -540,22 +532,24 @@ def eigsolve(num_modes: int,
             s = numpy.sin(theta)
             Qi = Qi_func(theta)
             R = c*c * ZtAZ + s*s * DtAD + 2*s*c * symZtAD
-            trace = rtrace_AtB(R, Qi)
+            trace = _rtrace_AtB(R, Qi)
             return numpy.abs(trace)
 
-        #def trace_deriv(theta):
-        #    Qi = Qi_func(theta)
-        #    c2 = numpy.cos(2 * theta)
-        #    s2 = numpy.sin(2 * theta)
-        #    F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
-        #    trace_deriv = rtrace_AtB(Qi, F)
+        '''
+        def trace_deriv(theta):
+            Qi = Qi_func(theta)
+            c2 = numpy.cos(2 * theta)
+            s2 = numpy.sin(2 * theta)
+            F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
+            trace_deriv = _rtrace_AtB(Qi, F)
 
-        #    G = Qi @ F.conj().T @ Qi.conj().T
-        #    H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
-        #    trace_deriv -= rtrace_AtB(G, H)
+            G = Qi @ F.conj().T @ Qi.conj().T
+            H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
+            trace_deriv -= _rtrace_AtB(G, H)
 
-        #    trace_deriv *= 2
-        #    return trace_deriv * sgn
+            trace_deriv *= 2
+            return trace_deriv * sgn
+        '''
 
         '''
         theta, new_E, new_dE = linmin(theta, E, dE, 0.1, min(tolerance, 1e-6), 1e-14, 0, -numpy.sign(dE) * K_PI, trace_func)
@@ -597,29 +591,36 @@ def eigsolve(num_modes: int,
     order = numpy.argsort(numpy.abs(eigvals))
     return eigvals[order], eigvecs.T[order]
 
-    #def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_tol=1e-14, x_min=0, linmin_func):
-    #    if df0 > 0:
-    #        x0, f0, df0 = linmin(-x_guess, f0, -df0, -x_max, f_tol, df_tol, x_tol, -x_min, lambda q, dq: -linmin_func(q, dq))
-    #        return -x0, f0, -df0
-    #    elif df0 == 0:
-    #        return 0, f0, df0
-    #    else:
-    #        x = x_guess
-    #        fx = f0
-    #        dfx = df0
+#def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_tol=1e-14, x_min=0, linmin_func):
+#    if df0 > 0:
+#        x0, f0, df0 = linmin(-x_guess, f0, -df0, -x_max, f_tol, df_tol, x_tol, -x_min, lambda q, dq: -linmin_func(q, dq))
+#        return -x0, f0, -df0
+#    elif df0 == 0:
+#        return 0, f0, df0
+#    else:
+#        x = x_guess
+#        fx = f0
+#        dfx = df0
 
-    #        isave = numpy.zeros((2,), numpy.intc)
-    #        dsave = numpy.zeros((13,), float)
+#        isave = numpy.zeros((2,), numpy.intc)
+#        dsave = numpy.zeros((13,), float)
 
-    #        x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
-    #                                          x_min, x_max, isave, dsave)
-    #        for i in range(int(1e6)):
-    #            if task != 'F':
-    #                logging.info('search converged in {} iterations'.format(i))
-    #                break
-    #            fx = f(x, dfx)
-    #            x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
-    #                                              x_min, x_max, isave, dsave)
+#        x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
+#                                          x_min, x_max, isave, dsave)
+#        for i in range(int(1e6)):
+#            if task != 'F':
+#                logging.info('search converged in {} iterations'.format(i))
+#                break
+#            fx = f(x, dfx)
+#            x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
+#                                              x_min, x_max, isave, dsave)
 
-    #        return x, fx, dfx
+#        return x, fx, dfx
+
+
+def _rtrace_AtB(A, B):
+    return real(numpy.sum(A.conj() * B))
+
+def _symmetrize(A):
+    return (A + A.conj().T) * 0.5
 
