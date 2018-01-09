@@ -30,11 +30,11 @@ g2.shifts = numpy.zeros((6,3))
 g2.grids = [numpy.zeros(g.shape) for _ in range(6)]
 
 epsilon = [g.grids[0],] * 3
-reciprocal_lattice = numpy.diag(1e6/numpy.array([x_period, y_period, z_period])) #cols are vectors
+reciprocal_lattice = numpy.diag(1000/numpy.array([x_period, y_period, z_period])) #cols are vectors
 
 #print('Finding k at 1550nm')
-#k, f = bloch.find_k(frequency=1/1550,
-#                    tolerance=(1/1550 - 1/1551),
+#k, f = bloch.find_k(frequency=1000/1550,
+#                    tolerance=(1000 * (1/1550 - 1/1551)),
 #                    direction=[1, 0, 0],
 #                    G_matrix=reciprocal_lattice,
 #                    epsilon=epsilon,
@@ -47,10 +47,10 @@ for k0x in [.25]:
     k0 = numpy.array([k0x, 0, 0])
 
     kmag = norm(reciprocal_lattice @ k0)
-    tolerance = (1e6/1550) * 1e-4/1.5  # df = f * dn_eff / n
+    tolerance = (1000/1550) * 1e-4/1.5  # df = f * dn_eff / n
     logger.info('tolerance {}'.format(tolerance))
 
-    n, v = bloch.eigsolve(4, k0, G_matrix=reciprocal_lattice, epsilon=epsilon, tolerance=tolerance)
+    n, v = bloch.eigsolve(4, k0, G_matrix=reciprocal_lattice, epsilon=epsilon, tolerance=tolerance**2)
     v2e = bloch.hmn_2_exyz(k0, G_matrix=reciprocal_lattice, epsilon=epsilon)
     v2h = bloch.hmn_2_hxyz(k0, G_matrix=reciprocal_lattice, epsilon=epsilon)
     ki = bloch.generate_kmn(k0, reciprocal_lattice, g.shape)

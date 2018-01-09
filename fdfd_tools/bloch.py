@@ -76,6 +76,7 @@ This module contains functions for generating and solving the
 from typing import List, Tuple, Callable, Dict
 import logging
 import numpy
+from numpy import pi, real, trace
 from numpy.fft import fftn, ifftn, fftfreq
 import scipy
 import scipy.optimize
@@ -337,139 +338,6 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
     return operator
 
 
-def eigsolve(num_modes: int,
-             k0: numpy.ndarray,
-             G_matrix: numpy.ndarray,
-             epsilon: field_t,
-             mu: field_t = None,
-             tolerance = 1e-8,
-             ) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    """
-    Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
-     k0 of the specified structure.
-
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :param mu: Magnetic permability distribution for the simulation.
-        Default None (1 everywhere).
-    :return: (eigenvalues, eigenvectors) where eigenvalues[i] corresponds to the
-        vector eigenvectors[i, :]
-    """
-    h_size = 2 * epsilon[0].size
-
-    kmag = norm(G_matrix @ k0)
-
-    '''
-    Generate the operators
-    '''
-    mop = maxwell_operator(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
-    imop = inverse_maxwell_operator_approx(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
-
-    scipy_op = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=mop)
-    scipy_iop = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=imop)
-
-    y_shape = (h_size, num_modes)
-
-    def rayleigh_quotient(Z: numpy.ndarray, approx_grad: bool = True):
-        """
-        Absolute value of the block Rayleigh quotient, and the associated gradient.
-
-        See Johnson and Joannopoulos, Opt. Expr. 8, 3 (2001) for details (full
-         citation in module docstring).
-
-        ===
-
-        Notes on my understanding of the procedure:
-
-        Minimize f(Y) = |trace((Y.H @ A @ Y)|, making use of Y = Z @ inv(Z.H @ Z)^(1/2)
-         (a polar orthogonalization of Y). This gives f(Z) = |trace(Z.H @ A @ Z @ U)|,
-         where U = inv(Z.H @ Z). We minimize the absolute value to find the eigenvalues
-         with smallest magnitude.
-
-        The gradient is P @ (A @ Z @ U), where P = (1 - Z @ U @ Z.H) is a projection
-         onto the space orthonormal to Z. If approx_grad is True, the approximate
-         inverse of the maxwell operator is used to precondition the gradient.
-        """
-        z = Z.view(dtype=complex).reshape(y_shape)
-        U = numpy.linalg.inv(z.conj().T @ z)
-        zU = z @ U
-        AzU = scipy_op @ zU
-        zTAzU = z.conj().T @ AzU
-        f = numpy.real(numpy.trace(zTAzU))
-        if approx_grad:
-            df_dy = scipy_iop @ (AzU - zU @ zTAzU)
-        else:
-            df_dy = (AzU - zU @ zTAzU)
-        
-        df_dy_flat = df_dy.view(dtype=float).ravel()
-        return numpy.abs(f), numpy.sign(f) * df_dy_flat
-
-    '''
-    Use the conjugate gradient method and the approximate gradient calculation to
-     quickly find approximate eigenvectors.
-    '''
-    result = scipy.optimize.minimize(rayleigh_quotient,
-                                     numpy.random.rand(*y_shape, 2),
-                                     jac=True,
-                                     method='L-BFGS-B',
-                                     tol=1e-20,
-                                     options={'maxiter': 2000, 'gtol':0, 'ftol':1e-20 , 'disp':True})#, 'maxls':80, 'm':30})
-
-
-    result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, True),
-                                     result.x,
-                                     jac=True,
-                                     method='L-BFGS-B',
-                                     tol=1e-20,
-                                     options={'maxiter': 2000, 'gtol':0, 'disp':True})
-
-    result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
-                                     result.x,
-                                     jac=True,
-                                     method='L-BFGS-B',
-                                     tol=1e-20,
-                                     options={'maxiter': 2000, 'gtol':0, 'disp':True})
-
-    for i in range(20):
-        result = scipy.optimize.minimize(lambda y: rayleigh_quotient(y, False),
-                                     result.x,
-                                     jac=True,
-                                     method='L-BFGS-B',
-                                     tol=1e-20,
-                                     options={'maxiter': 70, 'gtol':0, 'disp':True})
-        if result.nit == 0:
-            # We took 0 steps, so re-running won't help
-            break
-
-
-    z = result.x.view(dtype=complex).reshape(y_shape)
-
-    '''
-    Recover eigenvectors from Z
-    '''
-    U = numpy.linalg.inv(z.conj().T @ z)
-    y = z @ scipy.linalg.sqrtm(U)
-    w = y.conj().T @ (scipy_op @ y)
-
-    eigvals, w_eigvecs = numpy.linalg.eig(w)
-    eigvecs = y @ w_eigvecs
-
-    for i in range(len(eigvals)):
-        v = eigvecs[:, i]
-        n = eigvals[i]
-        v /= norm(v)
-        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )
-        f = numpy.sqrt(-numpy.real(n))
-        df = numpy.sqrt(-numpy.real(n + eigness))
-        neff_err = kmag * (1/df - 1/f)
-        logger.info('eigness {}: {}\n neff_err: {}'.format(i, eigness, neff_err))
-
-    order = numpy.argsort(numpy.abs(eigvals))
-    return eigvals[order], eigvecs.T[order]
-
-
 def find_k(frequency: float,
            tolerance: float,
            direction: numpy.ndarray,
@@ -510,4 +378,248 @@ def find_k(frequency: float,
                                          options={'xatol': abs(tolerance)})
     return res.x * direction, res.fun + frequency
 
+
+
+def eigsolve(num_modes: int,
+             k0: numpy.ndarray,
+             G_matrix: numpy.ndarray,
+             epsilon: field_t,
+             mu: field_t = None,
+             tolerance = 1e-20,
+             ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    """
+    Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
+     k0 of the specified structure.
+
+    :param k0: Bloch wavevector, [k0x, k0y, k0z].
+    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+    :param epsilon: Dielectric constant distribution for the simulation.
+        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+    :param mu: Magnetic permability distribution for the simulation.
+        Default None (1 everywhere).
+    :param tolerance: Solver stops when fractional change in the objective
+        trace(Z.H @ A @ Z @ inv(Z Z.H)) is smaller than the tolerance
+    :return: (eigenvalues, eigenvectors) where eigenvalues[i] corresponds to the
+        vector eigenvectors[i, :]
+    """
+    h_size = 2 * epsilon[0].size
+
+    kmag = norm(G_matrix @ k0)
+
+    '''
+    Generate the operators
+    '''
+    mop = maxwell_operator(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
+    imop = inverse_maxwell_operator_approx(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
+
+    scipy_op = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=mop)
+    scipy_iop = spalg.LinearOperator(dtype=complex, shape=(h_size, h_size), matvec=imop)
+
+    y_shape = (h_size, num_modes)
+
+    prev_E = 0
+    d_scale = 1
+    prev_traceGtKG = 0
+    prev_theta = 0.5
+    D = numpy.zeros(shape=y_shape, dtype=complex)
+
+    y0 = None
+    if y0 is None:
+        Z = numpy.random.rand(*y_shape).astype(complex)
+    else:
+        Z = y0
+
+    while True:
+        Z2 = Z.conj().T @ Z
+        Z_norm = numpy.sqrt(real(trace(Z2))) / num_modes
+        Z /= Z_norm
+        Z2 /= Z_norm * Z_norm
+        try:
+            U = numpy.linalg.inv(Z2)
+        except numpy.linalg.LinAlgError:
+            Z = numpy.random.rand(*y_shape).astype(complex)
+            continue
+
+        trace_U = real(trace(U))
+        if trace_U > 1e8 * num_modes:
+            Z = Z @ scipy.linalg.sqrtm(U).conj().T
+            prev_traceGtKG = 0
+            continue
+        break
+
+    def rtrace_AtB(A, B):
+        return real(numpy.sum(A.conj() * B))
+
+    def symmetrize(A):
+        return (A + A.conj().T) * 0.5
+
+    max_iters = 10000
+    for iter in range(max_iters):
+        U = numpy.linalg.inv(Z.conj().T @ Z)
+        AZ = scipy_op @ Z
+        AZU = AZ @ U
+        ZtAZU = Z.conj().T @ AZU
+        E = real(trace(ZtAZU))
+        sgn = numpy.sign(E)
+        E = numpy.abs(E)
+        G = (AZU - Z @ U @ ZtAZU) * sgn
+
+        if iter > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
+            logging.info('Optimization succeded: {} - 5e-8 < {} * {} / 2'.format(abs(E - prev_E), tolerance, E + prev_E))
+            break
+
+        KG = scipy_iop @ G
+        traceGtKG = rtrace_AtB(G, KG)
+        gamma_numerator = traceGtKG
+
+        reset_iters = 100
+        if prev_traceGtKG == 0 or iter % reset_iters == 0:
+            print('RESET!')
+            gamma = 0
+        else:
+            gamma = gamma_numerator / prev_traceGtKG
+
+        D = gamma * d_scale * D + KG
+        d_scale = numpy.sqrt(rtrace_AtB(D, D)) / num_modes
+        D /= d_scale
+
+        AD = scipy_op @ D
+        DtD = D.conj().T @ D
+        DtAD = D.conj().T @ AD
+
+        ZtD = Z.conj().T @ D
+        ZtAD = Z.conj().T @ AD
+        symZtD = symmetrize(ZtD)
+        symZtAD = symmetrize(ZtAD)
+
+        U_sZtD = U @ symZtD
+
+        dE = 2.0 * (rtrace_AtB(U, symZtAD) - rtrace_AtB(ZtAZU, U_sZtD))
+
+        S2 = DtD - 4 * symZtD @ U_sZtD
+        d2E = 2 * (rtrace_AtB(U, DtAD) -
+                   rtrace_AtB(ZtAZU, U @ S2) -
+               4 * rtrace_AtB(U, symZtAD @ U_sZtD))
+
+        # Newton-Raphson to find a root of the first derivative:
+        theta = -dE/d2E
+
+        if d2E < 0 or abs(theta) >= pi:
+            theta = -abs(prev_theta) * numpy.sign(dE)
+
+        # ZtAZU * ZtZ = ZtAZ for use in line search
+        ZtZ = Z.conj().T @ Z
+        ZtAZ = ZtAZU @ ZtZ.conj().T
+
+        def Qi_func(theta, memo=[None, None]):
+            if memo[0] == theta:
+                return memo[1]
+
+            c = numpy.cos(theta)
+            s = numpy.sin(theta)
+            Q = c*c * ZtZ + s*s * DtD + 2*s*c * symZtD
+            try:
+                Qi = numpy.linalg.inv(Q)
+            except numpy.linalg.LinAlgError:
+                logger.info('taylor Qi')
+                # if c or s small, taylor expand
+                if c < 1e-4 * s and c != 0:
+                    Qi = numpy.linalg.inv(DtD)
+                    Qi = Qi / (s*s) - 2*c/(s*s*s) * (Qi @ symZtD.conj().T @ Qi.conj().T)
+                elif s < 1e-4 * c and s != 0:
+                    Qi = numpy.linalg.inv(ZtZ)
+                    Qi = Qi / (c*c) - 2*s/(c*c*c) * (Qi @ symZtD.conj().T @ Qi.conj().T)
+                else:
+                    raise Exception('Inexplicable singularity in trace_func')
+            memo[0] = theta
+            memo[1] = Qi
+            return Qi
+
+        def trace_func(theta):
+            c = numpy.cos(theta)
+            s = numpy.sin(theta)
+            Qi = Qi_func(theta)
+            R = c*c * ZtAZ + s*s * DtAD + 2*s*c * symZtAD
+            trace = rtrace_AtB(R, Qi)
+            return numpy.abs(trace)
+
+        #def trace_deriv(theta):
+        #    Qi = Qi_func(theta)
+        #    c2 = numpy.cos(2 * theta)
+        #    s2 = numpy.sin(2 * theta)
+        #    F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
+        #    trace_deriv = rtrace_AtB(Qi, F)
+
+        #    G = Qi @ F.conj().T @ Qi.conj().T
+        #    H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
+        #    trace_deriv -= rtrace_AtB(G, H)
+
+        #    trace_deriv *= 2
+        #    return trace_deriv * sgn
+
+        '''
+        theta, new_E, new_dE = linmin(theta, E, dE, 0.1, min(tolerance, 1e-6), 1e-14, 0, -numpy.sign(dE) * K_PI, trace_func)
+        '''
+        #theta, n, _, new_E, _, _new_dE = scipy.optimize.line_search(trace_func, trace_deriv, xk=theta, pk=numpy.ones((1,1)), gfk=dE, old_fval=E, c1=min(tolerance, 1e-6), c2=0.1, amax=pi)
+        result = scipy.optimize.minimize_scalar(trace_func, bounds=(0, pi), tol=tolerance)
+        new_E = result.fun
+        theta = result.x
+
+        improvement = numpy.abs(E - new_E) * 2 / numpy.abs(E + new_E)
+        logger.info('linmin improvement {}'.format(improvement))
+        Z *= numpy.cos(theta)
+        Z += D * numpy.sin(theta)
+
+        prev_traceGtKG = traceGtKG
+        prev_theta = theta
+        prev_E = E
+
+    '''
+    Recover eigenvectors from Z
+    '''
+    U = numpy.linalg.inv(Z.conj().T @ Z)
+    Y = Z @ scipy.linalg.sqrtm(U)
+    W = Y.conj().T @ (scipy_op @ Y)
+
+    eigvals, W_eigvecs = numpy.linalg.eig(W)
+    eigvecs = Y @ W_eigvecs
+
+    for i in range(len(eigvals)):
+        v = eigvecs[:, i]
+        n = eigvals[i]
+        v /= norm(v)
+        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )
+        f = numpy.sqrt(-numpy.real(n))
+        df = numpy.sqrt(-numpy.real(n + eigness))
+        neff_err = kmag * (1/df - 1/f)
+        logger.info('eigness {}: {}\n neff_err: {}'.format(i, eigness, neff_err))
+
+    order = numpy.argsort(numpy.abs(eigvals))
+    return eigvals[order], eigvecs.T[order]
+
+    #def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_tol=1e-14, x_min=0, linmin_func):
+    #    if df0 > 0:
+    #        x0, f0, df0 = linmin(-x_guess, f0, -df0, -x_max, f_tol, df_tol, x_tol, -x_min, lambda q, dq: -linmin_func(q, dq))
+    #        return -x0, f0, -df0
+    #    elif df0 == 0:
+    #        return 0, f0, df0
+    #    else:
+    #        x = x_guess
+    #        fx = f0
+    #        dfx = df0
+
+    #        isave = numpy.zeros((2,), numpy.intc)
+    #        dsave = numpy.zeros((13,), float)
+
+    #        x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
+    #                                          x_min, x_max, isave, dsave)
+    #        for i in range(int(1e6)):
+    #            if task != 'F':
+    #                logging.info('search converged in {} iterations'.format(i))
+    #                break
+    #            fx = f(x, dfx)
+    #            x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
+    #                                              x_min, x_max, isave, dsave)
+
+    #        return x, fx, dfx
 
