@@ -385,7 +385,9 @@ def eigsolve(num_modes: int,
              G_matrix: numpy.ndarray,
              epsilon: field_t,
              mu: field_t = None,
-             tolerance = 1e-20,
+             tolerance: float = 1e-20,
+             max_iters: int = 10000,
+             reset_iters: int = 100,
              ) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
@@ -447,16 +449,15 @@ def eigsolve(num_modes: int,
             continue
         break
 
-    max_iters = 10000
     for iter in range(max_iters):
         ZtZ = Z.conj().T @ Z
         U = numpy.linalg.inv(ZtZ)
         AZ = scipy_op @ Z
         AZU = AZ @ U
         ZtAZU = Z.conj().T @ AZU
-        E = real(trace(ZtAZU))
-        sgn = numpy.sign(E)
-        E = numpy.abs(E)
+        E_signed = real(trace(ZtAZU))
+        sgn = numpy.sign(E_signed)
+        E = numpy.abs(E_signed)
         G = (AZU - Z @ U @ ZtAZU) * sgn
 
         if iter > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
@@ -466,9 +467,8 @@ def eigsolve(num_modes: int,
         KG = scipy_iop @ G
         traceGtKG = _rtrace_AtB(G, KG)
 
-        reset_iters = 100    # TODO
         if prev_traceGtKG == 0 or iter % reset_iters == 0:
-            logger.inf('CG reset')
+            logger.info('CG reset')
             gamma = 0
         else:
             gamma = traceGtKG / prev_traceGtKG
