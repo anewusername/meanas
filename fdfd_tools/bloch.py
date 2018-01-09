@@ -422,24 +422,24 @@ def eigsolve(num_modes: int,
     prev_E = 0
     d_scale = 1
     prev_traceGtKG = 0
-    prev_theta = 0.5
+    #prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
     y0 = None
     if y0 is None:
-        Z = numpy.random.rand(*y_shape).astype(complex)
+        Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
     else:
         Z = y0
 
     while True:
-        Z2 = Z.conj().T @ Z
-        Z_norm = numpy.sqrt(real(trace(Z2))) / num_modes
+        ZtZ = Z.conj().T @ Z
+        Z_norm = numpy.sqrt(real(trace(ZtZ))) / num_modes
         Z /= Z_norm
-        Z2 /= Z_norm * Z_norm
+        ZtZ /= Z_norm * Z_norm
         try:
-            U = numpy.linalg.inv(Z2)
+            U = numpy.linalg.inv(ZtZ)
         except numpy.linalg.LinAlgError:
-            Z = numpy.random.rand(*y_shape).astype(complex)
+            Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
             continue
 
         trace_U = real(trace(U))
@@ -565,7 +565,7 @@ def eigsolve(num_modes: int,
         Z += D * numpy.sin(theta)
 
         prev_traceGtKG = traceGtKG
-        prev_theta = theta
+        #prev_theta = theta
         prev_E = E
 
     '''
