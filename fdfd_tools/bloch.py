@@ -505,10 +505,11 @@ def eigsolve(num_modes: int,
         symZtD = _symmetrize(Z.conj().T @ D)
         symZtAD = _symmetrize(Z.conj().T @ AD)
 
-
-        def Qi_func(theta, memo=[None, None]):
-            if memo[0] == theta:
-                return memo[1]
+        Qi_memo = [None, None]
+        def Qi_func(theta):
+            nonlocal Qi_memo
+            if Qi_memo[0] == theta:
+                return Qi_memo[1]
 
             c = numpy.cos(theta)
             s = numpy.sin(theta)
@@ -519,15 +520,15 @@ def eigsolve(num_modes: int,
                 logger.info('taylor Qi')
                 # if c or s small, taylor expand
                 if c < 1e-4 * s and c != 0:
-                    Qi = numpy.linalg.inv(DtD)
-                    Qi = Qi / (s*s) - 2*c/(s*s*s) * (Qi @ (Qi @ symZtD).conj().T)
+                    DtDi = numpy.linalg.inv(DtD)
+                    Qi = DtDi / (s*s) - 2*c/(s*s*s) * (DtDi @ (DtDi @ symZtD).conj().T)
                 elif s < 1e-4 * c and s != 0:
-                    Qi = numpy.linalg.inv(ZtZ)
-                    Qi = Qi / (c*c) - 2*s/(c*c*c) * (Qi @ (Qi @ symZtD).conj().T)
+                    ZtZi = numpy.linalg.inv(ZtZ)
+                    Qi = ZtZi / (c*c) - 2*s/(c*c*c) * (ZtZi @ (ZtZi @ symZtD).conj().T)
                 else:
                     raise Exception('Inexplicable singularity in trace_func')
-            memo[0] = theta
-            memo[1] = Qi
+            Qi_memo[0] = theta
+            Qi_memo[1] = Qi
             return Qi
 
         def trace_func(theta):
