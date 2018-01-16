@@ -389,7 +389,7 @@ def find_k(frequency: float,
 
     def get_f(k0_mag: float, band: int = 0):
         k0 = direction * k0_mag
-        n, _v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon)
+        n, _v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
         return f
 
