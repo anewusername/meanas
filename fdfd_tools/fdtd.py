@@ -241,3 +241,18 @@ def cpml(direction:int,
         return e, h
 
     return pml_e, pml_h, fields
+
+
+def poynting(e, h):
+    s = [numpy.roll(e[1], -1, axis=0) * h[2] - numpy.roll(e[2], -1, axis=0) * h[1],
+         numpy.roll(e[2], -1, axis=1) * h[0] - numpy.roll(e[0], -1, axis=1) * h[2],
+         numpy.roll(e[0], -1, axis=2) * h[1] - numpy.roll(e[1], -1, axis=2) * h[0]]
+    return numpy.array(s)
+
+
+def div_poyting(dt, dxes, e, h):
+    s = poynting(e, h)
+    ds = (s[0] - numpy.roll(s[0], 1, axis=0) +
+          s[1] - numpy.roll(s[1], 1, axis=1) +
+          s[2] - numpy.roll(s[2], 1, axis=2))
+    return ds
