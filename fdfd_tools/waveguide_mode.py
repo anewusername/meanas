@@ -234,6 +234,8 @@ def compute_overlap_e(E: field_t,
     :param mu: Magnetic permeability (default 1 everywhere)
     :return: overlap_e for calculating the mode overlap
     """
+    slices = tuple(slices)
+
     cross_plane = [slice(None)] * 3
     cross_plane[axis] = slices[axis]
 
