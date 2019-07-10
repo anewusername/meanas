@@ -451,7 +451,7 @@ def avgb(axis: int, shape: List[int]) -> sparse.spmatrix:
 
 def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
-    Operator for computing the Poynting vector, contining the (E x) portion of the Poynting vector.
+    Operator for computing the Poynting vector, containing the (E x) portion of the Poynting vector.
 
     :param e: Vectorized E-field for the ExH cross product
     :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
