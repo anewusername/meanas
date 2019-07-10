@@ -101,6 +101,8 @@ def solve_waveguide_mode(mode_number: int,
     if mu is None:
         mu = [numpy.ones_like(epsilon[0])] * 3
 
+    slices = tuple(slices)
+
     '''
     Solve the 2D problem in the specified plane
     '''
@@ -183,23 +185,23 @@ def compute_source(E: field_t,
     J = [None]*3
     M = [None]*3
 
-    src_order = numpy.roll(range(3), axis)
+    src_order = numpy.roll(range(3), -axis)
     exp_iphi = numpy.exp(1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
     J[src_order[0]] = numpy.zeros_like(E[0])
     J[src_order[1]] = +exp_iphi * H[src_order[2]] * polarity
     J[src_order[2]] = -exp_iphi * H[src_order[1]] * polarity
 
+    rollby = -1 if polarity > 0 else 0
     M[src_order[0]] = numpy.zeros_like(E[0])
-    M[src_order[1]] = +numpy.roll(E[src_order[2]], -1, axis=axis)
-    M[src_order[2]] = -numpy.roll(E[src_order[1]], -1, axis=axis)
+    M[src_order[1]] = +numpy.roll(E[src_order[2]], rollby, axis=axis)
+    M[src_order[2]] = -numpy.roll(E[src_order[1]], rollby, axis=axis)
 
-    A1f = functional.curl_h(dxes)
+    m2j = functional.m2j(omega, dxes, mu)
+    Jm = m2j(M)
 
-    Jm_iw = A1f([M[k] / mu[k] for k in range(3)])
-    for k in range(3):
-        J[k] += Jm_iw[k] / (-1j * omega)
+    Jtot = [ji + jmi for ji, jmi in zip(J, Jm)]
 
-    return J
+    return Jtot
 
 
 def compute_overlap_e(E: field_t,
