@@ -343,3 +343,142 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
     }
 
     return fields
+
+
+def compute_source_q(E: field_t,
+                     H: field_t,
+                     wavenumber: complex,
+                     omega: complex,
+                     dxes: dx_lists_t,
+                     axis: int,
+                     polarity: int,
+                     slices: List[slice],
+                     mu: field_t = None,
+                     ) -> field_t:
+    A1f = functional.curl_h(dxes)
+    A2f = functional.curl_e(dxes)
+
+    J = A1f(H)
+    M = A2f([-E[i] for i in range(3)])
+
+    m2j = functional.m2j(omega, dxes, mu)
+    Jm = m2j(M)
+
+    Jtot = [ji + jmi for ji, jmi in zip(J, Jm)]
+
+    return Jtot, J, M
+
+
+
+def compute_source_e(QE: field_t,
+                     omega: complex,
+                     dxes: dx_lists_t,
+                     axis: int,
+                     polarity: int,
+                     slices: List[slice],
+                     epsilon: field_t,
+                     mu: field_t = None,
+                     ) -> field_t:
+    """
+    Want (AQ-QA) E = -iwj, where Q is a mask
+    If E is an eigenmode, AE = 0 so just AQE = -iwJ
+    Really only need E in 4 cells along axis (0, 0, Emode1, Emode2), find AE (1 fdtd step), then use center 2 cells as src
+    """
+    slices = tuple(slices)
+
+    # Trim a cell from each end of the propagation axis
+    slices_reduced = list(slices)
+    slices_reduced[axis] = slice(slices[axis].start + 1, slices[axis].stop - 1)
+    slices_reduced = tuple(slices)
+
+    # Don't actually need to mask out E here since it needs to be pre-masked (QE)
+
+    A = functional.e_full(omega, dxes, epsilon, mu)
+    J4 = [ji / (-1j * omega) for ji in A(QE)]       #J4 is 4-cell result of -iwJ = A QE
+
+    J = numpy.zeros_like(J4)
+    for a in range(3):
+        J[a][slices_reduced] = J4[a][slices_reduced]
+    return J
+
+
+def compute_source_wg(E: field_t,
+                      wavenumber: complex,
+                      omega: complex,
+                      dxes: dx_lists_t,
+                      axis: int,
+                      polarity: int,
+                      slices: List[slice],
+                      epsilon: field_t,
+                      mu: field_t = None,
+                      ) -> field_t:
+    slices = tuple(slices)
+    Etgt, _slices2 = compute_overlap_ce(E=E, wavenumber=wavenumber,
+                                        dxes=dxes, axis=axis, polarity=polarity,
+                                        slices=slices)
+
+    slices4 = list(slices)
+    slices4[axis] = slice(slices[axis].start - 4 * polarity, slices[axis].start)
+    slices4 = tuple(slices4)
+
+    J = compute_source_e(QE=Etgt,
+                         omega=omega, dxes=dxes, axis=axis,
+                         polarity=polarity, slices=slices4,
+                         epsilon=epsilon, mu=mu)
+
+def compute_overlap_ce(E: field_t,
+                       wavenumber: complex,
+                       dxes: dx_lists_t,
+                       axis: int,
+                       polarity: int,
+                       slices: List[slice],
+                       ) -> field_t:
+    slices = tuple(slices)
+
+    Ee = expand_wgmode_e(E=E, wavenumber=wavenumber,
+                         dxes=dxes, axis=axis, polarity=polarity,
+                         slices=slices)
+
+    start, stop = sorted((slices[axis].start, slices[axis].start - 2 * polarity))
+
+    slices2 = list(slices)
+    slices2[axis] = slice(start, stop)
+    slices2 = tuple(slices2)
+
+    Etgt = numpy.zeros_like(Ee)
+    for a in range(3):
+        Etgt[a][slices2] = Ee[a][slices2]
+
+    Etgt /= (Etgt.conj() * Etgt).sum()
+
+    return Etgt, slices2
+
+
+def expand_wgmode_e(E: field_t,
+                    wavenumber: complex,
+                    dxes: dx_lists_t,
+                    axis: int,
+                    polarity: int,
+                    slices: List[slice],
+                    ) -> field_t:
+    slices = tuple(slices)
+
+    # Determine phase factors for parallel slices
+    a_shape = numpy.roll([1, -1, 1, 1], axis)
+    a_E = numpy.real(dxes[0][axis]).cumsum()
+    r_E = a_E - a_E[slices[axis]]
+    iphi = polarity * 1j * wavenumber
+    phase_E = numpy.exp(iphi * r_E).reshape(a_shape)
+
+    # Expand our slice to the entire grid using the phase factors
+    Ee = numpy.zeros_like(E)
+
+    slices_exp = list(slices)
+    slices_exp[axis] = slice(E[0].shape[axis])
+    slices_exp = (slice(3), *slices_exp)
+
+    Ee[slices_exp] = phase_E * numpy.array(E)[slices_Exp]
+
+    return Ee
+
+
