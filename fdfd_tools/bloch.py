@@ -369,6 +369,7 @@ def find_k(frequency: float,
            band: int = 0,
            k_min: float = 0,
            k_max: float = 0.5,
+           solve_callback: Callable = None
            ) -> Tuple[numpy.ndarray, float]:
     """
     Search for a bloch vector that has a given frequency.
@@ -389,8 +390,10 @@ def find_k(frequency: float,
 
     def get_f(k0_mag: float, band: int = 0):
         k0 = direction * k0_mag
-        n, _v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
+        n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
+        if solve_callback:
+            solve_callback(k0_mag, n, v, f)
         return f
 
     res = scipy.optimize.minimize_scalar(lambda x: abs(get_f(x, band) - frequency),
