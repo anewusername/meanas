@@ -58,7 +58,8 @@ def solve_waveguide_mode_2d(mode_number: int,
       more pronounced as the wavenumber increases.
     '''
     if wavenumber_correction:
-        wavenumber -= 2 * numpy.sin(numpy.real(wavenumber / 2)) - numpy.real(wavenumber)
+        dx_mean = (numpy.hstack(dxes[0]) + numpy.hstack(dxes[1])).mean() / 2        #TODO figure out what dx to use here
+        wavenumber -= 2 * numpy.sin(numpy.real(wavenumber * dx_mean / 2)) / dx_mean - numpy.real(wavenumber)
 
     shape = [d.size for d in dxes[0]]
     fields = {
