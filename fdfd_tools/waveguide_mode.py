@@ -55,7 +55,7 @@ def solve_waveguide_mode_2d(mode_number: int,
      See Numerical Dispersion in Taflove's FDTD book.
      This correction term reduces the error in emitted power, but additional
       error is introduced into the E_err and H_err terms. This effect becomes
-      more pronounced as beta increases.
+      more pronounced as the wavenumber increases.
     '''
     if wavenumber_correction:
         wavenumber -= 2 * numpy.sin(numpy.real(wavenumber / 2)) - numpy.real(wavenumber)
