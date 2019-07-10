@@ -147,3 +147,36 @@ def e2h(omega: complex,
         return e2h_1_1
     else:
         return e2h_mu
+
+
+def m2j(omega: complex,
+        dxes: dx_lists_t,
+        mu: field_t = None,
+        ) -> functional_matrix:
+    """
+   Utility operator for converting magnetic current (M) distribution
+   into equivalent electric current distribution (J).
+   For use with e.g. e_full().
+
+   :param omega: Angular frequency of the simulation
+   :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+   :param mu: Magnetic permeability (default 1 everywhere)
+   :return: Function for converting M to J
+   """
+    ch = curl_h(dxes)
+
+    def m2j_mu(m):
+        m_mu = [m[k] / mu[k] for k in range[3]]
+        J = [Ji / (-1j * omega) for Ji in ch(m_mu)]
+        return J
+
+    def m2j_1(m):
+        J = [Ji / (-1j * omega) for Ji in ch(m)]
+        return J
+
+    if numpy.any(numpy.equal(mu, None)):
+        return m2j_1
+    else:
+        return m2j_mu
+
+
