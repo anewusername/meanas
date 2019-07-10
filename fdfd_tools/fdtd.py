@@ -71,9 +71,7 @@ def maxwell_e(dt: float, dxes: dx_lists_t = None) -> functional_matrix:
     curl_h_fun = curl_h(dxes)
 
     def me_fun(e: field_t, h: field_t, epsilon: field_t):
-        ch = curl_h_fun(h)
-        for ei, ci, epsi in zip(e, ch, epsilon):
-            ei += dt * ci / epsi
+        e += dt * curl_h_fun(h)/ epsilon
         return e
 
     return me_fun
@@ -83,9 +81,7 @@ def maxwell_h(dt: float, dxes: dx_lists_t = None) -> functional_matrix:
     curl_e_fun = curl_e(dxes)
 
     def mh_fun(e: field_t, h: field_t):
-        ce = curl_e_fun(e)
-        for hi, ci in zip(h, ce):
-            hi -= dt * ci
+        h -= dt * curl_e_fun(e)
         return h
 
     return mh_fun
