@@ -2,11 +2,43 @@ import numpy, scipy, gridlock, fdfd_tools
 from fdfd_tools import bloch
 from numpy.linalg import norm
 import logging
+from pathlib import Path
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+WISDOM_FILEPATH = pathlib.Path.home() / '.local' / 'share' / 'pyfftw' / 'wisdom.pickle'
 
+
+def pyfftw_save_wisdom(path):
+    path = pathlib.Path(path)
+    try:
+        import pyfftw
+        import pickle
+    except ImportError as e:
+        pass
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, 'wb') as f:
+        pickle.dump(wisdom, f)
+
+
+def pyfftw_load_wisdom(path):
+    path = pathlib.Path(path)
+    try:
+        import pyfftw
+        import pickle
+    except ImportError as e:
+        pass
+
+    try:
+        with open(path, 'rb') as f:
+            wisdom = pickle.load(f)
+        pyfftw.import_wisdom(wisdom)
+    except FileNotFoundError as e:
+        pass
+
+logger.info('Drawing grid...')
 dx = 40
 x_period = 400
 y_period = z_period = 2000
@@ -32,6 +64,8 @@ g2.grids = [numpy.zeros(g.shape) for _ in range(6)]
 epsilon = [g.grids[0],] * 3
 reciprocal_lattice = numpy.diag(1000/numpy.array([x_period, y_period, z_period])) #cols are vectors
 
+pyfftw_load_wisdom(WISDOM_FILEPATH)
+
 #print('Finding k at 1550nm')
 #k, f = bloch.find_k(frequency=1000/1550,
 #                    tolerance=(1000 * (1/1550 - 1/1551)),
@@ -42,7 +76,7 @@ reciprocal_lattice = numpy.diag(1000/numpy.array([x_period, y_period, z_period])
 #
 #print("k={}, f={}, 1/f={}, k/f={}".format(k, f, 1/f, norm(reciprocal_lattice @ k) / f ))
 
-print('Finding f at [0.25, 0, 0]')
+logger.info('Finding f at [0.25, 0, 0]')
 for k0x in [.25]:
     k0 = numpy.array([k0x, 0, 0])
 
@@ -66,3 +100,4 @@ for k0x in [.25]:
     n_eff = norm(reciprocal_lattice @ k0) / f
     print('kmag/f = n_eff =  {} \n wl = {}\n'.format(n_eff, 1/f ))
 
+pyfftw_save_wisdom(WISDOM_FILEPATH)
