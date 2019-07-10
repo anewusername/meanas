@@ -92,6 +92,7 @@ try:
     import pyfftw.interfaces.numpy_fft
     import pyfftw.interfaces
     import multiprocessing
+    logger.info('Using pyfftw')
 
     pyfftw.interfaces.cache.enable()
     pyfftw.interfaces.cache.set_keepalive_time(3600)
@@ -109,6 +110,7 @@ try:
 
 except ImportError:
     from numpy.fft import fftn, ifftn
+    logger.info('Using numpy fft')
 
 
 def generate_kmn(k0: numpy.ndarray,
@@ -483,7 +485,7 @@ def eigsolve(num_modes: int,
         G = (AZU - Z @ U @ ZtAZU) * sgn
 
         if i > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
-            logging.info('Optimization succeded: {} - 5e-8 < {} * {} / 2'.format(abs(E - prev_E), tolerance, E + prev_E))
+            logger.info('Optimization succeded: {} - 5e-8 < {} * {} / 2'.format(abs(E - prev_E), tolerance, E + prev_E))
             break
 
         KG = scipy_iop @ G
