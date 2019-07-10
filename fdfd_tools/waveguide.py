@@ -112,9 +112,16 @@ def normalized_fields(v: numpy.ndarray,
     P = 0.5 * numpy.real(S.sum())
     assert P > 0, 'Found a mode propagating in the wrong direction! P={}'.format(P)
 
+    energy = epsilon * e.conj() * e
+
     norm_amplitude = 1 / numpy.sqrt(P)
-    norm_angle = -numpy.angle(e[e.size//2])
-    norm_factor = norm_amplitude * numpy.exp(1j * norm_angle)
+    norm_angle = -numpy.angle(e[energy.argmax()])       # Will randomly add a negative sign when mode is symmetric
+
+    # Try to break symmetry to assign a consistent sign [experimental]
+    E_weighted = unvec(e * energy * numpy.exp(1j * norm_angle), shape)
+    sign = numpy.sign(E_weighted[:, :max(shape[0]//2, 1), :max(shape[1]//2, 1)].real.sum())
+
+    norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 
     e *= norm_factor
     h *= norm_factor
