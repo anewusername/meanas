@@ -26,10 +26,14 @@ def curl_h(dxes: dx_lists_t = None) -> functional_matrix:
             return f - numpy.roll(f, 1, axis=ax)
 
     def ch_fun(h: field_t) -> field_t:
-        e = [dh(h[2], 1) - dh(h[1], 2),
-             dh(h[0], 2) - dh(h[2], 0),
-             dh(h[1], 0) - dh(h[0], 1)]
-        return e
+        output = numpy.empty_like(h)
+        output[0] = dh(h[2], 1)
+        output[1] = dh(h[0], 2)
+        output[2] = dh(h[1], 0)
+        output[0] -= dh(h[1], 2)
+        output[1] -= dh(h[2], 0)
+        output[2] -= dh(h[0], 1)
+        return output
 
     return ch_fun
 
@@ -51,10 +55,14 @@ def curl_e(dxes: dx_lists_t = None) -> functional_matrix:
             return numpy.roll(f, -1, axis=ax) - f
 
     def ce_fun(e: field_t) -> field_t:
-        h = [de(e[2], 1) - de(e[1], 2),
-             de(e[0], 2) - de(e[2], 0),
-             de(e[1], 0) - de(e[0], 1)]
-        return h
+        output = numpy.empty_like(e)
+        output[0] = de(e[2], 1)
+        output[1] = de(e[0], 2)
+        output[2] = de(e[1], 0)
+        output[0] -= de(e[1], 2)
+        output[1] -= de(e[2], 0)
+        output[2] -= de(e[0], 1)
+        return output
 
     return ce_fun
 
