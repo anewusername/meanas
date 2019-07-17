@@ -263,9 +263,13 @@ def poynting(e, h):
     return numpy.array(s)
 
 
-def poynting_divergence(dt, dxes, s=None, *, e=None, h=None): # TODO dxes
+def poynting_divergence(s=None, *, e=None, h=None, dxes=None): # TODO dxes
+    if dxes is None:
+        dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
+
     if s is None:
         s = poynting(e, h)
+
     ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) / numpy.sqrt(dxes[0][0] * dxes[1][0])[:, None, None] +
           (s[1] - numpy.roll(s[1], 1, axis=1)) / numpy.sqrt(dxes[0][1] * dxes[1][1])[None, :, None] +
           (s[2] - numpy.roll(s[2], 1, axis=2)) / numpy.sqrt(dxes[0][2] * dxes[1][2])[None, None, :] )
