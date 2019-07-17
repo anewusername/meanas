@@ -292,7 +292,7 @@ def delta_energy_h2e(dt, e0, h1, e2, h3, epsilon=None, mu=None, dxes=None):
     """
     de = e2 * (e2 - e0) / dt
     dh = h1 * (h3 - h1) / dt
-    du = dt * dxmul(de, dh, epsilon, mu, dxes)
+    du = dxmul(de, dh, epsilon, mu, dxes)
     return du
 
 
