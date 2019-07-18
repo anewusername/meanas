@@ -77,107 +77,84 @@ class BasicTests():
 class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
     def setUp(self):
         shape = [3, 5, 5, 1]
-        dt = 0.5
-        epsilon = numpy.ones(shape, dtype=float)
-        j_mag = 32
-        dxes = None
+        self.dt = 0.5
+        self.epsilon = numpy.ones(shape, dtype=float)
+        self.j_mag = 32
+        self.dxes = None
 
-        src_mask = numpy.zeros_like(epsilon, dtype=bool)
-        src_mask[1, 2, 2, 0] = True
+        self.src_mask = numpy.zeros_like(self.epsilon, dtype=bool)
+        self.src_mask[1, 2, 2, 0] = True
 
-        e = numpy.zeros_like(epsilon)
-        h = numpy.zeros_like(epsilon)
-        e[src_mask] = j_mag / epsilon[src_mask]
-        es = [e]
-        hs = [h]
+        e = numpy.zeros_like(self.epsilon)
+        h = numpy.zeros_like(self.epsilon)
+        e[self.src_mask] = self.j_mag / self.epsilon[self.src_mask]
+        self.es = [e]
+        self.hs = [h]
 
-        eh2h = fdtd.maxwell_h(dt=dt, dxes=dxes)
-        eh2e = fdtd.maxwell_e(dt=dt, dxes=dxes)
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
         for _ in range(9):
             e = e.copy()
             h = h.copy()
             eh2h(e, h)
-            eh2e(e, h, epsilon)
-            es.append(e)
-            hs.append(h)
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
 
-        self.es = es
-        self.hs = hs
-        self.dt = dt
-        self.epsilon = epsilon
-        self.dxes = dxes
-        self.src_mask = src_mask
-        self.j_mag = j_mag
 
 
 class Basic3DUniformDXOnlyVacuum(unittest.TestCase, BasicTests):
     def setUp(self):
         shape = [3, 5, 5, 5]
-        dt = 0.33
-        epsilon = numpy.ones(shape, dtype=float)
-        j_mag = 32
-        dxes = tuple(tuple(numpy.ones(s) for s in shape[1:]) for _ in range(2))
+        self.dt = 0.33
+        self.epsilon = numpy.ones(shape, dtype=float)
+        self.j_mag = 32
+        self.dxes = tuple(tuple(numpy.ones(s) for s in shape[1:]) for _ in range(2))
 
-        src_mask = numpy.zeros_like(epsilon, dtype=bool)
-        src_mask[1, 2, 2, 0] = True
+        self.src_mask = numpy.zeros_like(self.epsilon, dtype=bool)
+        self.src_mask[1, 2, 2, 0] = True
 
-        e = numpy.zeros_like(epsilon)
-        h = numpy.zeros_like(epsilon)
-        e[src_mask] = j_mag / epsilon[src_mask]
-        es = [e]
-        hs = [h]
+        e = numpy.zeros_like(self.epsilon)
+        h = numpy.zeros_like(self.epsilon)
+        e[self.src_mask] = self.j_mag / self.epsilon[self.src_mask]
+        self.es = [e]
+        self.hs = [h]
 
-        eh2h = fdtd.maxwell_h(dt=dt, dxes=dxes)
-        eh2e = fdtd.maxwell_e(dt=dt, dxes=dxes)
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
         for _ in range(9):
             e = e.copy()
             h = h.copy()
             eh2h(e, h)
-            eh2e(e, h, epsilon)
-            es.append(e)
-            hs.append(h)
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
 
-        self.es = es
-        self.hs = hs
-        self.dt = dt
-        self.epsilon = epsilon
-        self.dxes = dxes
-        self.src_mask = src_mask
-        self.j_mag = j_mag
 
 
 class Basic3DUniformDX(unittest.TestCase, BasicTests):
     def setUp(self):
         shape = [3, 5, 5, 5]
-        dt = 0.33
-        epsilon = numpy.full(shape, 2, dtype=float)
-        j_mag = 32
-        dxes = tuple(tuple(numpy.ones(s) for s in shape[1:]) for _ in range(2))
+        self.dt = 0.33
+        self.epsilon = numpy.full(shape, 2, dtype=float)
+        self.j_mag = 32
+        self.dxes = tuple(tuple(numpy.ones(s) for s in shape[1:]) for _ in range(2))
 
-        src_mask = numpy.zeros_like(epsilon, dtype=bool)
-        src_mask[1, 2, 2, 0] = True
+        self.src_mask = numpy.zeros_like(self.epsilon, dtype=bool)
+        self.src_mask[1, 2, 2, 0] = True
 
-        e = numpy.zeros_like(epsilon)
-        h = numpy.zeros_like(epsilon)
-        e[src_mask] = j_mag / epsilon[src_mask]
-        es = [e]
-        hs = [h]
+        e = numpy.zeros_like(self.epsilon)
+        h = numpy.zeros_like(self.epsilon)
+        e[self.src_mask] = self.j_mag / self.epsilon[self.src_mask]
+        self.es = [e]
+        self.hs = [h]
 
-        eh2h = fdtd.maxwell_h(dt=dt, dxes=dxes)
-        eh2e = fdtd.maxwell_e(dt=dt, dxes=dxes)
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
         for _ in range(9):
             e = e.copy()
             h = h.copy()
             eh2h(e, h)
-            eh2e(e, h, epsilon)
-            es.append(e)
-            hs.append(h)
-
-        self.es = es
-        self.hs = hs
-        self.dt = dt
-        self.epsilon = epsilon
-        self.dxes = dxes
-        self.src_mask = src_mask
-        self.j_mag = j_mag
-
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
