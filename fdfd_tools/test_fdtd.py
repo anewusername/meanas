@@ -53,8 +53,8 @@ class BasicTests():
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
 
+        u_eprev = None
         for ii in range(1, 8):
-            u_eprev = None
             with self.subTest(i=ii):
                 u_hstep = fdtd.energy_hstep(e0=self.es[ii-1], h1=self.hs[ii], e2=self.es[ii], **args)
                 u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
@@ -69,7 +69,7 @@ class BasicTests():
 
                 # previous half-step
                 du_half_e2h = u_hstep - u_eprev
-                div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii], h=self.hs[ii-1], dxes=self.dxes)
+                div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes)
                 self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h))
                 u_eprev = u_estep
 
