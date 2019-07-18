@@ -20,7 +20,9 @@ class BasicTests():
         h0 = self.hs[0]
         h1 = self.hs[1]
         mask = self.src_mask[1]
-        u0 = self.j_mag * self.j_mag / self.epsilon[self.src_mask]
+        dxes = self.dxes if self.dxes is not None else tuple(tuple(numpy.ones(s) for s in e0.shape[1:]) for _ in range(2))
+        dV = numpy.prod(numpy.meshgrid(*dxes[0], indexing='ij'), axis=0)
+        u0 = self.j_mag * self.j_mag / self.epsilon[self.src_mask] * dV[mask]
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
 
@@ -35,7 +37,7 @@ class BasicTests():
 
     def test_energy_conservation(self):
         e0 = self.es[0]
-        u0 = fdtd.delta_energy_j(j0=(e0 - 0) * self.epsilon, e1=e0).sum()
+        u0 = fdtd.delta_energy_j(j0=(e0 - 0) * self.epsilon, e1=e0, dxes=self.dxes).sum()
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
 
