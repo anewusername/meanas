@@ -3,6 +3,7 @@ import numpy
 
 from fdfd_tools import fdtd
 
+
 class BasicTests():
     def test_initial_fields(self):
         # Make sure initial fields didn't change
@@ -49,7 +50,7 @@ class BasicTests():
                 self.assertTrue(numpy.allclose(u_estep.sum(), u0))
 
 
-    def test_poynting(self):
+    def test_poynting_divergence(self):
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
 
@@ -72,6 +73,29 @@ class BasicTests():
                 div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes)
                 self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h))
                 u_eprev = u_estep
+
+
+    def test_poynting_planes(self):
+        args = {'dxes': self.dxes,
+                'epsilon': self.epsilon}
+
+        u_eprev = None
+        for ii in range(1, 8):
+            with self.subTest(i=ii):
+                u_hstep = fdtd.energy_hstep(e0=self.es[ii-1], h1=self.hs[ii], e2=self.es[ii], **args)
+                u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
+
+                mx = numpy.roll(self.src_mask, (-1, -1), axis=(0, 1))
+                my = numpy.roll(self.src_mask, -1, axis=2)
+                mz = numpy.roll(self.src_mask, (+1, -1), axis=(0, 3))
+                px = numpy.roll(self.src_mask, -1, axis=0)
+                py = self.src_mask.copy()
+                pz = numpy.roll(self.src_mask, +1, axis=0)
+                s_h2e = -fdtd.poynting(e=self.es[ii], h=self.hs[ii]) * self.dt
+                planes = [s_h2e[px].sum(), -s_h2e[mx].sum(),
+                          s_h2e[py].sum(), -s_h2e[my].sum(),
+                          s_h2e[pz].sum(), -s_h2e[mz].sum()]
+                self.assertTrue(numpy.allclose(sum(planes), (u_estep - u_hstep)[self.src_mask[1]]))
 
 
 class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
