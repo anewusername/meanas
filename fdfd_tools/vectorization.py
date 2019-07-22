@@ -45,5 +45,5 @@ def unvec(v: vfield_t, shape: numpy.ndarray) -> field_t:
     """
     if numpy.any(numpy.equal(v, None)):
         return None
-    return vi.reshape((3, *shape), order='C')
+    return v.reshape((3, *shape), order='C')
 
