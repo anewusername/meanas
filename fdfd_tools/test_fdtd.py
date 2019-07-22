@@ -62,7 +62,7 @@ class BasicTests():
 
                 du_half_h2e = u_estep - u_hstep
                 div_s_h2e = self.dt * fdtd.poynting_divergence(e=self.es[ii], h=self.hs[ii], dxes=self.dxes)
-                self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e))
+                self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e, rtol=1e-4))
 
                 if u_eprev is None:
                     u_eprev = u_estep
@@ -71,7 +71,7 @@ class BasicTests():
                 # previous half-step
                 du_half_e2h = u_hstep - u_eprev
                 div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes)
-                self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h))
+                self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h, rtol=1e-4))
                 u_eprev = u_estep
 
 
