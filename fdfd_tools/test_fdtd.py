@@ -54,6 +54,9 @@ class BasicTests():
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
 
+        dxes = self.dxes if self.dxes is not None else tuple(tuple(numpy.ones(s) for s in self.epsilon.shape[1:]) for _ in range(2))
+        dV = numpy.prod(numpy.meshgrid(*dxes[0], indexing='ij'), axis=0)
+
         u_eprev = None
         for ii in range(1, 8):
             with self.subTest(i=ii):
@@ -61,8 +64,7 @@ class BasicTests():
                 u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
 
                 du_half_h2e = u_estep - u_hstep
-                div_s_h2e = self.dt * fdtd.poynting_divergence(e=self.es[ii], h=self.hs[ii], dxes=self.dxes)
-                self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e, rtol=1e-4))
+                div_s_h2e = self.dt * fdtd.poynting_divergence(e=self.es[ii], h=self.hs[ii], dxes=self.dxes) * dV
                 self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e, rtol=1e-4),
                                 msg='du_half_h2e\n{}\ndiv_s_h2e\n{}'.format(numpy.rollaxis(du_half_h2e, -1),
                                                                            -numpy.rollaxis(div_s_h2e, -1)))
@@ -73,8 +75,7 @@ class BasicTests():
 
                 # previous half-step
                 du_half_e2h = u_hstep - u_eprev
-                div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes)
-                self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h, rtol=1e-4))
+                div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes) * dV
                 self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h, rtol=1e-4),
                                 msg='du_half_e2h\n{}\ndiv_s_e2h\n{}'.format(numpy.rollaxis(du_half_e2h, -1),
                                                                            -numpy.rollaxis(div_s_e2h, -1)))
@@ -84,6 +85,8 @@ class BasicTests():
     def test_poynting_planes(self):
         args = {'dxes': self.dxes,
                 'epsilon': self.epsilon}
+        dxes = self.dxes if self.dxes is not None else tuple(tuple(numpy.ones(s) for s in self.epsilon.shape[1:]) for _ in range(2))
+        dV = numpy.prod(numpy.meshgrid(*dxes[0], indexing='ij'), axis=0)
 
         u_eprev = None
         for ii in range(1, 8):
@@ -98,6 +101,9 @@ class BasicTests():
                 py = self.src_mask.copy()
                 pz = numpy.roll(self.src_mask, +1, axis=0)
                 s_h2e = -fdtd.poynting(e=self.es[ii], h=self.hs[ii]) * self.dt
+                s_h2e[0] *= dxes[0][1][None, :, None] * dxes[0][2][None, None, :]
+                s_h2e[1] *= dxes[0][0][:, None, None] * dxes[0][2][None, None, :]
+                s_h2e[2] *= dxes[0][0][:, None, None] * dxes[0][1][None, :, None]
                 planes = [s_h2e[px].sum(), -s_h2e[mx].sum(),
                           s_h2e[py].sum(), -s_h2e[my].sum(),
                           s_h2e[pz].sum(), -s_h2e[mz].sum()]
@@ -115,6 +121,36 @@ class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
 
         self.src_mask = numpy.zeros_like(self.epsilon, dtype=bool)
         self.src_mask[1, 2, 2, 0] = True
+
+        e = numpy.zeros_like(self.epsilon)
+        h = numpy.zeros_like(self.epsilon)
+        e[self.src_mask] = self.j_mag / self.epsilon[self.src_mask]
+        self.es = [e]
+        self.hs = [h]
+
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
+        for _ in range(9):
+            e = e.copy()
+            h = h.copy()
+            eh2h(e, h)
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
+
+
+class Basic2DUniformDX3(unittest.TestCase, BasicTests):
+    def setUp(self):
+        shape = [3, 5, 5, 1]
+        self.dt = 0.5
+        self.j_mag = 32
+        self.dxes = tuple(tuple(numpy.full(s, 2.0) for s in shape[1:]) for _ in range(2))
+
+        self.src_mask = numpy.zeros(shape, dtype=bool)
+        self.src_mask[1, 2, 2, 0] = True
+
+        self.epsilon = numpy.full(shape, 1, dtype=float)
+        self.epsilon[self.src_mask] = 2
 
         e = numpy.zeros_like(self.epsilon)
         h = numpy.zeros_like(self.epsilon)
@@ -218,6 +254,40 @@ class Basic3DUniformDX(unittest.TestCase, BasicTests):
             eh2e(e, h, self.epsilon)
             self.es.append(e)
             self.hs.append(h)
+
+
+class Basic3DUniformDX3(unittest.TestCase, BasicTests):
+    def setUp(self):
+        shape = [3, 5, 5, 5]
+        self.dt = 0.5
+        self.j_mag = 32
+        self.dxes = tuple(tuple(numpy.full(s, 3.0) for s in shape[1:]) for _ in range(2))
+
+        self.src_mask = numpy.zeros(shape, dtype=bool)
+        self.src_mask[1, 2, 2, 2] = True
+
+        self.epsilon = numpy.full(shape, 1, dtype=float)
+        self.epsilon[self.src_mask] = 2
+
+        e = numpy.zeros_like(self.epsilon)
+        h = numpy.zeros_like(self.epsilon)
+        e[self.src_mask] = self.j_mag / self.epsilon[self.src_mask]
+        self.es = [e]
+        self.hs = [h]
+
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
+        for _ in range(9):
+            e = e.copy()
+            h = h.copy()
+            eh2h(e, h)
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
+        logging.basicConfig(level=logging.DEBUG)
+
+    def tearDown(self):
+        logging.basicConfig(level=logging.INFO)
 
 
 class JdotE_3DUniformDX(unittest.TestCase):
