@@ -96,6 +96,7 @@ class BasicTests():
                           s_h2e[py].sum(), -s_h2e[my].sum(),
                           s_h2e[pz].sum(), -s_h2e[mz].sum()]
                 self.assertTrue(numpy.allclose(sum(planes), (u_estep - u_hstep)[self.src_mask[1]]))
+#                print(planes, '\n', numpy.rollaxis(u_estep - u_hstep, -1), sum(planes))
 
 
 class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
@@ -211,3 +212,52 @@ class Basic3DUniformDX(unittest.TestCase, BasicTests):
             eh2e(e, h, self.epsilon)
             self.es.append(e)
             self.hs.append(h)
+
+
+class JdotE_3DUniformDX(unittest.TestCase):
+    def setUp(self):
+        shape = [3, 5, 5, 5]
+        self.dt = 0.5
+        self.j_mag = 32
+        self.dxes = tuple(tuple(numpy.full(s, 2.0) for s in shape[1:]) for _ in range(2))
+
+        self.src_mask = numpy.zeros(shape, dtype=bool)
+        self.src_mask[1, 2, 2, 2] = True
+
+        self.epsilon = numpy.full(shape, 4, dtype=float)
+        self.epsilon[self.src_mask] = 2
+
+        e = numpy.random.randint(-128, 128 + 1, size=shape).astype(numpy.float32)
+        h = numpy.random.randint(-128, 128 + 1, size=shape).astype(numpy.float32)
+        self.es = [e]
+        self.hs = [h]
+
+        eh2h = fdtd.maxwell_h(dt=self.dt, dxes=self.dxes)
+        eh2e = fdtd.maxwell_e(dt=self.dt, dxes=self.dxes)
+        for ii in range(9):
+            e = e.copy()
+            h = h.copy()
+            eh2h(e, h)
+            eh2e(e, h, self.epsilon)
+            self.es.append(e)
+            self.hs.append(h)
+
+            if ii == 1:
+                e[self.src_mask] += self.j_mag / self.epsilon[self.src_mask]
+                self.j_dot_e = self.j_mag * e[self.src_mask]
+
+
+    def test_j_dot_e(self):
+        e0 = self.es[2]
+        j0 = numpy.zeros_like(e0)
+        j0[self.src_mask] = self.j_mag
+        u0 = fdtd.delta_energy_j(j0=j0, e1=e0, dxes=self.dxes)
+        args = {'dxes': self.dxes,
+                'epsilon': self.epsilon}
+
+        ii=2
+        u_hstep = fdtd.energy_hstep(e0=self.es[ii-1], h1=self.hs[ii], e2=self.es[ii], **args)
+        u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
+        #print(u0.sum(), (u_estep - u_hstep).sum())
+        self.assertTrue(numpy.allclose(u0.sum(), (u_estep - u_hstep).sum(), rtol=1e-4))
+
