@@ -31,9 +31,9 @@ class BasicTests():
         energy0 = fdtd.energy_estep(h0=h0, e1=e0, h2=self.hs[1], **args)
         e_dot_j_0 = fdtd.delta_energy_j(j0=(e0 - 0) * self.epsilon, e1=e0, dxes=self.dxes)
         self.assertEqual(energy0[mask], u0)
-        self.assertFalse(energy0[~mask].any())
+        self.assertFalse(energy0[~mask].any(), msg='energy0: {}'.format(energy0))
         self.assertEqual(e_dot_j_0[mask], u0)
-        self.assertFalse(e_dot_j_0[~mask].any())
+        self.assertFalse(e_dot_j_0[~mask].any(), msg='e_dot_j_0: {}'.format(e_dot_j_0))
 
 
     def test_energy_conservation(self):
@@ -46,8 +46,8 @@ class BasicTests():
             with self.subTest(i=ii):
                 u_hstep = fdtd.energy_hstep(e0=self.es[ii-1], h1=self.hs[ii], e2=self.es[ii], **args)
                 u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
-                self.assertTrue(numpy.allclose(u_hstep.sum(), u0))
-                self.assertTrue(numpy.allclose(u_estep.sum(), u0))
+                self.assertTrue(numpy.allclose(u_hstep.sum(), u0), msg='u_hstep: {}\n{}'.format(u_hstep.sum(), numpy.rollaxis(u_hstep, -1)))
+                self.assertTrue(numpy.allclose(u_estep.sum(), u0), msg='u_estep: {}\n{}'.format(u_estep.sum(), numpy.rollaxis(u_estep, -1)))
 
 
     def test_poynting_divergence(self):
@@ -63,6 +63,9 @@ class BasicTests():
                 du_half_h2e = u_estep - u_hstep
                 div_s_h2e = self.dt * fdtd.poynting_divergence(e=self.es[ii], h=self.hs[ii], dxes=self.dxes)
                 self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e, rtol=1e-4))
+                self.assertTrue(numpy.allclose(du_half_h2e, -div_s_h2e, rtol=1e-4),
+                                msg='du_half_h2e\n{}\ndiv_s_h2e\n{}'.format(numpy.rollaxis(du_half_h2e, -1),
+                                                                           -numpy.rollaxis(div_s_h2e, -1)))
 
                 if u_eprev is None:
                     u_eprev = u_estep
@@ -72,6 +75,9 @@ class BasicTests():
                 du_half_e2h = u_hstep - u_eprev
                 div_s_e2h = self.dt * fdtd.poynting_divergence(e=self.es[ii-1], h=self.hs[ii], dxes=self.dxes)
                 self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h, rtol=1e-4))
+                self.assertTrue(numpy.allclose(du_half_e2h, -div_s_e2h, rtol=1e-4),
+                                msg='du_half_e2h\n{}\ndiv_s_e2h\n{}'.format(numpy.rollaxis(du_half_e2h, -1),
+                                                                           -numpy.rollaxis(div_s_e2h, -1)))
                 u_eprev = u_estep
 
 
@@ -95,8 +101,8 @@ class BasicTests():
                 planes = [s_h2e[px].sum(), -s_h2e[mx].sum(),
                           s_h2e[py].sum(), -s_h2e[my].sum(),
                           s_h2e[pz].sum(), -s_h2e[mz].sum()]
-                self.assertTrue(numpy.allclose(sum(planes), (u_estep - u_hstep)[self.src_mask[1]]))
-#                print(planes, '\n', numpy.rollaxis(u_estep - u_hstep, -1), sum(planes))
+                self.assertTrue(numpy.allclose(sum(planes), (u_estep - u_hstep)[self.src_mask[1]]),
+                                msg='planes: {} (sum: {})\n du:\n {}'.format(planes, sum(planes), (u_estep - u_hstep)[self.src_mask[1]]))
 
 
 class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
