@@ -303,8 +303,8 @@ class JdotE_3DUniformDX(unittest.TestCase):
         self.epsilon = numpy.full(shape, 4, dtype=float)
         self.epsilon[self.src_mask] = 2
 
-        e = numpy.random.randint(-128, 128 + 1, size=shape).astype(numpy.float32)
-        h = numpy.random.randint(-128, 128 + 1, size=shape).astype(numpy.float32)
+        e = numpy.random.randint(-128, 128 + 1, size=shape).astype(float)
+        h = numpy.random.randint(-128, 128 + 1, size=shape).astype(float)
         self.es = [e]
         self.hs = [h]
 
