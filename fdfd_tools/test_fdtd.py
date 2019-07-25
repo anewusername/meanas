@@ -284,10 +284,6 @@ class Basic3DUniformDX3(unittest.TestCase, BasicTests):
             eh2e(e, h, self.epsilon)
             self.es.append(e)
             self.hs.append(h)
-        logging.basicConfig(level=logging.DEBUG)
-
-    def tearDown(self):
-        logging.basicConfig(level=logging.INFO)
 
 
 class JdotE_3DUniformDX(unittest.TestCase):
