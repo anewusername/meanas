@@ -88,18 +88,19 @@ class BasicTests():
         dxes = self.dxes if self.dxes is not None else tuple(tuple(numpy.ones(s) for s in self.epsilon.shape[1:]) for _ in range(2))
         dV = numpy.prod(numpy.meshgrid(*dxes[0], indexing='ij'), axis=0)
 
+        mx = numpy.roll(self.src_mask, (-1, -1), axis=(0, 1))
+        my = numpy.roll(self.src_mask, -1, axis=2)
+        mz = numpy.roll(self.src_mask, (+1, -1), axis=(0, 3))
+        px = numpy.roll(self.src_mask, -1, axis=0)
+        py = self.src_mask.copy()
+        pz = numpy.roll(self.src_mask, +1, axis=0)
+
         u_eprev = None
         for ii in range(1, 8):
             with self.subTest(i=ii):
                 u_hstep = fdtd.energy_hstep(e0=self.es[ii-1], h1=self.hs[ii], e2=self.es[ii], **args)
                 u_estep = fdtd.energy_estep(h0=self.hs[ii], e1=self.es[ii], h2=self.hs[ii + 1], **args)
 
-                mx = numpy.roll(self.src_mask, (-1, -1), axis=(0, 1))
-                my = numpy.roll(self.src_mask, -1, axis=2)
-                mz = numpy.roll(self.src_mask, (+1, -1), axis=(0, 3))
-                px = numpy.roll(self.src_mask, -1, axis=0)
-                py = self.src_mask.copy()
-                pz = numpy.roll(self.src_mask, +1, axis=0)
                 s_h2e = -fdtd.poynting(e=self.es[ii], h=self.hs[ii]) * self.dt
                 s_h2e[0] *= dxes[0][1][None, :, None] * dxes[0][2][None, None, :]
                 s_h2e[1] *= dxes[0][0][:, None, None] * dxes[0][2][None, None, :]
@@ -109,6 +110,23 @@ class BasicTests():
                           s_h2e[pz].sum(), -s_h2e[mz].sum()]
                 self.assertTrue(numpy.allclose(sum(planes), (u_estep - u_hstep)[self.src_mask[1]]),
                                 msg='planes: {} (sum: {})\n du:\n {}'.format(planes, sum(planes), (u_estep - u_hstep)[self.src_mask[1]]))
+
+                if u_eprev is None:
+                    u_eprev = u_estep
+                    continue
+
+                s_e2h = -fdtd.poynting(e=self.es[ii - 1], h=self.hs[ii]) * self.dt
+                s_e2h[0] *= dxes[0][1][None, :, None] * dxes[0][2][None, None, :]
+                s_e2h[1] *= dxes[0][0][:, None, None] * dxes[0][2][None, None, :]
+                s_e2h[2] *= dxes[0][0][:, None, None] * dxes[0][1][None, :, None]
+                planes = [s_e2h[px].sum(), -s_e2h[mx].sum(),
+                          s_e2h[py].sum(), -s_e2h[my].sum(),
+                          s_e2h[pz].sum(), -s_e2h[mz].sum()]
+                self.assertTrue(numpy.allclose(sum(planes), (u_hstep - u_eprev)[self.src_mask[1]]),
+                                msg='planes: {} (sum: {})\n du:\n {}'.format(planes, sum(planes), (u_hstep - u_eprev)[self.src_mask[1]]))
+
+                # previous half-step
+                u_eprev = u_estep
 
 
 class Basic2DNoDXOnlyVacuum(unittest.TestCase, BasicTests):
