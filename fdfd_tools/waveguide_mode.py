@@ -425,6 +425,8 @@ def compute_source_wg(E: field_t,
                          omega=omega, dxes=dxes, axis=axis,
                          polarity=polarity, slices=slices4,
                          epsilon=epsilon, mu=mu)
+    return J
+
 
 def compute_overlap_ce(E: field_t,
                        wavenumber: complex,
