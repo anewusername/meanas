@@ -99,7 +99,7 @@ def solve_waveguide_mode(mode_number: int,
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
     if mu is None:
-        mu = [numpy.ones_like(epsilon[0])] * 3
+        mu = numpy.ones_like(epsilon)
 
     slices = tuple(slices)
 
@@ -131,18 +131,14 @@ def solve_waveguide_mode(mode_number: int,
 
     # Apply phase shift to H-field
     d_prop = 0.5 * sum(dxab_forward)
-    for a in range(3):
-        fields_2d['H'][a] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * d_prop)
+    fields_2d['H'] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * d_prop)
 
     # Expand E, H to full epsilon space we were given
-    E = [None]*3
-    H = [None]*3
+    E = numpy.zeros_like(epsilon, dtype=complex)
+    H = numpy.zeros_like(epsilon, dtype=complex)
     for a, o in enumerate(reverse_order):
-        E[a] = numpy.zeros_like(epsilon[0], dtype=complex)
-        H[a] = numpy.zeros_like(epsilon[0], dtype=complex)
-
-        E[a][slices] = fields_2d['E'][o][:, :, None].transpose(reverse_order)
-        H[a][slices] = fields_2d['H'][o][:, :, None].transpose(reverse_order)
+        E[(a, *slices)] = fields_2d['E'][o][:, :, None].transpose(reverse_order)
+        H[(a, *slices)] = fields_2d['H'][o][:, :, None].transpose(reverse_order)
 
     results = {
         'wavenumber': fields_2d['wavenumber'],
@@ -180,27 +176,24 @@ def compute_source(E: field_t,
     :return: J distribution for the unidirectional source
     """
     if mu is None:
-        mu = [1] * 3
+        mu = numpy.ones(3)
 
-    J = [None]*3
-    M = [None]*3
+    J = numpy.zeros_like(E, dtype=complex)
+    M = numpy.zeros_like(E, dtype=complex)
 
     src_order = numpy.roll(range(3), -axis)
     exp_iphi = numpy.exp(1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
-    J[src_order[0]] = numpy.zeros_like(E[0])
     J[src_order[1]] = +exp_iphi * H[src_order[2]] * polarity
     J[src_order[2]] = -exp_iphi * H[src_order[1]] * polarity
 
     rollby = -1 if polarity > 0 else 0
-    M[src_order[0]] = numpy.zeros_like(E[0])
     M[src_order[1]] = +numpy.roll(E[src_order[2]], rollby, axis=axis)
     M[src_order[2]] = -numpy.roll(E[src_order[1]], rollby, axis=axis)
 
     m2j = functional.m2j(omega, dxes, mu)
     Jm = m2j(M)
 
-    Jtot = [ji + jmi for ji, jmi in zip(J, Jm)]
-
+    Jtot = J + Jm
     return Jtot
 
 
@@ -236,8 +229,9 @@ def compute_overlap_e(E: field_t,
     """
     slices = tuple(slices)
 
-    cross_plane = [slice(None)] * 3
-    cross_plane[axis] = slices[axis]
+    cross_plane = [slice(None)] * 4
+    cross_plane[axis + 1] = slices[axis]
+    cross_plane = tuple(cross_plane)
 
     # Determine phase factors for parallel slices
     a_shape = numpy.roll([-1, 1, 1], axis)
@@ -248,11 +242,8 @@ def compute_overlap_e(E: field_t,
     phase_H = numpy.exp(iphi * (a_H - a_H[slices[axis]])).reshape(a_shape)
 
     # Expand our slice to the entire grid using the calculated phase factors
-    Ee = [None]*3
-    He = [None]*3
-    for k in range(3):
-        Ee[k] = phase_E * E[k][tuple(cross_plane)]
-        He[k] = phase_H * H[k][tuple(cross_plane)]
+    Ee = phase_E * E[cross_plane]
+    He = phase_H * H[cross_plane]
 
 
     # Write out the operator product for the mode orthogonality integral
@@ -359,15 +350,14 @@ def compute_source_q(E: field_t,
     A2f = functional.curl_e(dxes)
 
     J = A1f(H)
-    M = A2f([-E[i] for i in range(3)])
+    M = A2f(-E)
 
     m2j = functional.m2j(omega, dxes, mu)
     Jm = m2j(M)
 
-    Jtot = [ji + jmi for ji, jmi in zip(J, Jm)]
+    Jtot = J + Jm
 
     return Jtot, J, M
-
 
 
 def compute_source_e(QE: field_t,
@@ -389,16 +379,15 @@ def compute_source_e(QE: field_t,
     # Trim a cell from each end of the propagation axis
     slices_reduced = list(slices)
     slices_reduced[axis] = slice(slices[axis].start + 1, slices[axis].stop - 1)
-    slices_reduced = tuple(slices)
+    slices_reduced = tuple(slice(None), *slices)
 
     # Don't actually need to mask out E here since it needs to be pre-masked (QE)
 
     A = functional.e_full(omega, dxes, epsilon, mu)
-    J4 = [ji / (-1j * omega) for ji in A(QE)]       #J4 is 4-cell result of -iwJ = A QE
+    J4 = A(QE) / (-1j * omega)             #J4 is 4-cell result of -iwJ = A QE
 
     J = numpy.zeros_like(J4)
-    for a in range(3):
-        J[a][slices_reduced] = J4[a][slices_reduced]
+    J[slices_reduced] = J4[slices_reduced]
     return J
 
 
@@ -445,14 +434,12 @@ def compute_overlap_ce(E: field_t,
 
     slices2 = list(slices)
     slices2[axis] = slice(start, stop)
-    slices2 = tuple(slices2)
+    slices2 = tuple(slice(None), slices2)
 
     Etgt = numpy.zeros_like(Ee)
-    for a in range(3):
-        Etgt[a][slices2] = Ee[a][slices2]
+    Etgt[slices2] = Ee[slices2]
 
     Etgt /= (Etgt.conj() * Etgt).sum()
-
     return Etgt, slices2
 
 
@@ -476,10 +463,10 @@ def expand_wgmode_e(E: field_t,
     Ee = numpy.zeros_like(E)
 
     slices_exp = list(slices)
-    slices_exp[axis] = slice(E[0].shape[axis])
-    slices_exp = (slice(3), *slices_exp)
+    slices_exp[axis] = slice(E.shape[axis + 1])
+    slices_exp = (slice(None), *slices_exp)
 
-    slices_in = tuple(slice(3), *slices)
+    slices_in = tuple(slice(None), *slices)
 
     Ee[slices_exp] = phase_E * numpy.array(E)[slices_in]
 
