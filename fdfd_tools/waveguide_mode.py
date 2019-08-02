@@ -479,7 +479,9 @@ def expand_wgmode_e(E: field_t,
     slices_exp[axis] = slice(E[0].shape[axis])
     slices_exp = (slice(3), *slices_exp)
 
-    Ee[slices_exp] = phase_E * numpy.array(E)[slices_Exp]
+    slices_in = tuple(slice(3), *slices)
+
+    Ee[slices_exp] = phase_E * numpy.array(E)[slices_in]
 
     return Ee
 
