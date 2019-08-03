@@ -379,7 +379,7 @@ def compute_source_e(QE: field_t,
     # Trim a cell from each end of the propagation axis
     slices_reduced = list(slices)
     slices_reduced[axis] = slice(slices[axis].start + 1, slices[axis].stop - 1)
-    slices_reduced = tuple(slice(None), *slices)
+    slices_reduced = tuple(slice(None), *slices_reduced)
 
     # Don't actually need to mask out E here since it needs to be pre-masked (QE)
 
