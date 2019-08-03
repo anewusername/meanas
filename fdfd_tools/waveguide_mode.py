@@ -370,7 +370,7 @@ def compute_source_e(QE: field_t,
                      mu: field_t = None,
                      ) -> field_t:
     """
-    Want (AQ-QA) E = -iwj, where Q is a mask
+    Want (AQ-QA) E = -iwJ, where Q is a mask
     If E is an eigenmode, AE = 0 so just AQE = -iwJ
     Really only need E in 4 cells along axis (0, 0, Emode1, Emode2), find AE (1 fdtd step), then use center 2 cells as src
     """
