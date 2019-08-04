@@ -3,17 +3,13 @@ Sparse matrix operators for use with electromagnetic wave equations.
 
 These functions return sparse-matrix (scipy.sparse.spmatrix) representations of
  a variety of operators, intended for use with E and H fields vectorized using the
- fdfd_tools.vec() and .unvec() functions (column-major/Fortran ordering).
+ meanas.vec() and .unvec() functions (column-major/Fortran ordering).
 
 E- and H-field values are defined on a Yee cell; epsilon values should be calculated for
  cells centered at each E component (mu at each H component).
 
-Many of these functions require a 'dxes' parameter, of type fdfd_tools.dx_lists_type,
- which contains grid cell width information in the following format:
- [[[dx_e_0, dx_e_1, ...], [dy_e_0, ...], [dz_e_0, ...]],
-  [[dx_h_0, dx_h_1, ...], [dy_h_0, ...], [dz_h_0, ...]]]
- where dx_e_0 is the x-width of the x=0 cells, as used when calculating dE/dx,
- and dy_h_0 is  the y-width of the y=0 cells, as used when calculating dH/dy, etc.
+Many of these functions require a 'dxes' parameter, of type meanas.dx_lists_type; see
+the meanas.types submodule for details.
 
 
 The following operators are included:
@@ -57,7 +53,7 @@ def e_full(omega: complex,
     To make this matrix symmetric, use the preconditions from e_full_preconditioners().
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere).
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
@@ -101,7 +97,7 @@ def e_full_preconditioners(dxes: dx_lists_t
 
     The preconditioner matrices are diagonal and complex, with Pr = 1 / Pl
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Preconditioner matrices (Pl, Pr)
     """
     p_squared = [dxes[0][0][:, None, None] * dxes[1][1][None, :, None] * dxes[1][2][None, None, :],
@@ -127,7 +123,7 @@ def h_full(omega: complex,
     (del x (1/epsilon * del x) - omega**2 * mu) H = i * omega * M
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
@@ -177,7 +173,7 @@ def eh_full(omega: complex,
     for use with a field vector of the form hstack(vec(E), vec(H)).
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Vectorized dielectric constant
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
@@ -216,7 +212,7 @@ def curl_h(dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Curl operator for use with the H field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Sparse matrix for taking the discretized curl of the H-field
     """
     return cross(deriv_back(dxes[1]))
@@ -226,7 +222,7 @@ def curl_e(dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Curl operator for use with the E field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Sparse matrix for taking the discretized curl of the E-field
     """
     return cross(deriv_forward(dxes[0]))
@@ -242,7 +238,7 @@ def e2h(omega: complex,
     For use with e_full -- assumes that there is no magnetic current M.
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
         as containing a perfect magnetic conductor (PMC).
@@ -270,7 +266,7 @@ def m2j(omega: complex,
     For use with eg. e_full.
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param mu: Vectorized magnetic permeability (default 1 everywhere)
     :return: Sparse matrix for converting E to H
     """
@@ -454,7 +450,7 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     Operator for computing the Poynting vector, containing the (E x) portion of the Poynting vector.
 
     :param e: Vectorized E-field for the ExH cross product
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Sparse matrix containing (E x) portion of Poynting cross product
     """
     shape = [len(dx) for dx in dxes[0]]
@@ -483,7 +479,7 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     Operator for computing the Poynting vector, containing the (H x) portion of the Poynting vector.
 
     :param h: Vectorized H-field for the HxE cross product
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Sparse matrix containing (H x) portion of Poynting cross product
     """
     shape = [len(dx) for dx in dxes[0]]

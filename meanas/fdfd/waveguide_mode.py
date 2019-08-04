@@ -19,7 +19,7 @@ def solve_waveguide_mode_2d(mode_number: int,
 
     :param mode_number: Number of the mode, 0-indexed.
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
     :param wavenumber_correction: Whether to correct the wavenumber to
@@ -87,7 +87,7 @@ def solve_waveguide_mode(mode_number: int,
 
     :param mode_number: Number of the mode, 0-indexed
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param axis: Propagation axis (0=x, 1=y, 2=z)
     :param polarity: Propagation direction (+1 for +ve, -1 for -ve)
     :param slices: epsilon[tuple(slices)] is used to select the portion of the grid to use
@@ -167,7 +167,7 @@ def compute_source(E: field_t,
     :param H: H-field of the mode (advanced by half of a Yee cell from E)
     :param wavenumber: Wavenumber of the mode
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param axis: Propagation axis (0=x, 1=y, 2=z)
     :param polarity: Propagation direction (+1 for +ve, -1 for -ve)
     :param slices: epsilon[tuple(slices)] is used to select the portion of the grid to use
@@ -219,7 +219,7 @@ def compute_overlap_e(E: field_t,
     :param H: H-field of the mode (advanced by half of a Yee cell from E)
     :param wavenumber: Wavenumber of the mode
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param axis: Propagation axis (0=x, 1=y, 2=z)
     :param polarity: Propagation direction (+1 for +ve, -1 for -ve)
     :param slices: epsilon[tuple(slices)] is used to select the portion of the grid to use
@@ -283,7 +283,7 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
 
     :param mode_number: Number of the mode, 0-indexed
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header.
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types.
         The first coordinate is assumed to be r, the second is y.
     :param epsilon: Dielectric constant
     :param r0: Radius of curvature for the simulation. This should be the minimum value of

@@ -70,7 +70,7 @@ def generic(omega: complex,
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
 
-    All ndarray arguments should be 1D array, as returned by fdfd_tools.vec().
+    All ndarray arguments should be 1D array, as returned by meanas.vec().
 
     :param omega: Complex frequency to solve at.
     :param dxes: [[dx_e, dy_e, dz_e], [dx_h, dy_h, dz_h]] (complex cell sizes)

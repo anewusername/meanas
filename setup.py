@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 from setuptools import setup, find_packages
-import fdfd_tools
+import meanas
 
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-setup(name='fdfd_tools',
-      version=fdfd_tools.version,
-      description='FDFD Electromagnetic simulation tools',
+setup(name='meanas',
+      version=meanas.version,
+      description='Electromagnetic simulation tools',
       long_description=long_description,
       long_description_content_type='text/markdown',
       author='Jan Petykiewicz',

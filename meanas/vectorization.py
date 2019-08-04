@@ -4,15 +4,13 @@ and a 1D array representation of that field [f_x0, f_x1, f_x2,... f_y0,... f_z0,
 Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
-
 from typing import List
 import numpy
 
-__author__ = 'Jan Petykiewicz'
+from .types import field_t, vfield_t
 
-# Types
-field_t = List[numpy.ndarray]  # vector field (eg. [E_x, E_y, E_z]
-vfield_t = numpy.ndarray       # linearized vector field
+
+__author__ = 'Jan Petykiewicz'
 
 
 def vec(f: field_t) -> vfield_t:
@@ -27,7 +25,7 @@ def vec(f: field_t) -> vfield_t:
     """
     if numpy.any(numpy.equal(f, None)):
         return None
-    return numpy.hstack(tuple((fi.ravel(order='C') for fi in f)))
+    return numpy.ravel(f, order='C')
 
 
 def unvec(v: vfield_t, shape: numpy.ndarray) -> field_t:

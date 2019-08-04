@@ -4,7 +4,7 @@ import dataclasses
 from typing import List, Tuple
 from numpy.testing import assert_allclose, assert_array_equal
 
-from fdfd_tools import fdtd
+from meanas import fdtd
 
 
 prng = numpy.random.RandomState(12345)

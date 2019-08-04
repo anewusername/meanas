@@ -8,7 +8,6 @@ import numpy
 __author__ = 'Jan Petykiewicz'
 
 
-dx_lists_t = List[List[numpy.ndarray]]
 s_function_type = Callable[[float], float]
 
 

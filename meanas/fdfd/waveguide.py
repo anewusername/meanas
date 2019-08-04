@@ -51,7 +51,7 @@ def operator(omega: complex,
     z-dependence is assumed for the fields).
 
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Sparse matrix representation of the operator
@@ -91,7 +91,7 @@ def normalized_fields(v: numpy.ndarray,
     :param v: Vector containing H_x and H_y fields
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Normalized, vectorized (e, h) containing all vector components.
@@ -120,6 +120,8 @@ def normalized_fields(v: numpy.ndarray,
     # Try to break symmetry to assign a consistent sign [experimental]
     E_weighted = unvec(e * energy * numpy.exp(1j * norm_angle), shape)
     sign = numpy.sign(E_weighted[:, :max(shape[0]//2, 1), :max(shape[1]//2, 1)].real.sum())
+    logger.debug('norm_angle = {}'.format(norm_angle))
+    logger.debug('norm_sign = {}'.format(sign)
 
     norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 
@@ -140,7 +142,7 @@ def v2h(v: numpy.ndarray,
 
     :param v: Vector containing H_x and H_y fields
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Vectorized H field with all vector components
     """
@@ -172,7 +174,7 @@ def v2e(v: numpy.ndarray,
     :param v: Vector containing H_x and H_y fields
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Vectorized E field with all vector components.
@@ -192,7 +194,7 @@ def e2h(wavenumber: complex,
 
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Sparse matrix representation of the operator
     """
@@ -213,7 +215,7 @@ def h2e(wavenumber: complex,
 
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :return: Sparse matrix representation of the operator
     """
@@ -226,7 +228,7 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     Discretized curl operator for use with the waveguide E field.
 
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :return: Sparse matrix representation of the operator
     """
     n = 1
@@ -243,7 +245,7 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     Discretized curl operator for use with the waveguide H field.
 
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :return: Sparse matrix representation of the operator
     """
     n = 1
@@ -268,7 +270,7 @@ def h_err(h: vfield_t,
     :param h: Vectorized H field
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Relative error norm(OP @ h) / norm(h)
@@ -299,7 +301,7 @@ def e_err(e: vfield_t,
     :param e: Vectorized E field
     :param wavenumber: Wavenumber satisfying A @ v == wavenumber**2 * v
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
     :return: Relative error norm(OP @ e) / norm(e)
@@ -335,7 +337,7 @@ def cylindrical_operator(omega: complex,
      theta-dependence is assumed for the fields).
 
     :param omega: The angular frequency of the system
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header (2D)
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param r0: Radius of curvature for the simulation. This should be the minimum value of
         r within the simulation domain.

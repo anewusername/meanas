@@ -2,8 +2,8 @@
 Functional versions of many FDFD operators. These can be useful for performing
  FDFD calculations without needing to construct large matrices in memory.
 
-The functions generated here expect inputs in the form E = [E_x, E_y, E_z], where each
- component E_* is an ndarray of equal shape.
+The functions generated here expect field inputs with shape (3, X, Y, Z),
+e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
 """
 from typing import List, Callable
 import numpy
@@ -20,7 +20,7 @@ def curl_h(dxes: dx_lists_t) -> functional_matrix:
     """
     Curl operator for use with the H field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Function for taking the discretized curl of the H-field, F(H) -> curlH
     """
     dxyz_b = numpy.meshgrid(*dxes[1], indexing='ij')
@@ -41,7 +41,7 @@ def curl_e(dxes: dx_lists_t) -> functional_matrix:
     """
     Curl operator for use with the E field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Function for taking the discretized curl of the E-field, F(E) -> curlE
     """
     dxyz_a = numpy.meshgrid(*dxes[0], indexing='ij')
@@ -69,7 +69,7 @@ def e_full(omega: complex,
     (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
     :return: Function implementing the wave operator A(E) -> E
@@ -100,7 +100,7 @@ def eh_full(omega: complex,
     Wave operator for full (both E and H) field representation.
 
     :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
     :return: Function implementing the wave operator A(E, H) -> (E, H)
@@ -131,7 +131,7 @@ def e2h(omega: complex,
    For use with e_full -- assumes that there is no magnetic current M.
 
    :param omega: Angular frequency of the simulation
-   :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+   :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
    :param mu: Magnetic permeability (default 1 everywhere)
    :return: Function for converting E to H
    """
@@ -159,7 +159,7 @@ def m2j(omega: complex,
    For use with e.g. e_full().
 
    :param omega: Angular frequency of the simulation
-   :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+   :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
    :param mu: Magnetic permeability (default 1 everywhere)
    :return: Function for converting M to J
    """

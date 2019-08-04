@@ -1,6 +1,5 @@
-# meanas
-
-**meanas** is a python package for electromagnetic simulations
+"""
+Electromagnetic simulation tools
 
 This package is intended for building simulation inputs, analyzing
 simulation outputs, and running short simulations on unspecialized hardware.
@@ -24,8 +23,8 @@ purpose- and hardware-specific solvers.
     * Convolutional PMLs
 
 This package does *not* provide a fast matrix solver, though by default
-`meanas.fdfd.solvers.generic(...)` will call
-`scipy.sparse.linalg.qmr(...)` to perform a solve.
+```meanas.fdfd.solvers.generic(...)``` will call
+```scipy.sparse.linalg.qmr(...)``` to perform a solve.
 For 2D FDFD problems this should be fine; likewise, the waveguide mode
 solver uses scipy's eigenvalue solver, with reasonable results.
 
@@ -36,21 +35,14 @@ solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
 
 
-## Installation
+Dependencies:
+- numpy
+- scipy
 
-**Requirements:**
-* python 3 (tests require 3.7)
-* numpy
-* scipy
+"""
 
+from .types import dx_lists_t, field_t, vfield_t, field_updater
+from .vectorization import vec, unvec
 
-Install with pip, via git:
-```bash
-pip install git+https://mpxd.net/code/jan/meanas.git@release
-```
-
-## Use
-
-See `examples/` for some simple examples; you may need additional
-packages such as [gridlock](https://mpxd.net/code/jan/gridlock)
-to run the examples.
+__author__ = 'Jan Petykiewicz'
+version = '0.5'
