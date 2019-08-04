@@ -86,7 +86,7 @@ def test_poynting_divergence(sim):
 
         du_half_h2e = u_estep - u_hstep - delta_j_B
         div_s_h2e = sim.dt * fdtd.poynting_divergence(e=sim.es[ii], h=sim.hs[ii], dxes=sim.dxes) * dV
-        assert_fields_close(du_half_h2e, -div_s_h2e, rtol=1e-4)
+        assert_fields_close(du_half_h2e, -div_s_h2e)
 
         if u_eprev is None:
             u_eprev = u_estep
@@ -97,7 +97,7 @@ def test_poynting_divergence(sim):
 
         du_half_e2h = u_hstep - u_eprev - delta_j_A
         div_s_e2h = sim.dt * fdtd.poynting_divergence(e=sim.es[ii-1], h=sim.hs[ii], dxes=sim.dxes) * dV
-        assert_fields_close(du_half_e2h, -div_s_e2h, rtol=1e-4)
+        assert_fields_close(du_half_e2h, -div_s_e2h)
         u_eprev = u_estep
 
 
@@ -146,26 +146,10 @@ def test_poynting_planes(sim):
         # previous half-step
         u_eprev = u_estep
 
-## Now tested elsewhere
-#def test_j_dot_e(sim):
-#    for tt in sim.j_steps:
-#        e0 = sim.es[tt - 1]
-#        j1 = sim.js[tt]
-#        e1 = sim.es[tt]
-#
-#        delta_j_A = fdtd.delta_energy_j(j0=j1, e1=e0, dxes=sim.dxes)
-#        delta_j_B = fdtd.delta_energy_j(j0=j1, e1=e1, dxes=sim.dxes)
-#
-#        args = {'dxes': sim.dxes,
-#                'epsilon': sim.epsilon}
-#
-#        u_eprev = fdtd.energy_estep(h0=sim.hs[tt-1], e1=sim.es[tt-1], h2=sim.hs[tt],     **args)
-#        u_hstep = fdtd.energy_hstep(e0=sim.es[tt-1], h1=sim.hs[tt],   e2=sim.es[tt],     **args)
-#        u_estep = fdtd.energy_estep(h0=sim.hs[tt],   e1=sim.es[tt],   h2=sim.hs[tt + 1], **args)
-#
-#        assert_close(delta_j_A.sum(), (u_hstep - u_eprev).sum(), rtol=1e-4)
-#        assert_close(delta_j_B.sum(), (u_estep - u_hstep).sum(), rtol=1e-4)
 
+#####################################
+#      Test fixtures
+#####################################
 
 @pytest.fixture(scope='module',
                 params=[(5, 5, 1),
