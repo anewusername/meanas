@@ -23,3 +23,4 @@ from .vectorization import vec, unvec, field_t, vfield_t
 from .grid import dx_lists_t
 
 __author__ = 'Jan Petykiewicz'
+version = '0.5'
