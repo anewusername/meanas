@@ -13,7 +13,7 @@ def curl_h(dxes: dx_lists_t = None) -> field_updater:
     """
     Curl operator for use with the H field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Function for taking the discretized curl of the H-field, F(H) -> curlH
     """
     if dxes:
@@ -42,7 +42,7 @@ def curl_e(dxes: dx_lists_t = None) -> field_updater:
     """
     Curl operator for use with the E field.
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in fdfd_tools.operators header
+    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :return: Function for taking the discretized curl of the E-field, F(E) -> curlE
     """
     if dxes is not None:

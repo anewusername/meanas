@@ -2,11 +2,9 @@ import importlib
 import numpy
 from numpy.linalg import norm
 
-from fdfd_tools import vec, unvec, waveguide_mode
-import fdfd_tools
-import fdfd_tools.functional
-import fdfd_tools.grid
-from fdfd_tools.solvers import generic as generic_solver
+from meanas import vec, unvec
+from meanas.fdfd import waveguide_mode, functional, scpml
+from meanas.fdfd.solvers import generic as generic_solver
 
 import gridlock
 
@@ -50,8 +48,8 @@ def test1(solver=generic_solver):
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (1, 2):
         for p in (-1, 1):
-            dxes = fdfd_tools.grid.stretch_with_scpml(dxes, omega=omega, axis=a, polarity=p,
-                                                      thickness=pml_thickness)
+            dxes = scmpl.stretch_with_scpml(dxes, omega=omega, axis=a, polarity=p,
+                                            thickness=pml_thickness)
 
     wg_args = {
         'omega': omega,

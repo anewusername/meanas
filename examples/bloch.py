@@ -1,5 +1,5 @@
-import numpy, scipy, gridlock, fdfd_tools
-from fdfd_tools import bloch
+import numpy, scipy, gridlock, meanas
+from meanas.fdfd import bloch
 from numpy.linalg import norm
 import logging
 from pathlib import Path

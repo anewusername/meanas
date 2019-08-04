@@ -2,11 +2,10 @@ import importlib
 import numpy
 from numpy.linalg import norm
 
-from fdfd_tools import vec, unvec, waveguide_mode
-import fdfd_tools
-import fdfd_tools.functional
-import fdfd_tools.grid
-from fdfd_tools.solvers import generic as generic_solver
+import meanas
+from meanas import vec, unvec
+from meanas.fdfd import waveguide_mode, functional, scpml
+from meanas.fdfd.solvers import generic as generic_solver
 
 import gridlock
 
@@ -57,8 +56,8 @@ def test0(solver=generic_solver):
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
         for p in (-1, 1):
-            dxes = fdfd_tools.grid.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
-                                                      thickness=pml_thickness)
+            dxes = meanas.scpml.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
+                                                   thickness=pml_thickness)
 
     J = [numpy.zeros_like(grid.grids[0], dtype=complex) for _ in range(3)]
     J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1e5
@@ -68,7 +67,7 @@ def test0(solver=generic_solver):
     '''
     x = solver(J=vec(J), **sim_args)
 
-    A = fdfd_tools.functional.e_full(omega, dxes, vec(grid.grids)).tocsr()
+    A = functional.e_full(omega, dxes, vec(grid.grids)).tocsr()
     b = -1j * omega * vec(J)
     print('Norm of the residual is ', norm(A @ x - b))
 
@@ -113,8 +112,8 @@ def test1(solver=generic_solver):
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
         for p in (-1, 1):
-            dxes = fdfd_tools.grid.stretch_with_scpml(dxes,omega=omega, axis=a, polarity=p,
-                                                      thickness=pml_thickness)
+            dxes = scpml.stretch_with_scpml(dxes,omega=omega, axis=a, polarity=p,
+                                            thickness=pml_thickness)
 
     half_dims = numpy.array([10, 20, 15]) * dx
     dims = [-half_dims, half_dims]
@@ -155,7 +154,7 @@ def test1(solver=generic_solver):
     x = solver(J=vec(J), **sim_args)
 
     b = -1j * omega * vec(J)
-    A = fdfd_tools.operators.e_full(**sim_args).tocsr()
+    A = operators.e_full(**sim_args).tocsr()
     print('Norm of the residual is ', norm(A @ x - b))
 
     E = unvec(x, grid.shape)
@@ -181,9 +180,9 @@ def test1(solver=generic_solver):
 
     def poyntings(E):
         e = vec(E)
-        h = fdfd_tools.operators.e2h(omega, dxes) @ e
-        cross1 = fdfd_tools.operators.poynting_e_cross(e, dxes) @ h.conj()
-        cross2 = fdfd_tools.operators.poynting_h_cross(h.conj(), dxes) @ e
+        h = operators.e2h(omega, dxes) @ e
+        cross1 = operators.poynting_e_cross(e, dxes) @ h.conj()
+        cross2 = operators.poynting_h_cross(h.conj(), dxes) @ e
         s1 = unvec(0.5 * numpy.real(cross1), grid.shape)
         s2 = unvec(0.5 * numpy.real(-cross2), grid.shape)
         return s1, s2

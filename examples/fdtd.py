@@ -10,7 +10,7 @@ import time
 import numpy
 import h5py
 
-from fdfd_tools import fdtd
+from meanas import fdtd
 from masque import Pattern, shapes
 import gridlock
 import pcgen
