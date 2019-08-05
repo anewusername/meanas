@@ -9,6 +9,7 @@ from meanas import fdtd
 
 prng = numpy.random.RandomState(12345)
 
+
 def assert_fields_close(a, b, *args, **kwargs):
     numpy.testing.assert_allclose(a, b, verbose=False, err_msg='Fields did not match:\n{}\n{}'.format(numpy.rollaxis(a, -1),
                                                                                                       numpy.rollaxis(b, -1)), *args, **kwargs)

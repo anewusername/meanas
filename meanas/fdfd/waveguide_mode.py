@@ -2,9 +2,9 @@ from typing import Dict, List
 import numpy
 import scipy.sparse as sparse
 
-from . import vec, unvec, dx_lists_t, vfield_t, field_t
+from .. import vec, unvec, dx_lists_t, vfield_t, field_t
 from . import operators, waveguide, functional
-from .eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
+from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
 def solve_waveguide_mode_2d(mode_number: int,
@@ -12,7 +12,7 @@ def solve_waveguide_mode_2d(mode_number: int,
                             dxes: dx_lists_t,
                             epsilon: vfield_t,
                             mu: vfield_t = None,
-                            wavenumber_correction: bool = True,
+                            dx_prop: float = 0,
                             ) -> Dict[str, complex or field_t]:
     """
     Given a 2d region, attempts to solve for the eigenmode with the specified mode number.
@@ -22,8 +22,8 @@ def solve_waveguide_mode_2d(mode_number: int,
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
-    :param wavenumber_correction: Whether to correct the wavenumber to
-        account for numerical dispersion (default True)
+    :param dx_prop: The cell width in the the propagation direction, used to apply a
+        correction to the wavenumber. Default 0 (i.e. continuous propagation direction)
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
 
@@ -51,15 +51,9 @@ def solve_waveguide_mode_2d(mode_number: int,
 
     '''
     Perform correction on wavenumber to account for numerical dispersion.
-
-     See Numerical Dispersion in Taflove's FDTD book.
-     This correction term reduces the error in emitted power, but additional
-      error is introduced into the E_err and H_err terms. This effect becomes
-      more pronounced as the wavenumber increases.
     '''
-    if wavenumber_correction:
-        dx_mean = (numpy.hstack(dxes[0]) + numpy.hstack(dxes[1])).mean() / 2        #TODO figure out what dx to use here
-        wavenumber -= 2 * numpy.sin(numpy.real(wavenumber * dx_mean / 2)) / dx_mean - numpy.real(wavenumber)
+    if dx_prop != 0:
+        wavenumber = 2 / dx_prop * numpy.sin(wavenumber * dx_prop / 2)
 
     shape = [d.size for d in dxes[0]]
     fields = {
@@ -79,7 +73,6 @@ def solve_waveguide_mode(mode_number: int,
                          slices: List[slice],
                          epsilon: field_t,
                          mu: field_t = None,
-                         wavenumber_correction: bool = True
                          ) -> Dict[str, complex or numpy.ndarray]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
@@ -94,8 +87,6 @@ def solve_waveguide_mode(mode_number: int,
         as the waveguide cross-section. slices[axis] should select only one
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
-    :param wavenumber_correction: Whether to correct the wavenumber to
-        account for numerical dispersion (default True)
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
     if mu is None:
@@ -115,7 +106,7 @@ def solve_waveguide_mode(mode_number: int,
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
         'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
         'mu': vec([mu[i][slices].transpose(order) for i in order]),
-        'wavenumber_correction': wavenumber_correction,
+        'dx_prop': dxes[0][order[2]][slices[order[2]]],
     }
     fields_2d = solve_waveguide_mode_2d(mode_number, omega=omega, **args_2d)
 
@@ -175,9 +166,6 @@ def compute_source(E: field_t,
     :param mu: Magnetic permeability (default 1 everywhere)
     :return: J distribution for the unidirectional source
     """
-    if mu is None:
-        mu = numpy.ones(3)
-
     J = numpy.zeros_like(E, dtype=complex)
     M = numpy.zeros_like(E, dtype=complex)
 
@@ -275,9 +263,9 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
                                      dxes: dx_lists_t,
                                      epsilon: vfield_t,
                                      r0: float,
-                                     wavenumber_correction: bool = True,
                                      ) -> Dict[str, complex or field_t]:
     """
+    TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
      of the bent waveguide with the specified mode number.
 
@@ -288,8 +276,6 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
     :param epsilon: Dielectric constant
     :param r0: Radius of curvature for the simulation. This should be the minimum value of
         r within the simulation domain.
-    :param wavenumber_correction: Whether to correct the wavenumber to
-        account for numerical dispersion (default True)
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
 
@@ -313,16 +299,7 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
     wavenumber = numpy.sqrt(eigval)
     wavenumber *= numpy.sign(numpy.real(wavenumber))
 
-    '''
-    Perform correction on wavenumber to account for numerical dispersion.
-
-     See Numerical Dispersion in Taflove's FDTD book.
-     This correction term reduces the error in emitted power, but additional
-      error is introduced into the E_err and H_err terms. This effect becomes
-      more pronounced as the wavenumber increases.
-    '''
-    if wavenumber_correction:
-        wavenumber -= 2 * numpy.sin(numpy.real(wavenumber / 2)) - numpy.real(wavenumber)
+    # TODO: Perform correction on wavenumber to account for numerical dispersion.
 
     shape = [d.size for d in dxes[0]]
     v = numpy.hstack((v, numpy.zeros(shape[0] * shape[1])))

@@ -23,7 +23,7 @@ import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
 
-from . import vec, unvec, dx_lists_t, field_t, vfield_t
+from .. import vec, unvec, dx_lists_t, field_t, vfield_t
 from . import operators
 
 
@@ -82,7 +82,8 @@ def normalized_fields(v: numpy.ndarray,
                       omega: complex,
                       dxes: dx_lists_t,
                       epsilon: vfield_t,
-                      mu: vfield_t = None
+                      mu: vfield_t = None,
+                      dx_prop: float = 0,
                       ) -> Tuple[vfield_t, vfield_t]:
     """
     Given a vector v containing the vectorized H_x and H_y fields,
@@ -94,6 +95,7 @@ def normalized_fields(v: numpy.ndarray,
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
+    :param dxes_prop: Grid cell width in the propagation direction. Default 0 (continuous).
     :return: Normalized, vectorized (e, h) containing all vector components.
     """
     e = v2e(v, wavenumber, omega, dxes, epsilon, mu=mu)
@@ -105,11 +107,10 @@ def normalized_fields(v: numpy.ndarray,
     E = unvec(e, shape)
     H = unvec(h, shape)
 
-    S1 = E[0] * numpy.roll(numpy.conj(H[1]), 1, axis=0) * dxes_real[0][1] * dxes_real[1][0]
-    S2 = E[1] * numpy.roll(numpy.conj(H[0]), 1, axis=1) * dxes_real[0][0] * dxes_real[1][1]
-    S = 0.25 * ((S1 + numpy.roll(S1, 1, axis=0)) -
-                (S2 + numpy.roll(S2, 1, axis=1)))
-    P = 0.5 * numpy.real(S.sum())
+    phase = numpy.exp(-1j * wavenumber * dx_prop / 2)
+    S1 = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
+    S2 = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
+    P = numpy.real(S1.sum() - S2.sum())
     assert P > 0, 'Found a mode propagating in the wrong direction! P={}'.format(P)
 
     energy = epsilon * e.conj() * e
@@ -120,8 +121,6 @@ def normalized_fields(v: numpy.ndarray,
     # Try to break symmetry to assign a consistent sign [experimental]
     E_weighted = unvec(e * energy * numpy.exp(1j * norm_angle), shape)
     sign = numpy.sign(E_weighted[:, :max(shape[0]//2, 1), :max(shape[1]//2, 1)].real.sum())
-    logger.debug('norm_angle = {}'.format(norm_angle))
-    logger.debug('norm_sign = {}'.format(sign)
 
     norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 

@@ -32,7 +32,7 @@ from typing import List, Tuple
 import numpy
 import scipy.sparse as sparse
 
-from . import vec, dx_lists_t, vfield_t
+from .. import vec, dx_lists_t, vfield_t
 
 
 __author__ = 'Jan Petykiewicz'

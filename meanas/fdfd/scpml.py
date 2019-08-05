@@ -5,6 +5,8 @@ Functions for creating stretched coordinate PMLs.
 from typing import List, Callable
 import numpy
 
+from .. import dx_lists_t
+
 __author__ = 'Jan Petykiewicz'
 
 

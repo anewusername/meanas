@@ -4,7 +4,7 @@ from numpy.linalg import norm
 
 import meanas
 from meanas import vec, unvec
-from meanas.fdfd import waveguide_mode, functional, scpml
+from meanas.fdfd import waveguide_mode, functional, scpml, operators
 from meanas.fdfd.solvers import generic as generic_solver
 
 import gridlock
@@ -56,18 +56,23 @@ def test0(solver=generic_solver):
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
         for p in (-1, 1):
-            dxes = meanas.scpml.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
-                                                   thickness=pml_thickness)
+            dxes = meanas.fdfd.scpml.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
+                                                        thickness=pml_thickness)
 
     J = [numpy.zeros_like(grid.grids[0], dtype=complex) for _ in range(3)]
-    J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1e5
+    J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1
 
     '''
     Solve!
     '''
+    sim_args = {
+        'omega': omega,
+        'dxes': dxes,
+        'epsilon': vec(grid.grids),
+    }
     x = solver(J=vec(J), **sim_args)
 
-    A = functional.e_full(omega, dxes, vec(grid.grids)).tocsr()
+    A = operators.e_full(omega, dxes, vec(grid.grids)).tocsr()
     b = -1j * omega * vec(J)
     print('Norm of the residual is ', norm(A @ x - b))
 
@@ -208,7 +213,7 @@ def module_available(name):
 
 
 if __name__ == '__main__':
-    # test0()
+    test0()
 
     if module_available('opencl_fdfd'):
         from opencl_fdfd import cg_solver as opencl_solver

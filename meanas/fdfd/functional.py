@@ -8,7 +8,7 @@ e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
 from typing import List, Callable
 import numpy
 
-from . import dx_lists_t, field_t
+from .. import dx_lists_t, field_t
 
 __author__ = 'Jan Petykiewicz'
 
