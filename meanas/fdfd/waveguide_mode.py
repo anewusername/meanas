@@ -436,16 +436,15 @@ def expand_wgmode_e(E: field_t,
     phase_E = numpy.exp(iphi * r_E).reshape(a_shape)
 
     # Expand our slice to the entire grid using the phase factors
-    Ee = numpy.zeros_like(E)
+    E_expanded = numpy.zeros_like(E)
 
     slices_exp = list(slices)
     slices_exp[axis] = slice(E.shape[axis + 1])
     slices_exp = (slice(None), *slices_exp)
 
-    slices_in = tuple(slice(None), *slices)
+    slices_in = (slice(None), *slices)
 
-    Ee[slices_exp] = phase_E * numpy.array(E)[slices_in]
-
-    return Ee
+    E_expanded[slices_exp] = phase_E * numpy.array(E)[slices_in]
+    return E_expanded
 
 
