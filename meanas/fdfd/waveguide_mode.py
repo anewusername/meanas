@@ -169,9 +169,9 @@ def compute_source(E: field_t,
     M = numpy.zeros_like(E, dtype=complex)
 
     src_order = numpy.roll(range(3), -axis)
-    exp_iphi = numpy.exp(1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
 
-    rollby = -1 if polarity > 0 else 0
+#    exp_iphi = numpy.exp(1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
+#    rollby = -1 if polarity > 0 else 0
 #    J[src_order[1]] = +exp_iphi * H[src_order[2]] * polarity / dxes[1][axis][slices[axis]]
 #    J[src_order[2]] = -exp_iphi * H[src_order[1]] * polarity / dxes[1][axis][slices[axis]]
 #    M[src_order[1]] = +numpy.roll(E[src_order[2]], rollby, axis=axis) / dxes[0][axis][slices[axis]]
@@ -181,14 +181,16 @@ def compute_source(E: field_t,
     s2[axis] = slice(slices[axis].start, slices[axis].stop)
     s2 = (src_order, *s2)
 
-    J[s2] = numpy.roll(functional.curl_h(dxes=dxes)(H), rollby, axis=axis+1)[s2] * polarity * exp_iphi
-    M[s2] = numpy.roll(functional.curl_e(dxes=dxes)(E), -rollby, axis=axis+1)[s2]
+    rollby = 1 if polarity > 0 else 0
+    exp_iphi = numpy.exp(-1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
+    J[s2] = numpy.roll(functional.curl_h(dxes=dxes)(H.conj()), -rollby, axis=axis+1)[s2] * polarity * exp_iphi
+    M[s2] = -numpy.roll(functional.curl_e(dxes=dxes)(E.conj()), rollby, axis=axis+1)[s2]
 
     m2j = functional.m2j(omega, dxes, mu)
     Jm = m2j(M)
 
     Jtot = J + Jm
-    return Jtot.conj()
+    return Jtot
 
 
 def compute_overlap_e(E: field_t,
@@ -371,6 +373,17 @@ def compute_source_e(QE: field_t,
         else:
             start = slices[aa].start
             stop = slices[aa].stop
+#            if start is not None or stop is not None:
+#                if start is None:
+#                    start = 1
+#                    stop -= 1
+#                elif stop is None:
+#                    stop = E.shape[aa + 1] - 1
+#                    start += 1
+#                else:
+#                    start += 1
+#                    stop -= 1
+#                slices_reduced[aa] = slice(start, stop)
     slices_reduced = (slice(None), *slices_reduced)
 
     # Don't actually need to mask out E here since it needs to be pre-masked (QE)
