@@ -101,28 +101,28 @@ def solve_waveguide_mode(mode_number: int,
     order = numpy.roll(range(3), 2 - axis)
     reverse_order = numpy.roll(range(3), axis - 2)
 
+    # Find dx in propagation direction
+    dxab_forward = numpy.array([dx[order[2]][slices[order[2]]] for dx in dxes])
+    dx_prop = 0.5 * sum(dxab_forward)
+
     # Reduce to 2D and solve the 2D problem
     args_2d = {
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
         'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
         'mu': vec([mu[i][slices].transpose(order) for i in order]),
-        'dx_prop': dxes[0][order[2]][slices[order[2]]],
+        'dx_prop': dx_prop,
     }
     fields_2d = solve_waveguide_mode_2d(mode_number, omega=omega, **args_2d)
 
     '''
     Apply corrections and expand to 3D
     '''
-    # Scale based on dx in propagation direction
-    dxab_forward = numpy.array([dx[order[2]][slices[order[2]]] for dx in dxes])
-
     # Adjust for propagation direction
     fields_2d['E'][2] *= polarity
     fields_2d['H'][2] *= polarity
 
     # Apply phase shift to H-field
-    d_prop = 0.5 * sum(dxab_forward)
-    fields_2d['H'] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * d_prop)
+    fields_2d['H'] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * dx_prop)
 
     # Expand E, H to full epsilon space we were given
     E = numpy.zeros_like(epsilon, dtype=complex)
@@ -136,7 +136,6 @@ def solve_waveguide_mode(mode_number: int,
         'H': H,
         'E': E,
     }
-
     return results
 
 
