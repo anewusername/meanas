@@ -346,16 +346,26 @@ def compute_source_e(QE: field_t,
                      mu: field_t = None,
                      ) -> field_t:
     """
-    Want (AQ-QA) E = -iwJ, where Q is a mask
-    If E is an eigenmode, AE = 0 so just AQE = -iwJ
-    Really only need E in 4 cells along axis (0, 0, Emode1, Emode2), find AE (1 fdtd step), then use center 2 cells as src
+    Want AQE = -iwJ, where Q is mask and normally AE = -iwJ
+    ## Want (AQ-QA) E = -iwJ, where Q is a mask
+    ## If E is an eigenmode, AE = 0 so just AQE = -iwJ
+    Really only need E in 4 cells along axis (0, 0, Emode1, Emode2), find AE (1 iteration), then use center 2 cells as src
+    Maybe better to use (0, Emode1, Emode2, Emode3), find AE (1 iteration), then use left 2 cells as src?
     """
     slices = tuple(slices)
 
     # Trim a cell from each end of the propagation axis
     slices_reduced = list(slices)
-    slices_reduced[axis] = slice(slices[axis].start + 1, slices[axis].stop - 1)
-    slices_reduced = tuple(slice(None), *slices_reduced)
+    for aa in range(3):
+        if aa == axis:
+            if polarity > 0:
+                slices_reduced[axis] = slice(slices[axis].start, slices[axis].start+2)
+            else:
+                slices_reduced[axis] = slice(slices[axis].stop-2, slices[axis].stop)
+        else:
+            start = slices[aa].start
+            stop = slices[aa].stop
+    slices_reduced = (slice(None), *slices_reduced)
 
     # Don't actually need to mask out E here since it needs to be pre-masked (QE)
 
@@ -410,7 +420,7 @@ def compute_overlap_ce(E: field_t,
 
     slices2 = list(slices)
     slices2[axis] = slice(start, stop)
-    slices2 = tuple(slice(None), slices2)
+    slices2 = (slice(None), *slices2)
 
     Etgt = numpy.zeros_like(Ee)
     Etgt[slices2] = Ee[slices2]
