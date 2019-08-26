@@ -115,8 +115,7 @@ def solve_waveguide_mode(mode_number: int,
     fields_2d['wavenumber'] = 2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)
 
     # Adjust for propagation direction
-    fields_2d['E'][2] *= polarity
-    fields_2d['H'][2] *= polarity
+    fields_2d['H'] *= polarity
 
     # Apply phase shift to H-field
     fields_2d['H'] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * dx_prop)
