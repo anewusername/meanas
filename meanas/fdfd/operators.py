@@ -545,4 +545,4 @@ def e_boundary_source(mask: vfield_t,
             r3 = sparse.block_diag((r, r, r))
             jmask = numpy.logical_or(jmask, numpy.abs(r3 @ mask))
 
-    return sparse.diags(jmask.astype(int)) @ full, jmask
+    return sparse.diags(jmask.astype(int)) @ full
