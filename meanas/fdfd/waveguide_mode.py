@@ -178,10 +178,10 @@ def compute_source(E: field_t,
     s2[axis] = slice(slices[axis].start, slices[axis].stop)
     s2 = (src_order, *s2)
 
-    rollby = 1 if polarity > 0 else 0
-    exp_iphi = numpy.exp(-1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
-    J[s2] = numpy.roll(functional.curl_h(dxes=dxes)(H.conj()), -rollby, axis=axis+1)[s2] * polarity * exp_iphi
-    M[s2] = -numpy.roll(functional.curl_e(dxes=dxes)(E.conj()), rollby, axis=axis+1)[s2]
+    rollby = 1 if polarity < 0 else 0
+    exp_iphi = numpy.exp(-1j * -rollby * wavenumber * dxes[1][axis][slices[axis]])
+    J[s2] = numpy.roll(functional.curl_h(dxes=dxes)(H), -rollby, axis=axis+1)[s2] * exp_iphi * -polarity
+    M[s2] = numpy.roll(functional.curl_e(dxes=dxes)(E), rollby, axis=axis+1)[s2]
 
     m2j = functional.m2j(omega, dxes, mu)
     Jm = m2j(M)
