@@ -10,8 +10,8 @@ from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 def solve_waveguide_mode_2d(mode_number: int,
                             omega: complex,
                             dxes: dx_lists_t,
-                            epsilon: vfield_t,
-                            mu: vfield_t = None,
+                            epsilon: field_t,
+                            mu: field_t = None,
                             mode_margin: int = 2,
                             ) -> Dict[str, complex or field_t]:
     """
@@ -25,14 +25,14 @@ def solve_waveguide_mode_2d(mode_number: int,
     :param mode_margin: The eigensolver will actually solve for (mode_number + mode_margin)
         modes, but only return the target mode. Increasing this value can improve the solver's
         ability to find the correct mode. Default 2.
-    :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
+    :return: {'E': numpy.ndarray, 'H': numpy.ndarray, 'wavenumber': complex}
     """
 
     '''
     Solve for the largest-magnitude eigenvalue of the real operator
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
+    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, vec(numpy.real(epsilon)), vec(numpy.real(mu)))
 
     eigvals, eigvecs = signed_eigensolve(A_r, mode_number + mode_margin)
     exy = eigvecs[:, -(mode_number + 1)]
@@ -41,14 +41,14 @@ def solve_waveguide_mode_2d(mode_number: int,
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
-    A = waveguide.operator_e(omega, dxes, epsilon, mu)
+    A = waveguide.operator_e(omega, dxes, vec(epsilon), vec(mu))
     eigval, exy = rayleigh_quotient_iteration(A, exy)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
     wavenumber *= numpy.sign(numpy.real(wavenumber))
 
-    e, h = waveguide.normalized_fields_e(exy, wavenumber, omega, dxes, epsilon, mu)
+    e, h = waveguide.normalized_fields_e(exy, wavenumber, omega, dxes, vec(epsilon), vec(mu))
 
     shape = [d.size for d in dxes[0]]
     fields = {
@@ -103,8 +103,8 @@ def solve_waveguide_mode(mode_number: int,
     # Reduce to 2D and solve the 2D problem
     args_2d = {
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
-        'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
-        'mu': vec([mu[i][slices].transpose(order) for i in order]),
+        'epsilon': [epsilon[i][slices].transpose(order) for i in order],
+        'mu': [mu[i][slices].transpose(order) for i in order],
     }
     fields_2d = solve_waveguide_mode_2d(mode_number, omega=omega, **args_2d)
 
