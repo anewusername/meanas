@@ -137,13 +137,13 @@ def solve_waveguide_mode(mode_number: int,
 
 
 def compute_source(E: field_t,
-                   H: field_t,
                    wavenumber: complex,
                    omega: complex,
                    dxes: dx_lists_t,
                    axis: int,
                    polarity: int,
                    slices: List[slice],
+                   epsilon: field_t,
                    mu: field_t = None,
                    ) -> field_t:
     """
@@ -151,7 +151,6 @@ def compute_source(E: field_t,
     necessary to position a unidirectional source at the slice location.
 
     :param E: E-field of the mode
-    :param H: H-field of the mode (advanced by half of a Yee cell from E)
     :param wavenumber: Wavenumber of the mode
     :param omega: Angular frequency of the simulation
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
@@ -162,32 +161,21 @@ def compute_source(E: field_t,
     :param mu: Magnetic permeability (default 1 everywhere)
     :return: J distribution for the unidirectional source
     """
-    J = numpy.zeros_like(E, dtype=complex)
-    M = numpy.zeros_like(E, dtype=complex)
+    E_expanded = expand_wgmode_e(E=E, dxes=dxes, wavenumber=wavenumber, axis=axis,
+                                 polarity=polarity, slices=slices)
 
-    src_order = numpy.roll(range(3), -axis)
+    smask = [slice(None)] * 4
+    if polarity > 0:
+        smask[axis + 1] = slice(slices[axis].start, None)
+    else:
+        smask[axis + 1] = slice(None, slices[axis].stop)
 
-#    exp_iphi = numpy.exp(1j * polarity * wavenumber * dxes[1][axis][slices[axis]])
-#    rollby = -1 if polarity > 0 else 0
-#    J[src_order[1]] = +exp_iphi * H[src_order[2]] * polarity / dxes[1][axis][slices[axis]]
-#    J[src_order[2]] = -exp_iphi * H[src_order[1]] * polarity / dxes[1][axis][slices[axis]]
-#    M[src_order[1]] = +numpy.roll(E[src_order[2]], rollby, axis=axis) / dxes[0][axis][slices[axis]]
-#    M[src_order[2]] = -numpy.roll(E[src_order[1]], rollby, axis=axis) / dxes[0][axis][slices[axis]]
+    mask = numpy.zeros_like(E_expanded, dtype=int)
+    mask[tuple(smask)] = 1
 
-    s2 = [slice(None), slice(None), slice(None)]
-    s2[axis] = slice(slices[axis].start, slices[axis].stop)
-    s2 = (src_order, *s2)
-
-    rollby = 1 if polarity < 0 else 0
-    exp_iphi = numpy.exp(-1j * -rollby * wavenumber * dxes[1][axis][slices[axis]])
-    J[s2] = numpy.roll(functional.curl_h(dxes=dxes)(H), -rollby, axis=axis+1)[s2] * exp_iphi * -polarity
-    M[s2] = numpy.roll(functional.curl_e(dxes=dxes)(E), rollby, axis=axis+1)[s2]
-
-    m2j = functional.m2j(omega, dxes, mu)
-    Jm = m2j(M)
-
-    Jtot = J + Jm
-    return Jtot
+    masked_e2j = operators.e_boundary_source(mask=vec(mask), omega=omega, dxes=dxes, epsilon=vec(epsilon), mu=vec(mu))
+    J = unvec(masked_e2j @ vec(E_expanded), E.shape[1:])
+    return J
 
 
 def compute_overlap_e(E: field_t,
