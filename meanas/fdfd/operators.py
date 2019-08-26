@@ -519,3 +519,32 @@ def e_tfsf_source(TF_region: vfield_t,
     return (A @ Q - Q @ A) / (-1j * omega)
 
 
+def e_boundary_source(mask: vfield_t,
+                      omega: complex,
+                      dxes: dx_lists_t,
+                      epsilon: vfield_t,
+                      mu: vfield_t = None,
+                      periodic_mask_edges: bool = False,
+                      ) -> sparse.spmatrix:
+    """
+    Operator that turns an E-field distrubtion into a current (J) distribution
+      along the edges (external and internal) of the provided mask. This is just an
+      e_tfsf_source with an additional masking step.
+    """
+    full = e_tfsf_source(TF_region=mask, omega=omega, dxes=dxes, epsilon=epsilon, mu=mu)
+
+    shape = [len(dxe) for dxe in dxes[0]]
+    jmask = numpy.zeros_like(mask, dtype=bool)
+
+    if periodic_mask_edges:
+        shift = lambda axis, polarity: rotation(axis=axis, shape=shape, shift_distance=polarity)
+    else:
+        shift = lambda axis, polarity: shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
+
+    for axis in (0, 1, 2):
+        for polarity in (-1, +1):
+            r = shift(axis, polarity) - sparse.eye(numpy.prod(shape)) # shifted minus original
+            r3 = sparse.block_diag((r, r, r))
+            jmask = numpy.logical_or(jmask, numpy.abs(r3 @ mask))
+
+    return sparse.diags(jmask.astype(int)) @ full, jmask
