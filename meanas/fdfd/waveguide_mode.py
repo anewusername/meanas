@@ -458,7 +458,7 @@ def expand_wgmode_e(E: field_t,
     a_shape = numpy.roll([1, -1, 1, 1], axis)
     a_E = numpy.real(dxes[0][axis]).cumsum()
     r_E = a_E - a_E[slices[axis]]
-    iphi = polarity * 1j * wavenumber
+    iphi = polarity * -1j * wavenumber
     phase_E = numpy.exp(iphi * r_E).reshape(a_shape)
 
     # Expand our slice to the entire grid using the phase factors
