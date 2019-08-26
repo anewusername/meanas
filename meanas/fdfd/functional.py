@@ -187,3 +187,20 @@ def m2j(omega: complex,
         return m2j_mu
 
 
+def e_tfsf_source(TF_region: field_t,
+                  omega: complex,
+                  dxes: dx_lists_t,
+                  epsilon: field_t,
+                  mu: field_t = None,
+                  ) -> functional_matrix:
+    """
+    Operator that turuns an E-field distribution into a total-field/scattered-field
+    (TFSF) source.
+    """
+    # TODO documentation
+    A = e_full(omega, dxes, epsilon, mu)
+
+    def op(e):
+        neg_iwj = A(TF_region * e) - TF_region * A(e)
+        return neg_iwj / (-1j * omega)
+

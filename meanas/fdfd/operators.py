@@ -501,3 +501,21 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
          [ bx @ Hz @ fy @ dagx,  zero,                -bz @ Hx @ fy @ dagz],
          [-bx @ Hy @ fz @ dagx,  by @ Hx @ fz @ dagy,  zero]])
     return P
+
+
+def e_tfsf_source(TF_region: vfield_t,
+                  omega: complex,
+                  dxes: dx_lists_t,
+                  epsilon: vfield_t,
+                  mu: vfield_t = None,
+                  ) -> sparse.spmatrix:
+    """
+    Operator that turns an E-field distribution into a total-field/scattered-field
+    (TFSF) source.
+    """
+    # TODO documentation
+    A = e_full(omega, dxes, epsilon, mu)
+    Q = sparse.diags(TF_region)
+    return (A @ Q - Q @ A) / (-1j * omega)
+
+
