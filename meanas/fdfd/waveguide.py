@@ -17,6 +17,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
  (ie. dxes = [[[dx_e_0, dx_e_1, ...], [dy_e_0, ...]], [[dx_h_0, ...], [dy_h_0, ...]]])
  with propagation along the z axis.
 """
+# TODO update module docs
 
 from typing import List, Tuple
 import numpy
