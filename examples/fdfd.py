@@ -3,7 +3,7 @@ import numpy
 from numpy.linalg import norm
 
 import meanas
-from meanas import vec, unvec
+from meanas import vec, unvec, fdtd
 from meanas.fdfd import waveguide_mode, functional, scpml, operators
 from meanas.fdfd.solvers import generic as generic_solver
 
@@ -125,16 +125,18 @@ def test1(solver=generic_solver):
     dims[1][0] = dims[0][0]
     ind_dims = (grid.pos2ind(dims[0], which_shifts=None).astype(int),
                 grid.pos2ind(dims[1], which_shifts=None).astype(int))
+    src_axis = 0
     wg_args = {
         'omega': omega,
         'slices': [slice(i, f+1) for i, f in zip(*ind_dims)],
         'dxes': dxes,
-        'axis': 0,
+        'axis': src_axis,
         'polarity': +1,
+        'epsilon': grid.grids,
     }
 
-    wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, **wg_args, epsilon=grid.grids)
-    J = waveguide_mode.compute_source(**wg_args, **wg_results)
+    wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, **wg_args)
+    J = waveguide_mode.compute_source(**wg_args, E=wg_results['E'], wavenumber=wg_results['wavenumber'])
     H_overlap = waveguide_mode.compute_overlap_e(**wg_args, **wg_results)
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
@@ -144,6 +146,12 @@ def test1(solver=generic_solver):
     pmcg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
     # pmcg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
     # pmcg.visualize_isosurface()
+
+    def pcolor(v):
+        vmax = numpy.max(numpy.abs(v))
+        pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
+        pyplot.axis('equal')
+        pyplot.colorbar()
 
     '''
     Solve!
@@ -167,20 +175,14 @@ def test1(solver=generic_solver):
     '''
     Plot results
     '''
-    def pcolor(v):
-        vmax = numpy.max(numpy.abs(v))
-        pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
-        pyplot.axis('equal')
-        pyplot.colorbar()
-
     center = grid.pos2ind([0, 0, 0], None).astype(int)
     pyplot.figure()
     pyplot.subplot(2, 2, 1)
-    pcolor(numpy.real(E[1][center[0], :, :]))
+    pcolor(numpy.real(E[1][center[0], :, :]).T)
     pyplot.subplot(2, 2, 2)
     pyplot.plot(numpy.log10(numpy.abs(E[1][:, center[1], center[2]]) + 1e-10))
     pyplot.subplot(2, 2, 3)
-    pcolor(numpy.real(E[1][:, :, center[2]]))
+    pcolor(numpy.real(E[1][:, :, center[2]]).T)
     pyplot.subplot(2, 2, 4)
 
     def poyntings(E):
@@ -213,7 +215,7 @@ def module_available(name):
 
 
 if __name__ == '__main__':
-    test0()
+    #test0()
 
     if module_available('opencl_fdfd'):
         from opencl_fdfd import cg_solver as opencl_solver
