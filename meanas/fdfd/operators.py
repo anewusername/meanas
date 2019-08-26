@@ -341,9 +341,7 @@ def shift_with_mirror(axis: int, shape: List[int], shift_distance: int=1) -> spa
 
     n = numpy.prod(shape)
     i_ind = numpy.arange(n)
-    j_ind = ijk[0] + ijk[1] * shape[0]
-    if len(shape) == 3:
-        j_ind += ijk[2] * shape[0] * shape[1]
+    j_ind = numpy.ravel_multi_index(ijk, shape, order='C')
 
     vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
 
