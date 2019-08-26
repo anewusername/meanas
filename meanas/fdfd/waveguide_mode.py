@@ -111,6 +111,9 @@ def solve_waveguide_mode(mode_number: int,
     '''
     Apply corrections and expand to 3D
     '''
+    # Correct wavenumber to account for numerical dispersion.
+    fields_2d['wavenumber'] = 2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)
+
     # Adjust for propagation direction
     fields_2d['E'][2] *= polarity
     fields_2d['H'][2] *= polarity
