@@ -12,7 +12,6 @@ def solve_waveguide_mode_2d(mode_number: int,
                             dxes: dx_lists_t,
                             epsilon: vfield_t,
                             mu: vfield_t = None,
-                            dx_prop: float = 0,
                             ) -> Dict[str, complex or field_t]:
     """
     Given a 2d region, attempts to solve for the eigenmode with the specified mode number.
@@ -22,8 +21,6 @@ def solve_waveguide_mode_2d(mode_number: int,
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
-    :param dx_prop: The cell width in the the propagation direction, used to apply a
-        correction to the wavenumber. Default 0 (i.e. continuous propagation direction)
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
 
@@ -48,12 +45,6 @@ def solve_waveguide_mode_2d(mode_number: int,
     wavenumber *= numpy.sign(numpy.real(wavenumber))
 
     e, h = waveguide.normalized_fields(v, wavenumber, omega, dxes, epsilon, mu)
-
-    '''
-    Perform correction on wavenumber to account for numerical dispersion.
-    '''
-    if dx_prop != 0:
-        wavenumber = 2 / dx_prop * numpy.sin(wavenumber * dx_prop / 2)
 
     shape = [d.size for d in dxes[0]]
     fields = {
@@ -110,7 +101,6 @@ def solve_waveguide_mode(mode_number: int,
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
         'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
         'mu': vec([mu[i][slices].transpose(order) for i in order]),
-        'dx_prop': dx_prop,
     }
     fields_2d = solve_waveguide_mode_2d(mode_number, omega=omega, **args_2d)
 
