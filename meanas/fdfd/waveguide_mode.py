@@ -118,7 +118,8 @@ def solve_waveguide_mode(mode_number: int,
     fields_2d['H'] *= polarity
 
     # Apply phase shift to H-field
-    fields_2d['H'] *= numpy.exp(-polarity * 1j * 0.5 * fields_2d['wavenumber'] * dx_prop)
+    fields_2d['H'][:2] *= numpy.exp(-1j * polarity * 0.5 * fields_2d['wavenumber'] * dx_prop)
+    fields_2d['E'][2]  *= numpy.exp(-1j * polarity * 0.5 * fields_2d['wavenumber'] * dx_prop)
 
     # Expand E, H to full epsilon space we were given
     E = numpy.zeros_like(epsilon, dtype=complex)
