@@ -12,6 +12,7 @@ def solve_waveguide_mode_2d(mode_number: int,
                             dxes: dx_lists_t,
                             epsilon: vfield_t,
                             mu: vfield_t = None,
+                            mode_margin: int = 2,
                             ) -> Dict[str, complex or field_t]:
     """
     Given a 2d region, attempts to solve for the eigenmode with the specified mode number.
@@ -21,6 +22,9 @@ def solve_waveguide_mode_2d(mode_number: int,
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
     :param epsilon: Dielectric constant
     :param mu: Magnetic permeability (default 1 everywhere)
+    :param mode_margin: The eigensolver will actually solve for (mode_number + mode_margin)
+        modes, but only return the target mode. Increasing this value can improve the solver's
+        ability to find the correct mode. Default 2.
     :return: {'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}
     """
 
@@ -28,23 +32,23 @@ def solve_waveguide_mode_2d(mode_number: int,
     Solve for the largest-magnitude eigenvalue of the real operator
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-    A_r = waveguide.operator(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
+    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
 
-    eigvals, eigvecs = signed_eigensolve(A_r, mode_number+3)
-    v = eigvecs[:, -(mode_number + 1)]
+    eigvals, eigvecs = signed_eigensolve(A_r, mode_number + mode_margin)
+    exy = eigvecs[:, -(mode_number + 1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
-    A = waveguide.operator(omega, dxes, epsilon, mu)
-    eigval, v = rayleigh_quotient_iteration(A, v)
+    A = waveguide.operator_e(omega, dxes, epsilon, mu)
+    eigval, exy = rayleigh_quotient_iteration(A, exy)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
     wavenumber *= numpy.sign(numpy.real(wavenumber))
 
-    e, h = waveguide.normalized_fields(v, wavenumber, omega, dxes, epsilon, mu)
+    e, h = waveguide.normalized_fields_e(exy, wavenumber, omega, dxes, epsilon, mu)
 
     shape = [d.size for d in dxes[0]]
     fields = {
