@@ -186,6 +186,7 @@ def compute_overlap_e(E: field_t,
                       axis: int,
                       polarity: int,
                       slices: List[slice],
+                      epsilon: field_t,         # TODO unused??
                       mu: field_t = None,
                       ) -> field_t:
     """
