@@ -316,9 +316,8 @@ def compute_overlap_ce(E: field_t,
                        ) -> field_t:
     slices = tuple(slices)
 
-    Ee = expand_wgmode_e(E=E, wavenumber=wavenumber,
-                         dxes=dxes, axis=axis, polarity=polarity,
-                         slices=slices)
+    Ee = expand_wgmode_e(E=E, wavenumber=wavenumber, dxes=dxes,
+                         axis=axis, polarity=polarity, slices=slices)
 
     start, stop = sorted((slices[axis].start, slices[axis].start - 2 * polarity))
 
