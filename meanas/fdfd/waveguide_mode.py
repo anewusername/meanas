@@ -280,14 +280,14 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
 
     A_r = waveguide.cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
     eigvals, eigvecs = signed_eigensolve(A_r, mode_number + 3)
-    v = eigvecs[:, -(mode_number+1)]
+    e_xy = eigvecs[:, -(mode_number+1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
     A = waveguide.cylindrical_operator(omega, dxes, epsilon, r0)
-    eigval, v = rayleigh_quotient_iteration(A, v)
+    eigval, e_xy = rayleigh_quotient_iteration(A, e_xy)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
@@ -296,10 +296,10 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
     # TODO: Perform correction on wavenumber to account for numerical dispersion.
 
     shape = [d.size for d in dxes[0]]
-    v = numpy.hstack((v, numpy.zeros(shape[0] * shape[1])))
+    e_xy = numpy.hstack((e_xy, numpy.zeros(shape[0] * shape[1])))
     fields = {
         'wavenumber': wavenumber,
-        'E': unvec(v, shape),
+        'E': unvec(e_xy, shape),
 #        'E': unvec(e, shape),
 #        'H': unvec(h, shape),
     }
