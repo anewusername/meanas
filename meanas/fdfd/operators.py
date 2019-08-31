@@ -453,8 +453,7 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [avgf(i, shape) for i in range(3)]
-    bx, by, bz = [avgb(i, shape) for i in range(3)]
+    bx, by, bz = [rotation(i, shape, -1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dbgx, dbgy, dbgz = [sparse.diags(dx.ravel(order='C'))
@@ -463,12 +462,11 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     Ex, Ey, Ez = [sparse.diags(ei * da) for ei, da in zip(numpy.split(e, 3), dxag)]
 
     n = numpy.prod(shape)
-    zero = sparse.csr_matrix((n, n))
 
     P = sparse.bmat(
-        [[ zero,                -fx @ Ez @ bz @ dbgy,  fx @ Ey @ by @ dbgz],
-         [ fy @ Ez @ bz @ dbgx,  zero,                -fy @ Ex @ bx @ dbgz],
-         [-fz @ Ey @ by @ dbgx,  fz @ Ex @ bx @ dbgy,  zero]])
+        [[ None,            -bx @ Ez @ dbgy,  bx @ Ey @ dbgz],
+         [ by @ Ez @ dbgx,  None,            -by @ Ex @ dbgz],
+         [-bz @ Ey @ dbgx,  bz @ Ex @ dbgy,  None]])
     return P
 
 
@@ -482,7 +480,7 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [avgf(i, shape) for i in range(3)]
+    fx, fy, fz = [avgf(i, shape) for i in range(3)] #TODO
     bx, by, bz = [avgb(i, shape) for i in range(3)]
 
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
@@ -545,4 +543,12 @@ def e_boundary_source(mask: vfield_t,
             r3 = sparse.block_diag((r, r, r))
             jmask = numpy.logical_or(jmask, numpy.abs(r3 @ mask))
 
+#    jmask = ((numpy.roll(mask, -1, axis=0) != mask) |
+#             (numpy.roll(mask, +1, axis=0) != mask) |
+#             (numpy.roll(mask, -1, axis=1) != mask) |
+#             (numpy.roll(mask, +1, axis=1) != mask) |
+#             (numpy.roll(mask, -1, axis=2) != mask) |
+#             (numpy.roll(mask, +1, axis=2) != mask))
+
     return sparse.diags(jmask.astype(int)) @ full
+

@@ -137,7 +137,9 @@ def test1(solver=generic_solver):
 
     wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, **wg_args)
     J = waveguide_mode.compute_source(**wg_args, E=wg_results['E'], wavenumber=wg_results['wavenumber'])
-    H_overlap = waveguide_mode.compute_overlap_e(**wg_args, **wg_results)
+    H_overlap, slices = waveguide_mode.compute_overlap_ce(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
+                                                          dxes=dxes, axis=src_axis, polarity=wg_args['polarity'],
+                                                          slices=wg_args['slices'])
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
     # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
@@ -152,6 +154,13 @@ def test1(solver=generic_solver):
         pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
         pyplot.axis('equal')
         pyplot.colorbar()
+
+    ss = (1, slice(None), J.shape[2]//2+6, slice(None))
+#    pyplot.figure()
+#    pcolor(J3[ss].T.imag)
+#    pyplot.figure()
+#    pcolor((numpy.abs(J3).sum(axis=2).sum(axis=0) > 0).astype(float).T)
+    pyplot.show(block=True)
 
     '''
     Solve!
@@ -186,12 +195,14 @@ def test1(solver=generic_solver):
     pyplot.subplot(2, 2, 4)
 
     def poyntings(E):
-        e = vec(E)
-        h = operators.e2h(omega, dxes) @ e
-        cross1 = operators.poynting_e_cross(e, dxes) @ h.conj()
-        cross2 = operators.poynting_h_cross(h.conj(), dxes) @ e
+        H = functional.e2h(omega, dxes)(E)
+        poynting = 0.5 * fdtd.poynting(e=E, h=H.conj()) * dx * dx
+        cross1 = operators.poynting_e_cross(vec(E), dxes) @ vec(H).conj()
+#        cross2 = operators.poynting_h_cross(h.conj(), dxes) @ e
         s1 = unvec(0.5 * numpy.real(cross1), grid.shape)
-        s2 = unvec(0.5 * numpy.real(-cross2), grid.shape)
+#        s2 = unvec(0.5 * numpy.real(-cross2), grid.shape)
+        s2 = poynting.real
+#        s2 = poynting.imag
         return s1, s2
 
     s1x, s2x = poyntings(E)
@@ -202,7 +213,7 @@ def test1(solver=generic_solver):
     q = []
     for i in range(-5, 30):
         H_rolled = [numpy.roll(h, i, axis=0) for h in H_overlap]
-        q += [numpy.abs(vec(E) @ vec(H_rolled))]
+        q += [numpy.abs(vec(E) @ vec(H_rolled).conj())]
     pyplot.figure()
     pyplot.plot(q)
     pyplot.title('Overlap with mode')

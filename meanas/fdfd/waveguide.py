@@ -186,7 +186,7 @@ def _normalized_fields(e: numpy.ndarray,
     norm_amplitude = 1 / numpy.sqrt(P)
     norm_angle = -numpy.angle(e[energy.argmax()])       # Will randomly add a negative sign when mode is symmetric
 
-    # Try to break symmetry to assign a consistent sign [experimental]
+    # Try to break symmetry to assign a consistent sign [experimental TODO]
     E_weighted = unvec(e * energy * numpy.exp(1j * norm_angle), shape)
     sign = numpy.sign(E_weighted[:, :max(shape[0]//2, 1), :max(shape[1]//2, 1)].real.sum())
 

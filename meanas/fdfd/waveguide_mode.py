@@ -112,6 +112,8 @@ def solve_waveguide_mode(mode_number: int,
     Apply corrections and expand to 3D
     '''
     # Correct wavenumber to account for numerical dispersion.
+    print(fields_2d['wavenumber'] / (2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)))
+    print(fields_2d['wavenumber'].real / (2/dx_prop * numpy.arcsin(fields_2d['wavenumber'].real * dx_prop/2)))
     fields_2d['wavenumber'] = 2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)
 
     # Adjust for propagation direction
@@ -179,20 +181,16 @@ def compute_source(E: field_t,
 
 
 def compute_overlap_e(E: field_t,
-                      H: field_t,
                       wavenumber: complex,
-                      omega: complex,
                       dxes: dx_lists_t,
                       axis: int,
                       polarity: int,
                       slices: List[slice],
-                      epsilon: field_t,         # TODO unused??
-                      mu: field_t = None,
-                      ) -> field_t:
+                      ) -> field_t:                 # TODO DOCS
     """
     Given an eigenmode obtained by solve_waveguide_mode, calculates overlap_e for the
     mode orthogonality relation Integrate(((E x H_mode) + (E_mode x H)) dot dn)
-    [assumes reflection symmetry].
+    [assumes reflection symmetry].i
 
     overlap_e makes use of the e2h operator to collapse the above expression into
      (vec(E) @ vec(overlap_e)), allowing for simple calculation of the mode overlap.
@@ -211,45 +209,20 @@ def compute_overlap_e(E: field_t,
     """
     slices = tuple(slices)
 
-    cross_plane = [slice(None)] * 4
-    cross_plane[axis + 1] = slices[axis]
-    cross_plane = tuple(cross_plane)
+    Ee = expand_wgmode_e(E=E, wavenumber=wavenumber, dxes=dxes,
+                         axis=axis, polarity=polarity, slices=slices)
 
-    # Determine phase factors for parallel slices
-    a_shape = numpy.roll([-1, 1, 1], axis)
-    a_E = numpy.real(dxes[0][axis]).cumsum()
-    a_H = numpy.real(dxes[1][axis]).cumsum()
-    iphi = -polarity * 1j * wavenumber
-    phase_E = numpy.exp(iphi * (a_E - a_E[slices[axis]])).reshape(a_shape)
-    phase_H = numpy.exp(iphi * (a_H - a_H[slices[axis]])).reshape(a_shape)
+    start, stop = sorted((slices[axis].start, slices[axis].start - 2 * polarity))
 
-    # Expand our slice to the entire grid using the calculated phase factors
-    Ee = phase_E * E[cross_plane]
-    He = phase_H * H[cross_plane]
+    slices2 = list(slices)
+    slices2[axis] = slice(start, stop)
+    slices2 = (slice(None), *slices2)
 
+    Etgt = numpy.zeros_like(Ee)
+    Etgt[slices2] = Ee[slices2]
 
-    # Write out the operator product for the mode orthogonality integral
-    domain = numpy.zeros_like(E[0], dtype=int)
-    domain[slices] = 1
-
-    npts = E[0].size
-    dn = numpy.zeros(npts * 3, dtype=int)
-    dn[0:npts] = 1
-    dn = numpy.roll(dn, npts * axis)
-
-    e2h = operators.e2h(omega, dxes, mu)
-    ds = sparse.diags(vec([domain]*3))
-    h_cross_ = operators.poynting_h_cross(vec(He), dxes)
-    e_cross_ = operators.poynting_e_cross(vec(Ee), dxes)
-
-    overlap_e = dn @ ds @ (-h_cross_ + e_cross_ @ e2h)
-
-    # Normalize
-    dx_forward = dxes[0][axis][slices[axis]]
-    norm_factor = numpy.abs(overlap_e @ vec(Ee))
-    overlap_e /= norm_factor * dx_forward
-
-    return unvec(overlap_e, E[0].shape)
+    Etgt /= (Etgt.conj() * Etgt).sum()
+    return Etgt.conj()
 
 
 def solve_waveguide_mode_cylindrical(mode_number: int,
@@ -305,31 +278,6 @@ def solve_waveguide_mode_cylindrical(mode_number: int,
     }
 
     return fields
-
-
-def compute_overlap_ce(E: field_t,
-                       wavenumber: complex,
-                       dxes: dx_lists_t,
-                       axis: int,
-                       polarity: int,
-                       slices: List[slice],
-                       ) -> field_t:
-    slices = tuple(slices)
-
-    Ee = expand_wgmode_e(E=E, wavenumber=wavenumber, dxes=dxes,
-                         axis=axis, polarity=polarity, slices=slices)
-
-    start, stop = sorted((slices[axis].start, slices[axis].start - 2 * polarity))
-
-    slices2 = list(slices)
-    slices2[axis] = slice(start, stop)
-    slices2 = (slice(None), *slices2)
-
-    Etgt = numpy.zeros_like(Ee)
-    Etgt[slices2] = Ee[slices2]
-
-    Etgt /= (Etgt.conj() * Etgt).sum()
-    return Etgt, slices2
 
 
 def expand_wgmode_e(E: field_t,
