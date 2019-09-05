@@ -127,19 +127,16 @@ def test1(solver=generic_solver):
                 grid.pos2ind(dims[1], which_shifts=None).astype(int))
     src_axis = 0
     wg_args = {
-        'omega': omega,
         'slices': [slice(i, f+1) for i, f in zip(*ind_dims)],
         'dxes': dxes,
         'axis': src_axis,
         'polarity': +1,
-        'epsilon': grid.grids,
     }
 
-    wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, **wg_args)
-    J = waveguide_mode.compute_source(**wg_args, E=wg_results['E'], wavenumber=wg_results['wavenumber'])
-    e_overlap = waveguide_mode.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
-                                                 dxes=dxes, axis=src_axis, polarity=wg_args['polarity'],
-                                                 slices=wg_args['slices'])
+    wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, omega=omega, epsilon=grid.grids, **wg_args)
+    J = waveguide_mode.compute_source(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
+                                      omega=omega, epsilon=grid.grids, **wg_args)
+    e_overlap = waveguide_mode.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'], **wg_args)
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
     # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
