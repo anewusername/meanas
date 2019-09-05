@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import numpy
 import scipy.sparse as sparse
 
@@ -7,13 +7,13 @@ from . import operators, waveguide, functional
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
-def solve_waveguide_mode_2d(mode_number: int,
-                            omega: complex,
-                            dxes: dx_lists_t,
-                            epsilon: field_t,
-                            mu: field_t = None,
-                            mode_margin: int = 2,
-                            ) -> Dict[str, complex or field_t]:
+def vsolve_waveguide_mode_2d(mode_number: int,
+                             omega: complex,
+                             dxes: dx_lists_t,
+                             epsilon: vfield_t,
+                             mu: vfield_t = None,
+                             mode_margin: int = 2,
+                             ) -> Tuple[vfield_t, complex]:
     """
     Given a 2d region, attempts to solve for the eigenmode with the specified mode number.
 
@@ -25,39 +25,31 @@ def solve_waveguide_mode_2d(mode_number: int,
     :param mode_margin: The eigensolver will actually solve for (mode_number + mode_margin)
         modes, but only return the target mode. Increasing this value can improve the solver's
         ability to find the correct mode. Default 2.
-    :return: {'E': numpy.ndarray, 'H': numpy.ndarray, 'wavenumber': complex}
+    :return: (e_xy, wavenumber)
     """
 
     '''
     Solve for the largest-magnitude eigenvalue of the real operator
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, vec(numpy.real(epsilon)), vec(numpy.real(mu)))
+    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
 
     eigvals, eigvecs = signed_eigensolve(A_r, mode_number + mode_margin)
-    exy = eigvecs[:, -(mode_number + 1)]
+    e_xy = eigvecs[:, -(mode_number + 1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
-    A = waveguide.operator_e(omega, dxes, vec(epsilon), vec(mu))
-    eigval, exy = rayleigh_quotient_iteration(A, exy)
+    A = waveguide.operator_e(omega, dxes, epsilon, mu)
+    eigval, e_xy = rayleigh_quotient_iteration(A, e_xy)
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumber = numpy.sqrt(eigval)
     wavenumber *= numpy.sign(numpy.real(wavenumber))
 
-    e, h = waveguide.normalized_fields_e(exy, wavenumber, omega, dxes, vec(epsilon), vec(mu))
+    return e_xy, wavenumber
 
-    shape = [d.size for d in dxes[0]]
-    fields = {
-        'wavenumber': wavenumber,
-        'E': unvec(e, shape),
-        'H': unvec(h, shape),
-    }
-
-    return fields
 
 
 def solve_waveguide_mode(mode_number: int,
@@ -102,36 +94,42 @@ def solve_waveguide_mode(mode_number: int,
 
     # Reduce to 2D and solve the 2D problem
     args_2d = {
+        'omega': omega,
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
-        'epsilon': [epsilon[i][slices].transpose(order) for i in order],
-        'mu': [mu[i][slices].transpose(order) for i in order],
+        'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
+        'mu': vec([mu[i][slices].transpose(order) for i in order]),
     }
-    fields_2d = solve_waveguide_mode_2d(mode_number, omega=omega, **args_2d)
+    e_xy, wavenumber_2d = vsolve_waveguide_mode_2d(mode_number, **args_2d)
 
     '''
     Apply corrections and expand to 3D
     '''
     # Correct wavenumber to account for numerical dispersion.
-    print(fields_2d['wavenumber'] / (2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)))
-    print(fields_2d['wavenumber'].real / (2/dx_prop * numpy.arcsin(fields_2d['wavenumber'].real * dx_prop/2)))
-    fields_2d['wavenumber'] = 2/dx_prop * numpy.arcsin(fields_2d['wavenumber'] * dx_prop/2)
+    wavenumber = 2/dx_prop * numpy.arcsin(wavenumber_2d * dx_prop/2)
+    print(wavenumber_2d / wavenumber)
+
+    shape = [d.size for d in args_2d['dxes'][0]]
+    ve, vh = waveguide.normalized_fields_e(e_xy, wavenumber=wavenumber_2d, **args_2d, prop_phase=dx_prop * wavenumber)
+    e = unvec(ve, shape)
+    h = unvec(vh, shape)
 
     # Adjust for propagation direction
-    fields_2d['H'] *= polarity
+    h *= polarity
 
     # Apply phase shift to H-field
-    fields_2d['H'][:2] *= numpy.exp(-1j * polarity * 0.5 * fields_2d['wavenumber'] * dx_prop)
-    fields_2d['E'][2]  *= numpy.exp(-1j * polarity * 0.5 * fields_2d['wavenumber'] * dx_prop)
+    h[:2] *= numpy.exp(-1j * polarity * 0.5 * wavenumber * dx_prop)
+    e[2]  *= numpy.exp(-1j * polarity * 0.5 * wavenumber * dx_prop)
 
     # Expand E, H to full epsilon space we were given
     E = numpy.zeros_like(epsilon, dtype=complex)
     H = numpy.zeros_like(epsilon, dtype=complex)
     for a, o in enumerate(reverse_order):
-        E[(a, *slices)] = fields_2d['E'][o][:, :, None].transpose(reverse_order)
-        H[(a, *slices)] = fields_2d['H'][o][:, :, None].transpose(reverse_order)
+        E[(a, *slices)] = e[o][:, :, None].transpose(reverse_order)
+        H[(a, *slices)] = h[o][:, :, None].transpose(reverse_order)
 
     results = {
-        'wavenumber': fields_2d['wavenumber'],
+        'wavenumber': wavenumber,
+        'wavenumber_2d': wavenumber_2d,
         'H': H,
         'E': E,
     }
