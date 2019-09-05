@@ -220,7 +220,7 @@ def compute_overlap_e(E: field_t,
     Etgt[slices2] = Ee[slices2]
 
     Etgt /= (Etgt.conj() * Etgt).sum()
-    return Etgt.conj()
+    return Etgt
 
 
 def solve_waveguide_mode_cylindrical(mode_number: int,
