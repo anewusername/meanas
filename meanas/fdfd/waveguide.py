@@ -109,7 +109,7 @@ def normalized_fields_e(e_xy: numpy.ndarray,
                         dxes: dx_lists_t,
                         epsilon: vfield_t,
                         mu: vfield_t = None,
-                        dx_prop: float = 0,
+                        prop_phase: float = 0,
                         ) -> Tuple[vfield_t, vfield_t]:
     """
     Given a vector e_xy containing the vectorized E_x and E_y fields,
@@ -121,13 +121,14 @@ def normalized_fields_e(e_xy: numpy.ndarray,
     :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types (2D)
     :param epsilon: Vectorized dielectric constant grid
     :param mu: Vectorized magnetic permeability grid (default 1 everywhere)
-    :param dxes_prop: Grid cell width in the propagation direction. Default 0 (continuous).
+    :param prop_phase: Phase shift (dz * corrected_wavenumber) over 1 cell in propagation direction.
+        Default 0 (continuous propagation direction, i.e. dz->0).
     :return: Normalized, vectorized (e, h) containing all vector components.
     """
     e = exy2e(wavenumber=wavenumber, dxes=dxes, epsilon=epsilon) @ e_xy
     h = exy2h(wavenumber=wavenumber, omega=omega, dxes=dxes, epsilon=epsilon, mu=mu) @ e_xy
-    e_norm, h_norm = _normalized_fields(e=e, h=h, wavenumber=wavenumber, omega=omega,
-                                        dxes=dxes, epsilon=epsilon, mu=mu, dx_prop=dx_prop)
+    e_norm, h_norm = _normalized_fields(e=e, h=h, omega=omega, dxes=dxes, epsilon=epsilon,
+                                        mu=mu, prop_phase=prop_phase)
     return e_norm, h_norm
 
 
@@ -137,7 +138,7 @@ def normalized_fields_h(h_xy: numpy.ndarray,
                         dxes: dx_lists_t,
                         epsilon: vfield_t,
                         mu: vfield_t = None,
-                        dx_prop: float = 0,
+                        prop_phase: float = 0,
                         ) -> Tuple[vfield_t, vfield_t]:
     """
     Given a vector e_xy containing the vectorized E_x and E_y fields,
@@ -154,19 +155,18 @@ def normalized_fields_h(h_xy: numpy.ndarray,
     """
     e = hxy2e(wavenumber=wavenumber, omega=omega, dxes=dxes, epsilon=epsilon, mu=mu) @ h_xy
     h = hxy2h(wavenumber=wavenumber, dxes=dxes, mu=mu) @ h_xy
-    e_norm, h_norm = _normalized_fields(e=e, h=h, wavenumber=wavenumber, omega=omega,
-                                        dxes=dxes, epsilon=epsilon, mu=mu, dx_prop=dx_prop)
+    e_norm, h_norm = _normalized_fields(e=e, h=h, omega=omega, dxes=dxes, epsilon=epsilon,
+                                        mu=mu, prop_phase=prop_phase)
     return e_norm, h_norm
 
 
 def _normalized_fields(e: numpy.ndarray,
                        h: numpy.ndarray,
-                       wavenumber: complex,
                        omega: complex,
                        dxes: dx_lists_t,
                        epsilon: vfield_t,
                        mu: vfield_t = None,
-                       dx_prop: float = 0,
+                       prop_phase: float = 0,
                        ) -> Tuple[vfield_t, vfield_t]:
     # TODO documentation
     shape = [s.size for s in dxes[0]]
@@ -175,7 +175,7 @@ def _normalized_fields(e: numpy.ndarray,
     E = unvec(e, shape)
     H = unvec(h, shape)
 
-    phase = numpy.exp(-1j * wavenumber * dx_prop / 2)
+    phase = numpy.exp(-1j * prop_phase / 2)
     S1 = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
     S2 = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
     P = numpy.real(S1.sum() - S2.sum())
