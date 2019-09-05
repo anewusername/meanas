@@ -90,7 +90,7 @@ def solve_waveguide_mode(mode_number: int,
 
     # Find dx in propagation direction
     dxab_forward = numpy.array([dx[order[2]][slices[order[2]]] for dx in dxes])
-    dx_prop = 0.5 * sum(dxab_forward)
+    dx_prop = 0.5 * sum(dxab_forward)[0]
 
     # Reduce to 2D and solve the 2D problem
     args_2d = {
