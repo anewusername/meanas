@@ -137,9 +137,9 @@ def test1(solver=generic_solver):
 
     wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, **wg_args)
     J = waveguide_mode.compute_source(**wg_args, E=wg_results['E'], wavenumber=wg_results['wavenumber'])
-    H_overlap, slices = waveguide_mode.compute_overlap_ce(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
-                                                          dxes=dxes, axis=src_axis, polarity=wg_args['polarity'],
-                                                          slices=wg_args['slices'])
+    e_overlap = waveguide_mode.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
+                                                 dxes=dxes, axis=src_axis, polarity=wg_args['polarity'],
+                                                 slices=wg_args['slices'])
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
     # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
@@ -212,8 +212,8 @@ def test1(solver=generic_solver):
 
     q = []
     for i in range(-5, 30):
-        H_rolled = [numpy.roll(h, i, axis=0) for h in H_overlap]
-        q += [numpy.abs(vec(E) @ vec(H_rolled).conj())]
+        e_ovl_rolled = numpy.roll(e_overlap, i, axis=1)
+        q += [numpy.abs(vec(E) @ vec(e_ovl_rolled).conj())]
     pyplot.figure()
     pyplot.plot(q)
     pyplot.title('Overlap with mode')
