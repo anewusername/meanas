@@ -41,8 +41,10 @@ Dependencies:
 
 """
 
+import pkg_resources
+
 from .types import dx_lists_t, field_t, vfield_t, field_updater
 from .vectorization import vec, unvec
 
 __author__ = 'Jan Petykiewicz'
-version = '0.5'
+__version__ = pkg_resources.get_distribution('meanas').version
