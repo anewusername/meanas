@@ -456,9 +456,8 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     bx, by, bz = [rotation(i, shape, -1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
-    dbgx, dbgy, dbgz = [sparse.diags(dx.ravel(order='C'))
-                        for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-
+    dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
+    dbgx, dbgy, dbgz = [sparse.diags(dx) for dx in dxbg]
     Ex, Ey, Ez = [sparse.diags(ei * da) for ei, da in zip(numpy.split(e, 3), dxag)]
 
     n = numpy.prod(shape)
@@ -467,6 +466,9 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
         [[ None,            -bx @ Ez @ dbgy,  bx @ Ey @ dbgz],
          [ by @ Ez @ dbgx,  None,            -by @ Ex @ dbgz],
          [-bz @ Ey @ dbgx,  bz @ Ex @ dbgy,  None]])
+    #TODO
+    P2 = sparse.block_diag((bx, by, bz)) @ cross([Ex, Ey, Ez]) @ sparse.diags(numpy.concatenate(dxbg))
+    print(sparse.linalg.norm((P-P2)), sparse.linalg.norm(P), sparse.linalg.norm(P2))
     return P
 
 
@@ -490,12 +492,11 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     Hx, Hy, Hz = [sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg)]
 
     n = numpy.prod(shape)
-    zero = sparse.csr_matrix((n, n))
 
     P = sparse.bmat(
-        [[ zero,                -by @ Hz @ fx @ dagy,  bz @ Hy @ fx @ dagz],
-         [ bx @ Hz @ fy @ dagx,  zero,                -bz @ Hx @ fy @ dagz],
-         [-bx @ Hy @ fz @ dagx,  by @ Hx @ fz @ dagy,  zero]])
+        [[ None,            Hz @ bx @ dagy,   Hy @ bx @ dagz],
+         [ Hz @ by @ dagx,  None,            -Hx @ by @ dagz],
+         [-Hy @ bz @ dagx,  Hx @ bz @ dagy,  None]])
     return P
 
 
