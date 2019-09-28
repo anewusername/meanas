@@ -5,8 +5,11 @@ from setuptools import setup, find_packages
 with open('README.md', 'r') as f:
     long_description = f.read()
 
+with open('meanas/VERSION', 'r') as f:
+    version = f.read().strip()
+
 setup(name='meanas',
-      version='0.5',
+      version=version,
       description='Electromagnetic simulation tools',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -14,6 +17,9 @@ setup(name='meanas',
       author_email='anewusername@gmail.com',
       url='https://mpxd.net/code/jan/fdfd_tools',
       packages=find_packages(),
+      package_data={
+          'meanas': ['VERSION']
+      },
       install_requires=[
             'numpy',
             'scipy',

@@ -41,10 +41,12 @@ Dependencies:
 
 """
 
-import pkg_resources
+import pathlib
 
 from .types import dx_lists_t, field_t, vfield_t, field_updater
 from .vectorization import vec, unvec
 
 __author__ = 'Jan Petykiewicz'
-__version__ = pkg_resources.get_distribution('meanas').version
+
+with open(pathlib.Path(__file__).parent / 'VERSION', 'r') as f:
+    __version__ = f.read().strip()
