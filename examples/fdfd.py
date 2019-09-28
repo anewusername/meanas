@@ -62,6 +62,7 @@ def test0(solver=generic_solver):
     J = [numpy.zeros_like(grid.grids[0], dtype=complex) for _ in range(3)]
     J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1
 
+
     '''
     Solve!
     '''
@@ -195,16 +196,18 @@ def test1(solver=generic_solver):
         H = functional.e2h(omega, dxes)(E)
         poynting = 0.5 * fdtd.poynting(e=E, h=H.conj()) * dx * dx
         cross1 = operators.poynting_e_cross(vec(E), dxes) @ vec(H).conj()
-#        cross2 = operators.poynting_h_cross(h.conj(), dxes) @ e
+        cross2 = operators.poynting_h_cross(vec(H), dxes) @ vec(E).conj() * -1
         s1 = unvec(0.5 * numpy.real(cross1), grid.shape)
-#        s2 = unvec(0.5 * numpy.real(-cross2), grid.shape)
-        s2 = poynting.real
+        s2 = unvec(0.5 * numpy.real(cross2), grid.shape)
+        s0 = poynting.real
 #        s2 = poynting.imag
-        return s1, s2
+        return s0, s1, s2
 
-    s1x, s2x = poyntings(E)
-    pyplot.plot(s1x[0].sum(axis=2).sum(axis=1))
-    pyplot.plot(s2x[0].sum(axis=2).sum(axis=1))
+    s0x, s1x, s2x = poyntings(E)
+    pyplot.plot(s0x[0].sum(axis=2).sum(axis=1), label='s0')
+    pyplot.plot(s1x[0].sum(axis=2).sum(axis=1), label='s1')
+    pyplot.plot(s2x[0].sum(axis=2).sum(axis=1), label='s2')
+    pyplot.legend()
     pyplot.show()
 
     q = []
