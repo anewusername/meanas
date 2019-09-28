@@ -453,22 +453,18 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    bx, by, bz = [rotation(i, shape, -1) for i in range(3)]
+    fx, fy, fz = [rotation(i, shape, 1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    dbgx, dbgy, dbgz = [sparse.diags(dx) for dx in dxbg]
-    Ex, Ey, Ez = [sparse.diags(ei * da) for ei, da in zip(numpy.split(e, 3), dxag)]
+    Ex, Ey, Ez = [ei * da for ei, da in zip(numpy.split(e, 3), dxag)]
 
-    n = numpy.prod(shape)
-
-    P = sparse.bmat(
-        [[ None,            -bx @ Ez @ dbgy,  bx @ Ey @ dbgz],
-         [ by @ Ez @ dbgx,  None,            -by @ Ex @ dbgz],
-         [-bz @ Ey @ dbgx,  bz @ Ex @ dbgy,  None]])
-    #TODO
-    P2 = sparse.block_diag((bx, by, bz)) @ cross([Ex, Ey, Ez]) @ sparse.diags(numpy.concatenate(dxbg))
-    print(sparse.linalg.norm((P-P2)), sparse.linalg.norm(P), sparse.linalg.norm(P2))
+    block_diags = [[ None,     fx @ -Ez, fx @  Ey],
+                   [ fy @  Ez, None,     fy @ -Ex],
+                   [ fz @ -Ey, fz @  Ex, None]]
+    block_matrix = sparse.bmat([[sparse.diags(x) if x is not None else None for x in row]
+                                 for row in block_diags])
+    P = block_matrix @ sparse.diags(numpy.concatenate(dxag))
     return P
 
 
@@ -482,21 +478,17 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [avgf(i, shape) for i in range(3)] #TODO
-    bx, by, bz = [avgb(i, shape) for i in range(3)]
+    fx, fy, fz = [rotation(i, shape, 1) for i in range(3)]
 
+    dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    dagx, dagy, dagz = [sparse.diags(dx.ravel(order='C'))
-                        for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
-
     Hx, Hy, Hz = [sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg)]
 
-    n = numpy.prod(shape)
-
-    P = sparse.bmat(
-        [[ None,            Hz @ bx @ dagy,   Hy @ bx @ dagz],
-         [ Hz @ by @ dagx,  None,            -Hx @ by @ dagz],
-         [-Hy @ bz @ dagx,  Hx @ bz @ dagy,  None]])
+    P = (sparse.bmat(
+          [[ None,    -Hz @ fx,   Hy @ fx],
+           [ Hz @ fy,  None,     -Hx @ fy],
+           [-Hy @ fz,  Hx @ fz,   None]])
+          @ sparse.diags(numpy.concatenate(dxag)))
     return P
 
 
