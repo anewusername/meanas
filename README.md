@@ -1,6 +1,10 @@
-# meanas
+# meanas README
 
 **meanas** is a python package for electromagnetic simulations
+
+** UNSTABLE / WORK IN PROGRESS **
+
+Formerly known as [fdfd_tools](https://mpxd.net/code/jan/fdfd_tools).
 
 This package is intended for building simulation inputs, analyzing
 simulation outputs, and running short simulations on unspecialized hardware.
@@ -31,9 +35,12 @@ solver uses scipy's eigenvalue solver, with reasonable results.
 
 For solving large (or 3D) FDFD problems, I recommend a GPU-based iterative
 solver, such as [opencl_fdfd](https://mpxd.net/code/jan/opencl_fdfd) or
-those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html)). Your
+those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html). Your
 solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
+
+- [Source repository](https://mpxd.net/code/jan/meanas)
+- PyPI *TBD*
 
 
 ## Installation
@@ -44,10 +51,46 @@ linear systems, ideally with double precision.
 * scipy
 
 
-Install with pip, via git:
+Install from PyPI with pip:
 ```bash
-pip install git+https://mpxd.net/code/jan/meanas.git@release
+pip3 install 'meanas[test,examples]'
 ```
+
+### Development install
+Install python3.7 and virtualenv:
+```bash
+# This is for Debian/Ubuntu/other-apt-based systems; you may need an alternative command
+sudo apt install python3.7 virtualenv build-essential python3.7-dev
+```
+
+If python 3.7 is not your default python3 version, create a virtualenv:
+```bash
+# Check python3 version:
+python3 --version
+# output: Python 3.7.5rc1
+
+# Create a virtual environment using python3.7 and place it in the directory `venv/`
+virtualenv -p python3.7 venv
+```
+
+In-place development install:
+```bash
+# Download using git
+git clone --branch ongoing https://mpxd.net/code/jan/fdfd_tools.git meanas/
+
+# NOTE: In the future this will become
+#git clone https://mpxd.net/code/jan/meanas.git
+
+# If you are using a virtualenv, activate it
+source venv/bin/activate
+
+# Install in-place (-e, editable) from ./meanas, including testing and example dependencies ([test, examples])
+pip3 install --user -e './meanas[test,examples]'
+
+# Run tests
+python3 -m pytest
+```
+
 
 ## Use
 
