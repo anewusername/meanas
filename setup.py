@@ -15,7 +15,7 @@ setup(name='meanas',
       long_description_content_type='text/markdown',
       author='Jan Petykiewicz',
       author_email='anewusername@gmail.com',
-      url='https://mpxd.net/code/jan/fdfd_tools',
+      url='https://mpxd.net/code/jan/meanas',
       packages=find_packages(),
       package_data={
           'meanas': ['VERSION']
