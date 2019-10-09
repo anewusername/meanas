@@ -58,10 +58,10 @@ pip3 install 'meanas[test,examples]'
 ```
 
 ### Development install
-Install python3.7 and virtualenv:
+Install python3.7, virtualenv, and git:
 ```bash
 # This is for Debian/Ubuntu/other-apt-based systems; you may need an alternative command
-sudo apt install python3.7 virtualenv build-essential python3.7-dev
+sudo apt install python3.7 virtualenv build-essential python3.7-dev git
 ```
 
 If python 3.7 is not your default python3 version, create a virtualenv:
