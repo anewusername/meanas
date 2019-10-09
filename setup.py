@@ -29,6 +29,9 @@ setup(name='meanas',
                 'pytest',
                 'dataclasses',
                 ],
+            'examples': [
+                'gridlock',
+                ],
       },
       classifiers=[
             'Programming Language :: Python :: 3',
