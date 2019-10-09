@@ -39,7 +39,8 @@ those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html). Your
 solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
 
-- [Source repository](https://mpxd.net/code/jan/meanas)
+- [WORKING Source repository](https://mpxd.net/code/jan/fdfd_tools/src/branch/ongoing)
+- *TODO* [Source repository](https://mpxd.net/code/jan/meanas)
 - PyPI *TBD*
 
 
