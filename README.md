@@ -68,7 +68,9 @@ If python 3.7 is not your default python3 version, create a virtualenv:
 ```bash
 # Check python3 version:
 python3 --version
-# output: Python 3.7.5rc1
+# output on my system: Python 3.7.5rc1
+# If this indicates a version >= 3.7, you can skip all
+#  the steps involving virtualenv or referencing the venv/ directory
 
 # Create a virtual environment using python3.7 and place it in the directory `venv/`
 virtualenv -p python3.7 venv
