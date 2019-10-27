@@ -91,7 +91,7 @@ source venv/bin/activate
 pip3 install --user -e './meanas[test,examples]'
 
 # Run tests
-python3 -m pytest
+python3 -m pytest -rsxX | tee test_results.txt
 ```
 
 #### See also:
