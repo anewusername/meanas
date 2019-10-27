@@ -219,4 +219,3 @@ def poynting_e_cross_h(dxes: dx_lists_t):
         s[2] = numpy.roll(ex, -1, axis=2) * hy - numpy.roll(ey, -1, axis=2) * hx
         return s
     return exh
-

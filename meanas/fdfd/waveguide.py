@@ -32,10 +32,10 @@ __author__ = 'Jan Petykiewicz'
 
 
 def operator_e(omega: complex,
-             dxes: dx_lists_t,
-             epsilon: vfield_t,
-             mu: vfield_t = None,
-             ) -> sparse.spmatrix:
+               dxes: dx_lists_t,
+               epsilon: vfield_t,
+               mu: vfield_t = None,
+               ) -> sparse.spmatrix:
     if numpy.any(numpy.equal(mu, None)):
         mu = numpy.ones_like(epsilon)
 

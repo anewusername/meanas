@@ -13,7 +13,7 @@ from .. import dx_lists_t, field_t, field_updater
 __author__ = 'Jan Petykiewicz'
 
 
-def cpml(direction:int,
+def cpml(direction: int,
          polarity: int,
          dt: float,
          epsilon: field_t,

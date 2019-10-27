@@ -37,7 +37,7 @@ def conducting_boundary(direction: int,
 
         return en, hn
 
-    elif polarity > 0:
+    if polarity > 0:
         boundary_slice = [slice(None)] * 3
         shifted1_slice = [slice(None)] * 3
         shifted2_slice = [slice(None)] * 3
@@ -62,7 +62,4 @@ def conducting_boundary(direction: int,
 
         return ep, hp
 
-    else:
-        raise Exception('Bad polarity: {}'.format(polarity))
-
-
+    raise Exception('Bad polarity: {}'.format(polarity))
