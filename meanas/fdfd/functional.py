@@ -204,3 +204,19 @@ def e_tfsf_source(TF_region: field_t,
         neg_iwj = A(TF_region * e) - TF_region * A(e)
         return neg_iwj / (-1j * omega)
 
+
+def poynting_e_cross_h(dxes: dx_lists_t):
+    def exh(e: field_t, h: field_t):
+        s = numpy.empty_like(e)
+        ex = e[0] * dxes[0][0][:, None, None]
+        ey = e[1] * dxes[0][1][None, :, None]
+        ez = e[2] * dxes[0][2][None, None, :]
+        hx = h[0] * dxes[1][0][:, None, None]
+        hy = h[1] * dxes[1][1][None, :, None]
+        hz = h[2] * dxes[1][2][None, None, :]
+        s[0] = numpy.roll(ey, -1, axis=0) * hz - numpy.roll(ez, -1, axis=0) * hy
+        s[1] = numpy.roll(ez, -1, axis=1) * hx - numpy.roll(ex, -1, axis=1) * hz
+        s[2] = numpy.roll(ex, -1, axis=2) * hy - numpy.roll(ey, -1, axis=2) * hx
+        return s
+    return exh
+
