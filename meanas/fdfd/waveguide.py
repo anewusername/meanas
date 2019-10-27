@@ -175,15 +175,17 @@ def _normalized_fields(e: numpy.ndarray,
     E = unvec(e, shape)
     H = unvec(h, shape)
 
-    phase = numpy.exp(-1j * prop_phase / 2)
-    S1 = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
-    S2 = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
-    P = numpy.real(S1.sum() - S2.sum())
-    assert P > 0, 'Found a mode propagating in the wrong direction! P={}'.format(P)
+    # Find time-averaged Sz and normalize to it
+    # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
+    phase = numpy.exp(-1j * -prop_phase / 2)
+    Sz_a = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
+    Sz_b = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
+    Sz_tavg = numpy.real(Sz_a.sum() - Sz_b.sum()) * 0.5       # 0.5 since E, H are assumed to be peak (not RMS) amplitudes
+    assert Sz_tavg > 0, 'Found a mode propagating in the wrong direction! Sz_tavg={}'.format(Sz_tavg)
 
     energy = epsilon * e.conj() * e
 
-    norm_amplitude = 1 / numpy.sqrt(P)
+    norm_amplitude = 1 / numpy.sqrt(Sz_tavg)
     norm_angle = -numpy.angle(e[energy.argmax()])       # Will randomly add a negative sign when mode is symmetric
 
     # Try to break symmetry to assign a consistent sign [experimental TODO]
@@ -487,6 +489,4 @@ def cylindrical_operator(omega: complex,
         - (sparse.bmat(((None, Ty), (Tx, None))) + omega**-2 * pb) @ diag((b0, b1))
 
     return op
-
-
 
