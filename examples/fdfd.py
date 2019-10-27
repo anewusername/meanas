@@ -188,25 +188,29 @@ def test1(solver=generic_solver):
     pcolor(numpy.real(E[1][center[0], :, :]).T)
     pyplot.subplot(2, 2, 2)
     pyplot.plot(numpy.log10(numpy.abs(E[1][:, center[1], center[2]]) + 1e-10))
+    pyplot.grid(alpha=0.6)
+    pyplot.ylabel('log10 of field')
     pyplot.subplot(2, 2, 3)
     pcolor(numpy.real(E[1][:, :, center[2]]).T)
     pyplot.subplot(2, 2, 4)
 
     def poyntings(E):
         H = functional.e2h(omega, dxes)(E)
-        poynting = 0.5 * fdtd.poynting(e=E, h=H.conj()) * dx * dx
+        poynting = fdtd.poynting(e=E, h=H.conj(), dxes=dxes)
         cross1 = operators.poynting_e_cross(vec(E), dxes) @ vec(H).conj()
         cross2 = operators.poynting_h_cross(vec(H), dxes) @ vec(E).conj() * -1
-        s1 = unvec(0.5 * numpy.real(cross1), grid.shape)
-        s2 = unvec(0.5 * numpy.real(cross2), grid.shape)
-        s0 = poynting.real
+        s1 = 0.5 * unvec(numpy.real(cross1), grid.shape)
+        s2 = 0.5 * unvec(numpy.real(cross2), grid.shape)
+        s0 = 0.5 * poynting.real
 #        s2 = poynting.imag
         return s0, s1, s2
 
     s0x, s1x, s2x = poyntings(E)
-    pyplot.plot(s0x[0].sum(axis=2).sum(axis=1), label='s0')
-    pyplot.plot(s1x[0].sum(axis=2).sum(axis=1), label='s1')
-    pyplot.plot(s2x[0].sum(axis=2).sum(axis=1), label='s2')
+    pyplot.plot(s0x[0].sum(axis=2).sum(axis=1), label='s0', marker='.')
+    pyplot.plot(s1x[0].sum(axis=2).sum(axis=1), label='s1', marker='.')
+    pyplot.plot(s2x[0].sum(axis=2).sum(axis=1), label='s2', marker='.')
+    pyplot.plot(E[1][:, center[1], center[2]].real.T, label='Ey', marker='x')
+    pyplot.grid(alpha=0.6)
     pyplot.legend()
     pyplot.show()
 
@@ -215,7 +219,8 @@ def test1(solver=generic_solver):
         e_ovl_rolled = numpy.roll(e_overlap, i, axis=1)
         q += [numpy.abs(vec(E) @ vec(e_ovl_rolled).conj())]
     pyplot.figure()
-    pyplot.plot(q)
+    pyplot.plot(q, marker='.')
+    pyplot.grid(alpha=0.6)
     pyplot.title('Overlap with mode')
     pyplot.show()
     print('Average overlap with mode:', sum(q)/len(q))
@@ -227,6 +232,7 @@ def module_available(name):
 
 if __name__ == '__main__':
     #test0()
+#    test1()
 
     if module_available('opencl_fdfd'):
         from opencl_fdfd import cg_solver as opencl_solver
