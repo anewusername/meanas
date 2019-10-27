@@ -305,5 +305,3 @@ def expand_wgmode_e(E: field_t,
 
     E_expanded[slices_exp] = phase_E * numpy.array(E)[slices_in]
     return E_expanded
-
-
