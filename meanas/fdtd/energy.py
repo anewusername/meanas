@@ -22,7 +22,7 @@ def poynting(e, h, dxes=None):
     return s
 
 
-def poynting_divergence(s=None, *, e=None, h=None, dxes=None): # TODO dxes
+def poynting_divergence(s=None, *, e=None, h=None, dxes=None):
     if s is None:
         s = poynting(e, h, dxes=dxes)
 
