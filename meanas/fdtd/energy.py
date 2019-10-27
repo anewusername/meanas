@@ -4,23 +4,31 @@ import numpy
 from .. import dx_lists_t, field_t, field_updater
 
 
-def poynting(e, h):
-    s = (numpy.roll(e[1], -1, axis=0) * h[2] - numpy.roll(e[2], -1, axis=0) * h[1],
-         numpy.roll(e[2], -1, axis=1) * h[0] - numpy.roll(e[0], -1, axis=1) * h[2],
-         numpy.roll(e[0], -1, axis=2) * h[1] - numpy.roll(e[1], -1, axis=2) * h[0])
-    return numpy.array(s)
-
-
-def poynting_divergence(s=None, *, e=None, h=None, dxes=None): # TODO dxes
+def poynting(e, h, dxes=None):
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
-    if s is None:
-        s = poynting(e, h)
+    ex = e[0] * dxes[0][0][:, None, None]
+    ey = e[1] * dxes[0][1][None, :, None]
+    ez = e[2] * dxes[0][2][None, None, :]
+    hx = h[0] * dxes[1][0][:, None, None]
+    hy = h[1] * dxes[1][1][None, :, None]
+    hz = h[2] * dxes[1][2][None, None, :]
 
-    ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) / numpy.sqrt(dxes[0][0] * dxes[1][0])[:, None, None] +
-          (s[1] - numpy.roll(s[1], 1, axis=1)) / numpy.sqrt(dxes[0][1] * dxes[1][1])[None, :, None] +
-          (s[2] - numpy.roll(s[2], 1, axis=2)) / numpy.sqrt(dxes[0][2] * dxes[1][2])[None, None, :] )
+    s = numpy.empty_like(e)
+    s[0] = numpy.roll(ey, -1, axis=0) * hz - numpy.roll(ez, -1, axis=0) * hy
+    s[1] = numpy.roll(ez, -1, axis=1) * hx - numpy.roll(ex, -1, axis=1) * hz
+    s[2] = numpy.roll(ex, -1, axis=2) * hy - numpy.roll(ey, -1, axis=2) * hx
+    return s
+
+
+def poynting_divergence(s=None, *, e=None, h=None, dxes=None): # TODO dxes
+    if s is None:
+        s = poynting(e, h, dxes=dxes)
+
+    ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) +
+          (s[1] - numpy.roll(s[1], 1, axis=1)) +
+          (s[2] - numpy.roll(s[2], 1, axis=2)) )
     return ds
 
 

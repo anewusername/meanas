@@ -77,16 +77,14 @@ def test_poynting_divergence(sim):
     args = {'dxes': sim.dxes,
             'epsilon': sim.epsilon}
 
-    dV = numpy.prod(numpy.meshgrid(*sim.dxes[0], indexing='ij'), axis=0)
-
     u_eprev = None
     for ii in range(1, 8):
         u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
         u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
-        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii],   dxes=sim.dxes)
+        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii], dxes=sim.dxes)
 
         du_half_h2e = u_estep - u_hstep - delta_j_B
-        div_s_h2e = sim.dt * fdtd.poynting_divergence(e=sim.es[ii], h=sim.hs[ii], dxes=sim.dxes) * dV
+        div_s_h2e = sim.dt * fdtd.poynting_divergence(e=sim.es[ii], h=sim.hs[ii], dxes=sim.dxes)
         assert_fields_close(du_half_h2e, -div_s_h2e)
 
         if u_eprev is None:
@@ -97,7 +95,7 @@ def test_poynting_divergence(sim):
         delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii-1], dxes=sim.dxes)
 
         du_half_e2h = u_hstep - u_eprev - delta_j_A
-        div_s_e2h = sim.dt * fdtd.poynting_divergence(e=sim.es[ii-1], h=sim.hs[ii], dxes=sim.dxes) * dV
+        div_s_e2h = sim.dt * fdtd.poynting_divergence(e=sim.es[ii-1], h=sim.hs[ii], dxes=sim.dxes)
         assert_fields_close(du_half_e2h, -div_s_e2h)
         u_eprev = u_estep
 
@@ -123,10 +121,7 @@ def test_poynting_planes(sim):
         u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
         u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
 
-        s_h2e = -fdtd.poynting(e=sim.es[ii], h=sim.hs[ii]) * sim.dt
-        s_h2e[0] *= sim.dxes[0][1][None, :, None] * sim.dxes[0][2][None, None, :]
-        s_h2e[1] *= sim.dxes[0][0][:, None, None] * sim.dxes[0][2][None, None, :]
-        s_h2e[2] *= sim.dxes[0][0][:, None, None] * sim.dxes[0][1][None, :, None]
+        s_h2e = -fdtd.poynting(e=sim.es[ii], h=sim.hs[ii], dxes=sim.dxes) * sim.dt
         planes = [s_h2e[px].sum(), -s_h2e[mx].sum(),
                   s_h2e[py].sum(), -s_h2e[my].sum(),
                   s_h2e[pz].sum(), -s_h2e[mz].sum()]
@@ -135,10 +130,7 @@ def test_poynting_planes(sim):
             u_eprev = u_estep
             continue
 
-        s_e2h = -fdtd.poynting(e=sim.es[ii - 1], h=sim.hs[ii]) * sim.dt
-        s_e2h[0] *= sim.dxes[0][1][None, :, None] * sim.dxes[0][2][None, None, :]
-        s_e2h[1] *= sim.dxes[0][0][:, None, None] * sim.dxes[0][2][None, None, :]
-        s_e2h[2] *= sim.dxes[0][0][:, None, None] * sim.dxes[0][1][None, :, None]
+        s_e2h = -fdtd.poynting(e=sim.es[ii - 1], h=sim.hs[ii], dxes=sim.dxes) * sim.dt
         planes = [s_e2h[px].sum(), -s_e2h[mx].sum(),
                   s_e2h[py].sum(), -s_e2h[my].sum(),
                   s_e2h[pz].sum(), -s_e2h[mz].sum()]
