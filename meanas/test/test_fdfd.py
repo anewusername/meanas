@@ -72,7 +72,7 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
 
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)
-    e_vec = fdfd.solvers.generic(J=j_vec, omega=omega, dxes=dxes, epsilon=eps_vec)
+    e_vec = fdfd.solvers.generic(J=j_vec, omega=omega, dxes=dxes, epsilon=eps_vec, matrix_solver_opts={'atol': 1e-12})
     e = unvec(e_vec, shape[1:])
 
     sim = SimResult(
