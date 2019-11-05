@@ -26,8 +26,8 @@ def test_poynting_planes(sim):
     exh = fdfd.operators.poynting_e_cross(e=ev, dxes=sim.dxes) @ hv.conj()
     s = unvec(exh.real / 2, sim.shape[1:])
     planes = [s[0, mask].sum(), -s[0, mx].sum(),
-              s[0, mask].sum(), -s[1, my].sum(),
-              s[0, mask].sum(), -s[2, mz].sum()]
+              s[1, mask].sum(), -s[1, my].sum(),
+              s[2, mask].sum(), -s[2, mz].sum()]
 
     e_dot_j = sim.e * sim.j * sim.dxes[0][0][:, None, None] * sim.dxes[0][1][None, :, None] * sim.dxes[0][2][None, None, :]
     src_energy = -e_dot_j.real / 2
