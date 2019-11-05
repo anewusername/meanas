@@ -27,7 +27,7 @@ def test_poynting_planes(sim):
               s[0, mask].sum(), -s[1, my].sum(),
               s[0, mask].sum(), -s[2, mz].sum()]
 
-    e_dot_j = sim.e * sim.j
+    e_dot_j = sim.e * sim.j * sim.dxes[0][0][:, None, None] * sim.dxes[0][1][None, :, None] * sim.dxes[0][2][None, None, :]
     src_energy = -e_dot_j.real / 2
 
     assert_close(sum(planes), (src_energy).sum())
