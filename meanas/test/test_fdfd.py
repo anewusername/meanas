@@ -5,7 +5,7 @@ import numpy
 from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd, vec, unvec
-from .utils import assert_close, assert_fields_close
+from .utils import assert_close, assert_fields_close, PRNG
 
 
 def test_poynting_planes(sim):
@@ -53,6 +53,20 @@ def pmc(request):
     yield request.param
 
 
+@pytest.fixture(params=['center', 'diag'])
+def j_distribution(request, shape, j_mag):
+    j = numpy.zeros(shape, dtype=complex)
+    center_mask = numpy.zeros(shape, dtype=bool)
+    center_mask[:, shape[1]//2, shape[2]//2, shape[3]//2] = True
+
+    if request.param == 'center':
+        j[center_mask] = j_mag
+    elif request.param == 'diag':
+        j[numpy.roll(center_mask, [1, 1, 1], axis=(1, 2, 3))] = j_mag
+        j[numpy.roll(center_mask, [-1, -1, -1], axis=(1, 2, 3))] = -1j * j_mag
+    yield j
+
+
 @dataclasses.dataclass()
 class SimResult:
     shape: Tuple[int]
@@ -63,6 +77,7 @@ class SimResult:
     e: numpy.ndarray
     pmc: numpy.ndarray
     pec: numpy.ndarray
+
 
 @pytest.fixture()
 def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):

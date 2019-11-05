@@ -1,5 +1,6 @@
 import numpy
 
+PRNG = numpy.random.RandomState(12345)
 
 def assert_fields_close(x, y, *args, **kwargs):
     numpy.testing.assert_allclose(x, y, verbose=False,

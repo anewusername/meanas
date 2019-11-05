@@ -5,7 +5,7 @@ import numpy
 from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdtd
-from .utils import assert_close, assert_fields_close
+from .utils import assert_close, assert_fields_close, PRNG
 
 
 def test_initial_fields(sim):
@@ -155,6 +155,23 @@ class SimResult:
     es: List[numpy.ndarray] = dataclasses.field(default_factory=list)
     hs: List[numpy.ndarray] = dataclasses.field(default_factory=list)
     js: List[numpy.ndarray] = dataclasses.field(default_factory=list)
+
+
+@pytest.fixture(params=[(0, 4, 8),]) #(0,)])
+def j_steps(request):
+    yield request.param
+
+
+@pytest.fixture(params=['center', 'random'])
+def j_distribution(request, shape, j_mag):
+    j = numpy.zeros(shape)
+    if request.param == 'center':
+        j[:, shape[1]//2, shape[2]//2, shape[3]//2] = j_mag
+    elif request.param == '000':
+        j[:, 0, 0, 0] = j_mag
+    elif request.param == 'random':
+        j[:] = PRNG.uniform(low=-j_mag, high=j_mag, size=shape)
+    yield j
 
 
 @pytest.fixture()

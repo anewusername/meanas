@@ -2,9 +2,7 @@ from typing import List, Tuple
 import numpy
 import pytest
 
-
-PRNG = numpy.random.RandomState(12345)
-
+from .utils import PRNG
 
 #####################################
 #      Test fixtures
@@ -59,18 +57,6 @@ def j_mag(request):
     yield request.param
 
 
-@pytest.fixture(scope='module', params=['center', 'random'])
-def j_distribution(request, shape, j_mag):
-    j = numpy.zeros(shape)
-    if request.param == 'center':
-        j[:, shape[1]//2, shape[2]//2, shape[3]//2] = j_mag
-    elif request.param == '000':
-        j[:, 0, 0, 0] = j_mag
-    elif request.param == 'random':
-        j[:] = PRNG.uniform(low=-j_mag, high=j_mag, size=shape)
-    yield j
-
-
 @pytest.fixture(scope='module', params=[1.0, 1.5])
 def dx(request):
     yield request.param
@@ -82,11 +68,3 @@ def dxes(request, shape, dx):
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     yield dxes
 
-
-@pytest.fixture(scope='module',
-                params=[(0, 4, 8),
-                        #(0,),
-                       ]
-                )
-def j_steps(request):
-    yield request.param
