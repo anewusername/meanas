@@ -10,8 +10,10 @@ from .utils import assert_close, assert_fields_close, PRNG
 
 def test_poynting_planes(sim):
     mask = (sim.j != 0).any(axis=0)
-    if mask.sum() > 1:
-        pytest.skip(f'test_poynting_planes can only test single point sources, got {mask.sum()}')
+    if mask.sum() != 2:
+        pytest.skip(f'test_poynting_planes will only test 2-point sources, got {mask.sum()}')
+    points = numpy.where(mask)
+    mask[points[0][0], points[1][0], points[2][0]] = 0
 
     mx = numpy.roll(mask, -1, axis=0)
     my = numpy.roll(mask, -1, axis=1)
