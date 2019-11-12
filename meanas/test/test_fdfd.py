@@ -8,6 +8,13 @@ from .. import fdfd, vec, unvec
 from .utils import assert_close, assert_fields_close, PRNG
 
 
+def test_residual(sim):
+    A = fdfd.operators.e_full(sim.omega, sim.dxes, vec(sim.epsilon)).tocsr()
+    b = -1j * sim.omega * vec(sim.j)
+    residual = A @ vec(sim.e) - b
+    assert numpy.linalg.norm(residual) < 1e-10
+
+
 def test_poynting_planes(sim):
     mask = (sim.j != 0).any(axis=0)
     if mask.sum() != 2:
