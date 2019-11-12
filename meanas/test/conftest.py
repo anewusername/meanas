@@ -62,9 +62,18 @@ def dx(request):
     yield request.param
 
 
-@pytest.fixture(scope='module', params=['uniform'])
+@pytest.fixture(scope='module', params=['uniform', 'centerbig'])
 def dxes(request, shape, dx):
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
+    elif request.param == 'centerbig':
+        dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
+        for eh in (0, 1):
+            for ax in (0, 1, 2):
+               dxes[eh][ax][dxes[eh][ax].size // 2] *= 1.1
+    elif request.param == 'random':
+        dxe = [PRNG.uniform(low=1.0 * dx, high=1.1 * dx, size=s) for s in shape[1:]]
+        dxh = [(d + numpy.roll(d, -1)) / 2 for d in dxe]
+        dxes = [dxe, dxh]
     yield dxes
 
