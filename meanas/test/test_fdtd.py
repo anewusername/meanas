@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name, no-member
 from typing import List, Tuple
 import dataclasses
 import pytest
@@ -52,10 +53,10 @@ def test_energy_conservation(sim):
             'epsilon': sim.epsilon}
 
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
         delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii-1], dxes=sim.dxes)
-        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii],   dxes=sim.dxes)
+        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii],   dxes=sim.dxes)  # pylint: disable=bad-whitespace
 
         u += delta_j_A.sum()
         assert_close(u_hstep.sum(), u)
@@ -69,8 +70,8 @@ def test_poynting_divergence(sim):
 
     u_eprev = None
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
         delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii], dxes=sim.dxes)
 
         du_half_h2e = u_estep - u_hstep - delta_j_B
@@ -104,8 +105,8 @@ def test_poynting_planes(sim):
 
     u_eprev = None
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
         delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii], dxes=sim.dxes)
         du_half_h2e = u_estep - u_hstep - delta_j_B
 
