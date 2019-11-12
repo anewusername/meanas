@@ -1,11 +1,12 @@
+# pylint: disable=redefined-outer-name
 from typing import List, Tuple
 import dataclasses
 import pytest
 import numpy
-from numpy.testing import assert_allclose, assert_array_equal
+#from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd, vec, unvec
-from .utils import assert_close, assert_fields_close, PRNG
+from .utils import assert_close, assert_fields_close
 
 
 def test_residual(sim):
@@ -39,7 +40,8 @@ def test_poynting_planes(sim):
     e_dot_j = sim.e * sim.j * sim.dxes[0][0][:, None, None] * sim.dxes[0][1][None, :, None] * sim.dxes[0][2][None, None, :]
     src_energy = -e_dot_j[:, mask].real / 2
 
-    assert_close(sum(planes), src_energy.sum(), rtol=2e-5)  # TODO why is the tolerance so bad?
+    assert_close(sum(planes), src_energy.sum())
+
 
 
 #####################################
