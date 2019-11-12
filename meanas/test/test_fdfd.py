@@ -120,4 +120,3 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
         )
 
     return sim
-
