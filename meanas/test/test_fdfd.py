@@ -64,7 +64,13 @@ def pmc(request):
     yield request.param
 
 
-@pytest.fixture(params=['center', 'diag'])
+#@pytest.fixture(scope='module',
+#                params=[(25, 5, 5)])
+#def shape(request):
+#    yield (3, *request.param)
+
+
+@pytest.fixture(params=['diag'])        #'center'
 def j_distribution(request, shape, j_mag):
     j = numpy.zeros(shape, dtype=complex)
     center_mask = numpy.zeros(shape, dtype=bool)
