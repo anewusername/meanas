@@ -1,3 +1,4 @@
+# pylint: disable=unsupported-assignment-operation
 from typing import List, Callable, Tuple, Dict
 import numpy
 
