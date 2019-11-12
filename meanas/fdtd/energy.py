@@ -4,7 +4,10 @@ import numpy
 from .. import dx_lists_t, field_t, field_updater
 
 
-def poynting(e, h, dxes=None):
+def poynting(e: field_t,
+             h: field_t,
+             dxes: dx_lists_t = None,
+             ) -> field_t:
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
@@ -22,27 +25,52 @@ def poynting(e, h, dxes=None):
     return s
 
 
-def poynting_divergence(s=None, *, e=None, h=None, dxes=None):
+def poynting_divergence(s: field_t = None,
+                        *,
+                        e: field_t = None,
+                        h: field_t = None,
+                        dxes: dx_lists_t = None,
+                        ) -> field_t:
     if s is None:
         s = poynting(e, h, dxes=dxes)
 
     ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) +
           (s[1] - numpy.roll(s[1], 1, axis=1)) +
-          (s[2] - numpy.roll(s[2], 1, axis=2)) )
+          (s[2] - numpy.roll(s[2], 1, axis=2)))
     return ds
 
 
-def energy_hstep(e0, h1, e2, epsilon=None, mu=None, dxes=None):
+def energy_hstep(e0: field_t,
+                 h1: field_t,
+                 e2: field_t,
+                 epsilon: field_t = None,
+                 mu: field_t = None,
+                 dxes: dx_lists_t = None,
+                 ) -> field_t:
     u = dxmul(e0 * e2, h1 * h1, epsilon, mu, dxes)
     return u
 
 
-def energy_estep(h0, e1, h2, epsilon=None, mu=None, dxes=None):
+def energy_estep(h0: field_t,
+                 e1: field_t,
+                 h2: field_t,
+                 epsilon: field_t = None,
+                 mu: field_t = None,
+                 dxes: dx_lists_t = None,
+                 ) -> field_t:
     u = dxmul(e1 * e1, h0 * h2, epsilon, mu, dxes)
     return u
 
 
-def delta_energy_h2e(dt, e0, h1, e2, h3, epsilon=None, mu=None, dxes=None):
+def delta_energy_h2e(dt: float,
+                     e0: field_t,
+                     h1: field_t,
+                     e2: field_t,
+                     h3: field_t,
+                     epsilon: field_t = None,
+                     mu: field_t = None,
+                     dxes: dx_lists_t = None,
+                     ) -> field_t:
     """
     This is just from (e2 * e2 + h3 * h1) - (h1 * h1 + e0 * e2)
     """
@@ -52,7 +80,15 @@ def delta_energy_h2e(dt, e0, h1, e2, h3, epsilon=None, mu=None, dxes=None):
     return du
 
 
-def delta_energy_e2h(dt, h0, e1, h2, e3, epsilon=None, mu=None, dxes=None):
+def delta_energy_e2h(dt: float,
+                     h0: field_t,
+                     e1: field_t,
+                     h2: field_t,
+                     e3: field_t,
+                     epsilon: field_t = None,
+                     mu: field_t = None,
+                     dxes: dx_lists_t = None,
+                     ) -> field_t:
     """
     This is just from (h2 * h2 + e3 * e1) - (e1 * e1 + h0 * h2)
     """
@@ -62,7 +98,7 @@ def delta_energy_e2h(dt, h0, e1, h2, e3, epsilon=None, mu=None, dxes=None):
     return du
 
 
-def delta_energy_j(j0, e1, dxes=None):
+def delta_energy_j(j0: field_t, e1: field_t, dxes: dx_lists_t = None) -> field_t:
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
@@ -73,7 +109,12 @@ def delta_energy_j(j0, e1, dxes=None):
     return du
 
 
-def dxmul(ee, hh, epsilon=None, mu=None, dxes=None):
+def dxmul(ee: field_t,
+          hh: field_t,
+          epsilon: field_t = None,
+          mu: field_t = None,
+          dxes: dx_lists_t = None
+          ) -> field_t:
     if epsilon is None:
         epsilon = 1
     if mu is None:
