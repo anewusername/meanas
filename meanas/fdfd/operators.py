@@ -531,6 +531,8 @@ def e_boundary_source(mask: vfield_t,
         shift = lambda axis, polarity: shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
 
     for axis in (0, 1, 2):
+        if shape[axis] == 1:
+            continue
         for polarity in (-1, +1):
             r = shift(axis, polarity) - sparse.eye(numpy.prod(shape)) # shifted minus original
             r3 = sparse.block_diag((r, r, r))
