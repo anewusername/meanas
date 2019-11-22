@@ -146,7 +146,7 @@ def dt(request):
 
 
 @dataclasses.dataclass()
-class SimResult:
+class TDResult:
     shape: Tuple[int]
     dt: float
     dxes: List[List[numpy.ndarray]]
@@ -182,7 +182,7 @@ def sim(request, shape, epsilon, dxes, dt, j_distribution, j_steps):
         if dt != 0.3:
             pytest.skip('Skipping dt != 0.3 because test is 3D (for speed)')
 
-    sim = SimResult(
+    sim = TDResult(
         shape=shape,
         dt=dt,
         dxes=dxes,

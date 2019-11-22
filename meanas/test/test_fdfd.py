@@ -85,7 +85,7 @@ def j_distribution(request, shape, j_mag):
 
 
 @dataclasses.dataclass()
-class SimResult:
+class FDResult:
     shape: Tuple[int]
     dxes: List[List[numpy.ndarray]]
     epsilon: numpy.ndarray
@@ -108,7 +108,7 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
                                  matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11})
     e = unvec(e_vec, shape[1:])
 
-    sim = SimResult(
+    sim = FDResult(
         shape=shape,
         dxes=dxes,
         epsilon=epsilon,
