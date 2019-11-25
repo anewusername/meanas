@@ -83,7 +83,7 @@ import scipy.optimize
 from scipy.linalg import norm
 import scipy.sparse.linalg as spalg
 
-from . import field_t
+from .. import field_t
 
 logger = logging.getLogger(__name__)
 

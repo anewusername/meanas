@@ -1,18 +1,19 @@
 """
 Sparse matrix operators for use with electromagnetic wave equations.
 
-These functions return sparse-matrix (scipy.sparse.spmatrix) representations of
+These functions return sparse-matrix (`scipy.sparse.spmatrix`) representations of
  a variety of operators, intended for use with E and H fields vectorized using the
- meanas.vec() and .unvec() functions (column-major/Fortran ordering).
+ `meanas.vec()` and `meanas.unvec()` functions.
 
-E- and H-field values are defined on a Yee cell; epsilon values should be calculated for
- cells centered at each E component (mu at each H component).
+E- and H-field values are defined on a Yee cell; `epsilon` values should be calculated for
+ cells centered at each E component (`mu` at each H component).
 
-Many of these functions require a 'dxes' parameter, of type meanas.dx_lists_type; see
-the meanas.types submodule for details.
+Many of these functions require a `dxes` parameter, of type `dx_lists_t`; see
+the `meanas.types` submodule for details.
 
 
 The following operators are included:
+
 - E-only wave operator
 - H-only wave operator
 - EH wave operator
@@ -20,8 +21,6 @@ The following operators are included:
 - E to H conversion
 - M to J conversion
 - Poynting cross products
-
-Also available:
 - Circular shifts
 - Discrete derivatives
 - Averaging operators
@@ -33,6 +32,7 @@ import numpy
 import scipy.sparse as sparse
 
 from .. import vec, dx_lists_t, vfield_t
+from ..fdmath.operators import shift_with_mirror, rotation, curl_forward, curl_back
 
 
 __author__ = 'Jan Petykiewicz'
@@ -46,26 +46,35 @@ def e_full(omega: complex,
            pmc: vfield_t = None,
            ) -> sparse.spmatrix:
     """
-    Wave operator del x (1/mu * del x) - omega**2 * epsilon, for use with E-field,
-     with wave equation
-    (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
+    Wave operator
+     $$ \\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\omega^2 \\epsilon $$
 
-    To make this matrix symmetric, use the preconditions from e_full_preconditioners().
+        del x (1/mu * del x) - omega**2 * epsilon
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param epsilon: Vectorized dielectric constant
-    :param mu: Vectorized magnetic permeability (default 1 everywhere).
-    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
-        as containing a perfect electrical conductor (PEC).
-        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
-    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
-        as containing a perfect magnetic conductor (PMC).
-        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
-    :return: Sparse matrix containing the wave operator
+     for use with the E-field, with wave equation
+     $$ (\\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\omega^2 \\epsilon) E = -\\imath \\omega J $$
+
+        (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
+
+    To make this matrix symmetric, use the preconditioners from `e_full_preconditioners()`.
+
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Vectorized dielectric constant
+        mu: Vectorized magnetic permeability (default 1 everywhere).
+        pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
+          as containing a perfect electrical conductor (PEC).
+          The PEC is applied per-field-component (i.e. `pec.size == epsilon.size`)
+        pmc: Vectorized mask specifying PMC cells. Any cells where `pmc != 0` are interpreted
+          as containing a perfect magnetic conductor (PMC).
+          The PMC is applied per-field-component (i.e. `pmc.size == epsilon.size`)
+
+    Returns:
+        Sparse matrix containing the wave operator.
     """
-    ce = curl_e(dxes)
-    ch = curl_h(dxes)
+    ch = curl_back(dxes[1])
+    ce = curl_forward(dxes[0])
 
     if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
@@ -90,15 +99,18 @@ def e_full(omega: complex,
 def e_full_preconditioners(dxes: dx_lists_t
                            ) -> Tuple[sparse.spmatrix, sparse.spmatrix]:
     """
-    Left and right preconditioners (Pl, Pr) for symmetrizing the e_full wave operator.
+    Left and right preconditioners `(Pl, Pr)` for symmetrizing the `e_full` wave operator.
 
-    The preconditioned matrix A_symm = (Pl @ A @ Pr) is complex-symmetric
+    The preconditioned matrix `A_symm = (Pl @ A @ Pr)` is complex-symmetric
      (non-Hermitian unless there is no loss or PMLs).
 
-    The preconditioner matrices are diagonal and complex, with Pr = 1 / Pl
+    The preconditioner matrices are diagonal and complex, with `Pr = 1 / Pl`
 
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Preconditioner matrices (Pl, Pr)
+    Args:
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+
+    Returns:
+        Preconditioner matrices `(Pl, Pr)`.
     """
     p_squared = [dxes[0][0][:, None, None] * dxes[1][1][None, :, None] * dxes[1][2][None, None, :],
                  dxes[1][0][:, None, None] * dxes[0][1][None, :, None] * dxes[1][2][None, None, :],
@@ -118,24 +130,33 @@ def h_full(omega: complex,
            pmc: vfield_t = None,
            ) -> sparse.spmatrix:
     """
-    Wave operator del x (1/epsilon * del x) - omega**2 * mu, for use with H-field,
-     with wave equation
-    (del x (1/epsilon * del x) - omega**2 * mu) H = i * omega * M
+    Wave operator
+     $$ \\nabla \\times (\\frac{1}{\\epsilon} \\nabla \\times) - \\omega^2 \\mu $$
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param epsilon: Vectorized dielectric constant
-    :param mu: Vectorized magnetic permeability (default 1 everywhere)
-    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
-        as containing a perfect electrical conductor (PEC).
-        The PEC is applied per-field-component (ie, pec.size == epsilon.size)
-    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
-        as containing a perfect magnetic conductor (PMC).
-        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
-    :return: Sparse matrix containing the wave operator
+        del x (1/epsilon * del x) - omega**2 * mu
+
+     for use with the H-field, with wave equation
+     $$ (\\nabla \\times (\\frac{1}{\\epsilon} \\nabla \\times) - \\omega^2 \\mu) E = \\imath \\omega M $$
+
+        (del x (1/epsilon * del x) - omega**2 * mu) E = i * omega * M
+
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Vectorized dielectric constant
+        mu: Vectorized magnetic permeability (default 1 everywhere)
+        pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
+           as containing a perfect electrical conductor (PEC).
+           The PEC is applied per-field-component (i.e. `pec.size == epsilon.size`)
+        pmc: Vectorized mask specifying PMC cells. Any cells where `pmc != 0` are interpreted
+           as containing a perfect magnetic conductor (PMC).
+           The PMC is applied per-field-component (i.e. `pmc.size == epsilon.size`)
+
+    Returns:
+        Sparse matrix containing the wave operator.
     """
-    ec = curl_e(dxes)
-    hc = curl_h(dxes)
+    ch = curl_back(dxes[1])
+    ce = curl_forward(dxes[0])
 
     if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
@@ -153,7 +174,7 @@ def h_full(omega: complex,
     else:
         m = sparse.diags(mu)
 
-    A = pm @ (ec @ pe @ e_div @ hc - omega**2 * m) @ pm
+    A = pm @ (ce @ pe @ e_div @ ch - omega**2 * m) @ pm
     return A
 
 
@@ -165,24 +186,42 @@ def eh_full(omega: complex,
             pmc: vfield_t = None
             ) -> sparse.spmatrix:
     """
-    Wave operator for [E, H] field representation. This operator implements Maxwell's
+    Wave operator for `[E, H]` field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
-     [[-i * omega * epsilon,  del x],
-      [del x, i * omega * mu]]
+    $$  \\begin{bmatrix}
+        -\\imath \\omega \\epsilon  &  \\nabla \\times      \\\\
+        \\nabla \\times             &  \\imath \\omega \\mu
+        \\end{bmatrix} $$
 
-    for use with a field vector of the form hstack(vec(E), vec(H)).
+        [[-i * omega * epsilon,  del x         ],
+         [del x,                 i * omega * mu]]
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param epsilon: Vectorized dielectric constant
-    :param mu: Vectorized magnetic permeability (default 1 everywhere)
-    :param pec: Vectorized mask specifying PEC cells. Any cells where pec != 0 are interpreted
-        as containing a perfect electrical conductor (PEC).
-        The PEC is applied per-field-component (i.e., pec.size == epsilon.size)
-    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
-        as containing a perfect magnetic conductor (PMC).
-        The PMC is applied per-field-component (i.e., pmc.size == epsilon.size)
-    :return: Sparse matrix containing the wave operator
+    for use with a field vector of the form `cat(vec(E), vec(H))`:
+    $$  \\begin{bmatrix}
+        -\\imath \\omega \\epsilon  &  \\nabla \\times      \\\\
+        \\nabla \\times             &  \\imath \\omega \\mu
+        \\end{bmatrix}
+        \\begin{bmatrix} E \\\\
+                         H
+        \\end{bmatrix}
+        = \\begin{bmatrix} J \\\\
+                          -M
+          \\end{bmatrix} $$
+
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Vectorized dielectric constant
+        mu: Vectorized magnetic permeability (default 1 everywhere)
+        pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
+          as containing a perfect electrical conductor (PEC).
+          The PEC is applied per-field-component (i.e. `pec.size == epsilon.size`)
+        pmc: Vectorized mask specifying PMC cells. Any cells where `pmc != 0` are interpreted
+          as containing a perfect magnetic conductor (PMC).
+          The PMC is applied per-field-component (i.e. `pmc.size == epsilon.size`)
+
+    Returns:
+        Sparse matrix containing the wave operator.
     """
     if numpy.any(numpy.equal(pec, None)):
         pe = sparse.eye(epsilon.size)
@@ -200,32 +239,12 @@ def eh_full(omega: complex,
         iwm *= sparse.diags(mu)
     iwm = pm @ iwm @ pm
 
-    A1 = pe @ curl_h(dxes) @ pm
-    A2 = pm @ curl_e(dxes) @ pe
+    A1 = pe @ curl_back(dxes[1]) @ pm
+    A2 = pm @ curl_forward(dxes[0]) @ pe
 
     A = sparse.bmat([[-iwe, A1],
                      [A2,  iwm]])
     return A
-
-
-def curl_h(dxes: dx_lists_t) -> sparse.spmatrix:
-    """
-    Curl operator for use with the H field.
-
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Sparse matrix for taking the discretized curl of the H-field
-    """
-    return cross(deriv_back(dxes[1]))
-
-
-def curl_e(dxes: dx_lists_t) -> sparse.spmatrix:
-    """
-    Curl operator for use with the E field.
-
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Sparse matrix for taking the discretized curl of the E-field
-    """
-    return cross(deriv_forward(dxes[0]))
 
 
 def e2h(omega: complex,
@@ -235,17 +254,20 @@ def e2h(omega: complex,
         ) -> sparse.spmatrix:
     """
     Utility operator for converting the E field into the H field.
-    For use with e_full -- assumes that there is no magnetic current M.
+    For use with `e_full()` -- assumes that there is no magnetic current M.
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param mu: Vectorized magnetic permeability (default 1 everywhere)
-    :param pmc: Vectorized mask specifying PMC cells. Any cells where pmc != 0 are interpreted
-        as containing a perfect magnetic conductor (PMC).
-        The PMC is applied per-field-component (ie, pmc.size == epsilon.size)
-    :return: Sparse matrix for converting E to H
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        mu: Vectorized magnetic permeability (default 1 everywhere)
+        pmc: Vectorized mask specifying PMC cells. Any cells where `pmc != 0` are interpreted
+          as containing a perfect magnetic conductor (PMC).
+          The PMC is applied per-field-component (i.e. `pmc.size == epsilon.size`)
+
+    Returns:
+        Sparse matrix for converting E to H.
     """
-    op = curl_e(dxes) / (-1j * omega)
+    op = curl_forward(dxes[0]) / (-1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
         op = sparse.diags(1 / mu) @ op
@@ -261,16 +283,18 @@ def m2j(omega: complex,
         mu: vfield_t = None
         ) -> sparse.spmatrix:
     """
-    Utility operator for converting M field into J.
-    Converts a magnetic current M into an electric current J.
-    For use with eg. e_full.
+    Operator for converting a magnetic current M into an electric current J.
+    For use with eg. `e_full()`.
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param mu: Vectorized magnetic permeability (default 1 everywhere)
-    :return: Sparse matrix for converting E to H
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        mu: Vectorized magnetic permeability (default 1 everywhere)
+
+    Returns:
+        Sparse matrix for converting M to J.
     """
-    op = curl_h(dxes) / (1j * omega)
+    op = curl_back(dxes[1]) / (1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
         op = op @ sparse.diags(1 / mu)
@@ -278,178 +302,17 @@ def m2j(omega: complex,
     return op
 
 
-def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
-    """
-    Utility operator for performing a circular shift along a specified axis by a
-     specified number of elements.
-
-    :param axis: Axis to shift along. x=0, y=1, z=2
-    :param shape: Shape of the grid being shifted
-    :param shift_distance: Number of cells to shift by. May be negative. Default 1.
-    :return: Sparse matrix for performing the circular shift
-    """
-    if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
-    if axis not in range(len(shape)):
-        raise Exception('Invalid direction: {}, shape is {}'.format(axis, shape))
-
-    shifts = [abs(shift_distance) if a == axis else 0 for a in range(3)]
-    shifted_diags = [(numpy.arange(n) + s) % n for n, s in zip(shape, shifts)]
-    ijk = numpy.meshgrid(*shifted_diags, indexing='ij')
-
-    n = numpy.prod(shape)
-    i_ind = numpy.arange(n)
-    j_ind = numpy.ravel_multi_index(ijk, shape, order='C')
-
-    vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
-
-    d = sparse.csr_matrix(vij, shape=(n, n))
-
-    if shift_distance < 0:
-        d = d.T
-
-    return d
-
-
-def shift_with_mirror(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
-    """
-    Utility operator for performing an n-element shift along a specified axis, with mirror
-    boundary conditions applied to the cells beyond the receding edge.
-
-    :param axis: Axis to shift along. x=0, y=1, z=2
-    :param shape: Shape of the grid being shifted
-    :param shift_distance: Number of cells to shift by. May be negative. Default 1.
-    :return: Sparse matrix for performing the circular shift
-    """
-    if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
-    if axis not in range(len(shape)):
-        raise Exception('Invalid direction: {}, shape is {}'.format(axis, shape))
-    if shift_distance >= shape[axis]:
-        raise Exception('Shift ({}) is too large for axis {} of size {}'.format(
-                        shift_distance, axis, shape[axis]))
-
-    def mirrored_range(n, s):
-        v = numpy.arange(n) + s
-        v = numpy.where(v >= n, 2 * n - v - 1, v)
-        v = numpy.where(v < 0, - 1 - v, v)
-        return v
-
-    shifts = [shift_distance if a == axis else 0 for a in range(3)]
-    shifted_diags = [mirrored_range(n, s) for n, s in zip(shape, shifts)]
-    ijk = numpy.meshgrid(*shifted_diags, indexing='ij')
-
-    n = numpy.prod(shape)
-    i_ind = numpy.arange(n)
-    j_ind = numpy.ravel_multi_index(ijk, shape, order='C')
-
-    vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
-
-    d = sparse.csr_matrix(vij, shape=(n, n))
-    return d
-
-
-def deriv_forward(dx_e: List[numpy.ndarray]) -> List[sparse.spmatrix]:
-    """
-    Utility operators for taking discretized derivatives (forward variant).
-
-    :param dx_e: Lists of cell sizes for all axes [[dx_0, dx_1, ...], ...].
-    :return: List of operators for taking forward derivatives along each axis.
-    """
-    shape = [s.size for s in dx_e]
-    n = numpy.prod(shape)
-
-    dx_e_expanded = numpy.meshgrid(*dx_e, indexing='ij')
-
-    def deriv(axis):
-        return rotation(axis, shape, 1) - sparse.eye(n)
-
-    Ds = [sparse.diags(+1 / dx.ravel(order='C')) @ deriv(a)
-          for a, dx in enumerate(dx_e_expanded)]
-
-    return Ds
-
-
-def deriv_back(dx_h: List[numpy.ndarray]) -> List[sparse.spmatrix]:
-    """
-    Utility operators for taking discretized derivatives (backward variant).
-
-    :param dx_h: Lists of cell sizes for all axes [[dx_0, dx_1, ...], ...].
-    :return: List of operators for taking forward derivatives along each axis.
-    """
-    shape = [s.size for s in dx_h]
-    n = numpy.prod(shape)
-
-    dx_h_expanded = numpy.meshgrid(*dx_h, indexing='ij')
-
-    def deriv(axis):
-        return rotation(axis, shape, -1) - sparse.eye(n)
-
-    Ds = [sparse.diags(-1 / dx.ravel(order='C')) @ deriv(a)
-          for a, dx in enumerate(dx_h_expanded)]
-
-    return Ds
-
-
-def cross(B: List[sparse.spmatrix]) -> sparse.spmatrix:
-    """
-    Cross product operator
-
-    :param B: List [Bx, By, Bz] of sparse matrices corresponding to the x, y, z
-            portions of the operator on the left side of the cross product.
-    :return: Sparse matrix corresponding to (B x), where x is the cross product
-    """
-    n = B[0].shape[0]
-    zero = sparse.csr_matrix((n, n))
-    return sparse.bmat([[zero, -B[2], B[1]],
-                        [B[2], zero, -B[0]],
-                        [-B[1], B[0], zero]])
-
-
-def vec_cross(b: vfield_t) -> sparse.spmatrix:
-    """
-    Vector cross product operator
-
-    :param b: Vector on the left side of the cross product
-    :return: Sparse matrix corresponding to (b x), where x is the cross product
-    """
-    B = [sparse.diags(c) for c in numpy.split(b, 3)]
-    return cross(B)
-
-
-def avgf(axis: int, shape: List[int]) -> sparse.spmatrix:
-    """
-    Forward average operator (x4 = (x4 + x5) / 2)
-
-    :param axis: Axis to average along (x=0, y=1, z=2)
-    :param shape: Shape of the grid to average
-    :return: Sparse matrix for forward average operation
-    """
-    if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
-
-    n = numpy.prod(shape)
-    return 0.5 * (sparse.eye(n) + rotation(axis, shape))
-
-
-def avgb(axis: int, shape: List[int]) -> sparse.spmatrix:
-    """
-    Backward average operator (x4 = (x4 + x3) / 2)
-
-    :param axis: Axis to average along (x=0, y=1, z=2)
-    :param shape: Shape of the grid to average
-    :return: Sparse matrix for backward average operation
-    """
-    return avgf(axis, shape).T
-
-
 def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
-    Operator for computing the Poynting vector, containing the (E x) portion of the Poynting vector.
+    Operator for computing the Poynting vector, containing the
+    (E x) portion of the Poynting vector.
 
-    :param e: Vectorized E-field for the ExH cross product
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Sparse matrix containing (E x) portion of Poynting cross product
+    Args:
+        e: Vectorized E-field for the ExH cross product
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+
+    Returns:
+        Sparse matrix containing (E x) portion of Poynting cross product.
     """
     shape = [len(dx) for dx in dxes[0]]
 
@@ -472,9 +335,12 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Operator for computing the Poynting vector, containing the (H x) portion of the Poynting vector.
 
-    :param h: Vectorized H-field for the HxE cross product
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Sparse matrix containing (H x) portion of Poynting cross product
+    Args:
+        h: Vectorized H-field for the HxE cross product
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+
+    Returns:
+        Sparse matrix containing (H x) portion of Poynting cross product.
     """
     shape = [len(dx) for dx in dxes[0]]
 
@@ -499,8 +365,22 @@ def e_tfsf_source(TF_region: vfield_t,
                   mu: vfield_t = None,
                   ) -> sparse.spmatrix:
     """
-    Operator that turns an E-field distribution into a total-field/scattered-field
-    (TFSF) source.
+    Operator that turns a desired E-field distribution into a
+     total-field/scattered-field (TFSF) source.
+
+    TODO: Reference Rumpf paper
+
+    Args:
+        TF_region: Mask, which is set to 1 inside the total-field region and 0 in the
+                   scattered-field region
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Vectorized dielectric constant
+        mu: Vectorized magnetic permeability (default 1 everywhere).
+
+    Returns:
+        Sparse matrix that turns an E-field into a current (J) distribution.
+
     """
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
@@ -518,7 +398,19 @@ def e_boundary_source(mask: vfield_t,
     """
     Operator that turns an E-field distrubtion into a current (J) distribution
       along the edges (external and internal) of the provided mask. This is just an
-      e_tfsf_source with an additional masking step.
+      `e_tfsf_source()` with an additional masking step.
+
+    Args:
+        mask: The current distribution is generated at the edges of the mask,
+              i.e. any points where shifting the mask by one cell in any direction
+              would change its value.
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Vectorized dielectric constant
+        mu: Vectorized magnetic permeability (default 1 everywhere).
+
+    Returns:
+        Sparse matrix that turns an E-field into a current (J) distribution.
     """
     full = e_tfsf_source(TF_region=mask, omega=omega, dxes=dxes, epsilon=epsilon, mu=mu)
 

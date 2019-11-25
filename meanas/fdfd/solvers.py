@@ -1,5 +1,5 @@
 """
-Solvers for FDFD problems.
+Solvers and solver interface for FDFD problems.
 """
 
 from typing import List, Callable, Dict, Any
@@ -22,10 +22,13 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     """
     Wrapper for scipy.sparse.linalg.qmr
 
-    :param A: Sparse matrix
-    :param b: Right-hand-side vector
-    :param kwargs: Passed as **kwargs to the wrapped function
-    :return: Guess for solution (returned even if didn't converge)
+    Args:
+        A: Sparse matrix
+        b: Right-hand-side vector
+        kwargs: Passed as **kwargs to the wrapped function
+
+    Returns:
+        Guess for solution (returned even if didn't converge)
     """
 
     '''
@@ -70,27 +73,31 @@ def generic(omega: complex,
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
 
-    All ndarray arguments should be 1D array, as returned by meanas.vec().
+    All ndarray arguments should be 1D arrays, as returned by `meanas.vec()`.
 
-    :param omega: Complex frequency to solve at.
-    :param dxes: [[dx_e, dy_e, dz_e], [dx_h, dy_h, dz_h]] (complex cell sizes)
-    :param J: Electric current distribution (at E-field locations)
-    :param epsilon: Dielectric constant distribution (at E-field locations)
-    :param mu: Magnetic permeability distribution (at H-field locations)
-    :param pec: Perfect electric conductor distribution
-        (at E-field locations; non-zero value indicates PEC is present)
-    :param pmc: Perfect magnetic conductor distribution
-        (at H-field locations; non-zero value indicates PMC is present)
-    :param adjoint: If true, solves the adjoint problem.
-    :param matrix_solver: Called as matrix_solver(A, b, **matrix_solver_opts) -> x
-        Where A: scipy.sparse.csr_matrix
-              b: numpy.ndarray
-              x: numpy.ndarray
-        Default is a wrapped version of scipy.sparse.linalg.qmr()
-         which doesn't return convergence info and logs the residual
-         every 100 iterations.
-    :param matrix_solver_opts: Passed as kwargs to matrix_solver(...)
-    :return: E-field which solves the system.
+    Args:
+        omega: Complex frequency to solve at.
+        dxes: `[[dx_e, dy_e, dz_e], [dx_h, dy_h, dz_h]]` (complex cell sizes) as
+            discussed in `meanas.types`
+        J: Electric current distribution (at E-field locations)
+        epsilon: Dielectric constant distribution (at E-field locations)
+        mu: Magnetic permeability distribution (at H-field locations)
+        pec: Perfect electric conductor distribution
+             (at E-field locations; non-zero value indicates PEC is present)
+        pmc: Perfect magnetic conductor distribution
+             (at H-field locations; non-zero value indicates PMC is present)
+        adjoint: If true, solves the adjoint problem.
+        matrix_solver: Called as `matrix_solver(A, b, **matrix_solver_opts) -> x`,
+                where `A`: `scipy.sparse.csr_matrix`;
+                      `b`: `numpy.ndarray`;
+                      `x`: `numpy.ndarray`;
+                Default is a wrapped version of `scipy.sparse.linalg.qmr()`
+                 which doesn't return convergence info and logs the residual
+                 every 100 iterations.
+        matrix_solver_opts: Passed as kwargs to `matrix_solver(...)`
+
+    Returns:
+        E-field which solves the system.
     """
 
     if matrix_solver_opts is None:

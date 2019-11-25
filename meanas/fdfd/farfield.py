@@ -1,7 +1,7 @@
 """
 Functions for performing near-to-farfield transformation (and the reverse).
 """
-from typing import Dict, List
+from typing import Dict, List, Any
 import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi
@@ -14,7 +14,7 @@ def near_to_farfield(E_near: field_t,
                      dx: float,
                      dy: float,
                      padded_size: List[int] = None
-                     ) -> Dict[str]:
+                     ) -> Dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.
@@ -122,7 +122,7 @@ def far_to_nearfield(E_far: field_t,
                      dkx: float,
                      dky: float,
                      padded_size: List[int] = None
-                     ) -> Dict[str]:
+                     ) -> Dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.

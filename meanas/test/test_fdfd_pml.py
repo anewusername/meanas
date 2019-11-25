@@ -101,8 +101,8 @@ def j_distribution(request, shape, epsilon, dxes, omega, src_polarity):
     slices[dim] = slice(shape[dim + 1] // 2,
                         shape[dim + 1] // 2 + 1)
 
-    j = fdfd.waveguide_mode.compute_source(E=e, wavenumber=wavenumber_corrected, omega=omega, dxes=dxes,
-                                           axis=dim, polarity=src_polarity, slices=slices, epsilon=epsilon)
+    j = fdfd.waveguide_3d.compute_source(E=e, wavenumber=wavenumber_corrected, omega=omega, dxes=dxes,
+                                         axis=dim, polarity=src_polarity, slices=slices, epsilon=epsilon)
     yield j
 
 
@@ -145,4 +145,3 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
         )
 
     return sim
-

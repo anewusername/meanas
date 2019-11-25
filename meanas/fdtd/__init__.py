@@ -1,5 +1,5 @@
 """
-Basic FDTD functionality
+Utilities for running finite-difference time-domain (FDTD) simulations
 """
 
 from .base import maxwell_e, maxwell_h

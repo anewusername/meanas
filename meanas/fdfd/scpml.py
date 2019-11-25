@@ -1,5 +1,5 @@
 """
-Functions for creating stretched coordinate PMLs.
+Functions for creating stretched coordinate perfectly matched layer (PML) absorbers.
 """
 
 from typing import List, Callable
@@ -7,24 +7,29 @@ import numpy
 
 from .. import dx_lists_t
 
+
 __author__ = 'Jan Petykiewicz'
 
 
-s_function_type = Callable[[float], float]
+s_function_t = Callable[[float], float]
+"""Typedef for s-functions"""
 
 
 def prepare_s_function(ln_R: float = -16,
                        m: float = 4
-                       ) -> s_function_type:
+                       ) -> s_function_t:
     """
     Create an s_function to pass to the SCPML functions. This is used when you would like to
     customize the PML parameters.
 
-    :param ln_R: Natural logarithm of the desired reflectance
-    :param m: Polynomial order for the PML (imaginary part increases as distance ** m)
-    :return: An s_function, which takes an ndarray (distances) and returns an ndarray (complex part
-                of the cell width; needs to be divided by sqrt(epilon_effective) * real(omega))
-                before use.
+    Args:
+        ln_R: Natural logarithm of the desired reflectance
+        m: Polynomial order for the PML (imaginary part increases as distance ** m)
+
+    Returns:
+        An s_function, which takes an ndarray (distances) and returns an ndarray (complex part
+        of the cell width; needs to be divided by `sqrt(epilon_effective) * real(omega))`
+        before use.
     """
     def s_factor(distance: numpy.ndarray) -> numpy.ndarray:
         s_max = (m + 1) * ln_R / 2  # / 2 because we assume periodic boundaries
@@ -36,26 +41,29 @@ def uniform_grid_scpml(shape: numpy.ndarray or List[int],
                        thicknesses: numpy.ndarray or List[int],
                        omega: float,
                        epsilon_effective: float = 1.0,
-                       s_function: s_function_type = None,
+                       s_function: s_function_t = None,
                        ) -> dx_lists_t:
     """
     Create dx arrays for a uniform grid with a cell width of 1 and a pml.
 
-    If you want something more fine-grained, check out stretch_with_scpml(...).
+    If you want something more fine-grained, check out `stretch_with_scpml(...)`.
 
-    :param shape: Shape of the grid, including the PMLs (which are 2*thicknesses thick)
-    :param thicknesses: [th_x, th_y, th_z] Thickness of the PML in each direction.
-        Both polarities are added.
-        Each th_ of pml is applied twice, once on each edge of the grid along the given axis.
-        th_* may be zero, in which case no pml is added.
-    :param omega: Angular frequency for the simulation
-    :param epsilon_effective: Effective epsilon of the PML. Match this to the material
-        at the edge of your grid.
-        Default 1.
-    :param s_function: s_function created by prepare_s_function(...), allowing
-        customization of pml parameters.
-        Default uses prepare_s_function() with no parameters.
-    :return: Complex cell widths (dx_lists)
+    Args:
+        shape: Shape of the grid, including the PMLs (which are 2*thicknesses thick)
+        thicknesses: `[th_x, th_y, th_z]`
+                     Thickness of the PML in each direction.
+                     Both polarities are added.
+                     Each th_ of pml is applied twice, once on each edge of the grid along the given axis.
+                     `th_*` may be zero, in which case no pml is added.
+        omega: Angular frequency for the simulation
+        epsilon_effective: Effective epsilon of the PML. Match this to the material
+                            at the edge of your grid.
+                            Default 1.
+        s_function: created by `prepare_s_function(...)`, allowing customization of pml parameters.
+                    Default uses `prepare_s_function()` with no parameters.
+
+    Returns:
+        Complex cell widths (dx_lists_t) as discussed in `meanas.types`.
     """
     if s_function is None:
         s_function = prepare_s_function()
@@ -88,21 +96,25 @@ def stretch_with_scpml(dxes: dx_lists_t,
                        omega: float,
                        epsilon_effective: float = 1.0,
                        thickness: int = 10,
-                       s_function: s_function_type = None,
+                       s_function: s_function_t = None,
                        ) -> dx_lists_t:
     """
         Stretch dxes to contain a stretched-coordinate PML (SCPML) in one direction along one axis.
 
-        :param dxes: dx_tuple with coordinates to stretch
-        :param axis: axis to stretch (0=x, 1=y, 2=z)
-        :param polarity: direction to stretch (-1 for -ve, +1 for +ve)
-        :param omega: Angular frequency for the simulation
-        :param epsilon_effective: Effective epsilon of the PML. Match this to the material at the
-            edge of your grid. Default 1.
-        :param thickness: number of cells to use for pml (default 10)
-        :param s_function: s_function created by prepare_s_function(...), allowing customization
-            of pml parameters. Default uses prepare_s_function() with no parameters.
-        :return: Complex cell widths
+        Args:
+            dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+            axis: axis to stretch (0=x, 1=y, 2=z)
+            polarity: direction to stretch (-1 for -ve, +1 for +ve)
+            omega: Angular frequency for the simulation
+            epsilon_effective: Effective epsilon of the PML. Match this to the material at the
+                               edge of your grid. Default 1.
+            thickness: number of cells to use for pml (default 10)
+            s_function: Created by `prepare_s_function(...)`, allowing customization
+                        of pml parameters. Default uses `prepare_s_function()` with no parameters.
+
+        Returns:
+            Complex cell widths (dx_lists_t) as discussed in `meanas.types`.
+            Multiple calls to this function may be necessary if multiple absorpbing boundaries are needed.
     """
     if s_function is None:
         s_function = prepare_s_function()
@@ -147,25 +159,3 @@ def stretch_with_scpml(dxes: dx_lists_t,
     dxes[1][axis] = dx_bi
 
     return dxes
-
-
-def generate_periodic_dx(pos: List[numpy.ndarray]) -> dx_lists_t:
-    """
-    Given a list of 3 ndarrays cell centers, creates the cell width parameters for a periodic grid.
-
-    :param pos: List of 3 ndarrays of cell centers
-    :return: (dx_a, dx_b) cell widths (no pml)
-    """
-    if len(pos) != 3:
-        raise Exception('Must have len(pos) == 3')
-
-    dx_a = [numpy.array(numpy.inf)] * 3
-    dx_b = [numpy.array(numpy.inf)] * 3
-
-    for i, p_orig in enumerate(pos):
-        p = numpy.array(p_orig, dtype=float)
-        if p.size != 1:
-            p_shifted = numpy.hstack((p[1:], p[-1] + (p[1] - p[0])))
-            dx_a[i] = numpy.diff(p)
-            dx_b[i] = numpy.diff((p + p_shifted) / 2)
-    return dx_a, dx_b

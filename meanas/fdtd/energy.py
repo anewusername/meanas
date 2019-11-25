@@ -35,6 +35,7 @@ def poynting_divergence(s: field_t = None,
     if s is None:
         s = poynting(e, h, dxes=dxes)
 
+    #TODO use deriv operators
     ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) +
           (s[1] - numpy.roll(s[1], 1, axis=1)) +
           (s[2] - numpy.roll(s[2], 1, axis=2)))

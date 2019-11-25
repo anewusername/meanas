@@ -2,88 +2,41 @@
 Functional versions of many FDFD operators. These can be useful for performing
  FDFD calculations without needing to construct large matrices in memory.
 
-The functions generated here expect field inputs with shape (3, X, Y, Z),
+The functions generated here expect `field_t` inputs with shape (3, X, Y, Z),
 e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
 """
-from typing import List, Callable
+from typing import List, Callable, Tuple
 import numpy
 
 from .. import dx_lists_t, field_t
+from ..fdmath.functional import curl_forward, curl_back
 
 __author__ = 'Jan Petykiewicz'
 
 
-functional_matrix = Callable[[field_t], field_t]
-
-
-def curl_h(dxes: dx_lists_t) -> functional_matrix:
-    """
-    Curl operator for use with the H field.
-
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Function for taking the discretized curl of the H-field, F(H) -> curlH
-    """
-    dxyz_b = numpy.meshgrid(*dxes[1], indexing='ij')
-
-    def dh(f, ax):
-        return (f - numpy.roll(f, 1, axis=ax)) / dxyz_b[ax]
-
-    def ch_fun(h: field_t) -> field_t:
-        e = numpy.empty_like(h)
-        e[0] = dh(h[2], 1)
-        e[0] -= dh(h[1], 2)
-        e[1] = dh(h[0], 2)
-        e[1] -= dh(h[2], 0)
-        e[2] = dh(h[1], 0)
-        e[2] -= dh(h[0], 1)
-        return e
-
-    return ch_fun
-
-
-def curl_e(dxes: dx_lists_t) -> functional_matrix:
-    """
-    Curl operator for use with the E field.
-
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :return: Function for taking the discretized curl of the E-field, F(E) -> curlE
-    """
-    dxyz_a = numpy.meshgrid(*dxes[0], indexing='ij')
-
-    def de(f, ax):
-        return (numpy.roll(f, -1, axis=ax) - f) / dxyz_a[ax]
-
-    def ce_fun(e: field_t) -> field_t:
-        h = numpy.empty_like(e)
-        h[0] = de(e[2], 1)
-        h[0] -= de(e[1], 2)
-        h[1] = de(e[0], 2)
-        h[1] -= de(e[2], 0)
-        h[2] = de(e[1], 0)
-        h[2] -= de(e[0], 1)
-        return h
-
-    return ce_fun
+field_transform_t = Callable[[field_t], field_t]
 
 
 def e_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: field_t,
            mu: field_t = None
-           ) -> functional_matrix:
+           ) -> field_transform_t:
     """
-    Wave operator del x (1/mu * del x) - omega**2 * epsilon, for use with E-field,
-     with wave equation
-    (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
+    Wave operator for use with E-field. See `operators.e_full` for details.
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param epsilon: Dielectric constant
-    :param mu: Magnetic permeability (default 1 everywhere)
-    :return: Function implementing the wave operator A(E) -> E
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
+        epsilon: Dielectric constant
+        mu: Magnetic permeability (default 1 everywhere)
+
+    Return:
+        Function `f` implementing the wave operator
+        `f(E)` -> `-i * omega * J`
     """
-    ch = curl_h(dxes)
-    ce = curl_e(dxes)
+    ch = curl_back(dxes[1])
+    ce = curl_forward(dxes[0])
 
     def op_1(e):
         curls = ch(ce(e))
@@ -103,18 +56,23 @@ def eh_full(omega: complex,
             dxes: dx_lists_t,
             epsilon: field_t,
             mu: field_t = None
-            ) -> functional_matrix:
+            ) -> Callable[[field_t, field_t], Tuple[field_t, field_t]]:
     """
     Wave operator for full (both E and H) field representation.
+    See `operators.eh_full`.
 
-    :param omega: Angular frequency of the simulation
-    :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-    :param epsilon: Dielectric constant
-    :param mu: Magnetic permeability (default 1 everywhere)
-    :return: Function implementing the wave operator A(E, H) -> (E, H)
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
+        epsilon: Dielectric constant
+        mu: Magnetic permeability (default 1 everywhere)
+
+    Returns:
+        Function `f` implementing the wave operator
+        `f(E, H)` -> `(J, -M)`
     """
-    ch = curl_h(dxes)
-    ce = curl_e(dxes)
+    ch = curl_back(dxes[1])
+    ce = curl_forward(dxes[0])
 
     def op_1(e, h):
         return (ch(h) - 1j * omega * epsilon * e,
@@ -133,23 +91,27 @@ def eh_full(omega: complex,
 def e2h(omega: complex,
         dxes: dx_lists_t,
         mu: field_t = None,
-        ) -> functional_matrix:
+        ) -> field_transform_t:
     """
-   Utility operator for converting the E field into the H field.
-   For use with e_full -- assumes that there is no magnetic current M.
+    Utility operator for converting the `E` field into the `H` field.
+    For use with `e_full` -- assumes that there is no magnetic current `M`.
 
-   :param omega: Angular frequency of the simulation
-   :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-   :param mu: Magnetic permeability (default 1 everywhere)
-   :return: Function for converting E to H
-   """
-    A2 = curl_e(dxes)
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        mu: Magnetic permeability (default 1 everywhere)
+
+    Return:
+        Function `f` for converting `E` to `H`,
+        `f(E)` -> `H`
+    """
+    ce = curl_forward(dxes[0])
 
     def e2h_1_1(e):
-        return A2(e) / (-1j * omega)
+        return ce(e) / (-1j * omega)
 
     def e2h_mu(e):
-        return A2(e) / (-1j * omega * mu)
+        return ce(e) / (-1j * omega * mu)
 
     if numpy.any(numpy.equal(mu, None)):
         return e2h_1_1
@@ -160,18 +122,22 @@ def e2h(omega: complex,
 def m2j(omega: complex,
         dxes: dx_lists_t,
         mu: field_t = None,
-        ) -> functional_matrix:
+        ) -> field_transform_t:
     """
-   Utility operator for converting magnetic current (M) distribution
-   into equivalent electric current distribution (J).
-   For use with e.g. e_full().
+    Utility operator for converting magnetic current `M` distribution
+    into equivalent electric current distribution `J`.
+    For use with e.g. `e_full`.
 
-   :param omega: Angular frequency of the simulation
-   :param dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
-   :param mu: Magnetic permeability (default 1 everywhere)
-   :return: Function for converting M to J
-   """
-    ch = curl_h(dxes)
+    Args:
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        mu: Magnetic permeability (default 1 everywhere)
+
+    Returns:
+        Function `f` for converting `M` to `J`,
+        `f(M)` -> `J`
+    """
+    ch = curl_back(dxes[1])
 
     def m2j_mu(m):
         J = ch(m / mu) / (-1j * omega)
@@ -192,10 +158,23 @@ def e_tfsf_source(TF_region: field_t,
                   dxes: dx_lists_t,
                   epsilon: field_t,
                   mu: field_t = None,
-                  ) -> functional_matrix:
+                  ) -> field_transform_t:
     """
-    Operator that turuns an E-field distribution into a total-field/scattered-field
+    Operator that turns an E-field distribution into a total-field/scattered-field
     (TFSF) source.
+
+    Args:
+        TF_region: mask which is set to 1 in the total-field region, and 0 elsewhere
+                   (i.e. in the scattered-field region).
+                   Should have the same shape as the simulation grid, e.g. `epsilon[0].shape`.
+        omega: Angular frequency of the simulation
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        epsilon: Dielectric constant distribution
+        mu: Magnetic permeability (default 1 everywhere)
+
+    Returns:
+        Function `f` which takes an E field and returns a current distribution,
+        `f(E)` -> `J`
     """
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
@@ -205,7 +184,28 @@ def e_tfsf_source(TF_region: field_t,
         return neg_iwj / (-1j * omega)
 
 
-def poynting_e_cross_h(dxes: dx_lists_t):
+def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[field_t, field_t], field_t]:
+    """
+    Generates a function that takes the single-frequency `E` and `H` fields
+    and calculates the cross product `E` x `H` = \\( E \\times H \\) as required
+    for the Poynting vector, \\( S = E \\times H \\)
+
+    Note:
+        This function also shifts the input `E` field by one cell as required
+        for computing the Poynting cross product (see `meanas.fdfd` module docs).
+
+    Note:
+        If `E` and `H` are peak amplitudes as assumed elsewhere in this code,
+        the time-average of the poynting vector is `<S> = Re(S)/2 = Re(E x H) / 2`.
+        The factor of `1/2` can be omitted if root-mean-square quantities are used
+        instead.
+
+    Args:
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+
+    Returns:
+        Function `f` that returns E x H as required for the poynting vector.
+    """
     def exh(e: field_t, h: field_t):
         s = numpy.empty_like(e)
         ex = e[0] * dxes[0][0][:, None, None]

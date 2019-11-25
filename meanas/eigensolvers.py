@@ -15,10 +15,13 @@ def power_iteration(operator: sparse.spmatrix,
     """
     Use power iteration to estimate the dominant eigenvector of a matrix.
 
-    :param operator: Matrix to analyze.
-    :param guess_vector: Starting point for the eigenvector. Default is a randomly chosen vector.
-    :param iterations: Number of iterations to perform. Default 20.
-    :return: (Largest-magnitude eigenvalue, Corresponding eigenvector estimate)
+    Args:
+       operator: Matrix to analyze.
+       guess_vector: Starting point for the eigenvector. Default is a randomly chosen vector.
+       iterations: Number of iterations to perform. Default 20.
+
+    Returns:
+        (Largest-magnitude eigenvalue, Corresponding eigenvector estimate)
     """
     if numpy.any(numpy.equal(guess_vector, None)):
         v = numpy.random.rand(operator.shape[0])
@@ -91,12 +94,15 @@ def signed_eigensolve(operator: sparse.spmatrix or spalg.LinearOperator,
     Find the largest-magnitude positive-only (or negative-only) eigenvalues and
      eigenvectors of the provided matrix.
 
-    :param operator: Matrix to analyze.
-    :param how_many: How many eigenvalues to find.
-    :param negative: Whether to find negative-only eigenvalues.
-        Default False (positive only).
-    :return: (sorted list of eigenvalues, 2D ndarray of corresponding eigenvectors)
-        eigenvectors[:, k] corresponds to the k-th eigenvalue
+    Args:
+        operator: Matrix to analyze.
+        how_many: How many eigenvalues to find.
+        negative: Whether to find negative-only eigenvalues.
+                  Default False (positive only).
+
+    Returns:
+        (sorted list of eigenvalues, 2D ndarray of corresponding eigenvectors)
+        `eigenvectors[:, k]` corresponds to the k-th eigenvalue
     """
     # Use power iteration to estimate the dominant eigenvector
     lm_eigval, _ = power_iteration(operator)
