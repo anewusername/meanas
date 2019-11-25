@@ -34,7 +34,7 @@ def power_iteration(operator: sparse.spmatrix,
 
 
 def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperator,
-                                guess_vector: numpy.ndarray,
+                                guess_vectors: numpy.ndarray,
                                 iterations: int = 40,
                                 tolerance: float = 1e-13,
                                 solver=None,
@@ -42,15 +42,21 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperato
     """
     Use Rayleigh quotient iteration to refine an eigenvector guess.
 
-    :param operator: Matrix to analyze.
-    :param guess_vector: Eigenvector to refine.
-    :param iterations: Maximum number of iterations to perform. Default 40.
-    :param tolerance: Stop iteration if (A - I*eigenvalue) @ v < tolerance.
-        Default 1e-13.
-    :param solver: Solver function of the form x = solver(A, b).
-        By default, use scipy.sparse.spsolve for sparse matrices and
-        scipy.sparse.bicgstab for general LinearOperator instances.
-    :return: (eigenvalue, eigenvector)
+    TODO:
+        Need to test this for more than one guess_vectors.
+
+    Args:
+        operator: Matrix to analyze.
+        guess_vectors: Eigenvectors to refine.
+        iterations: Maximum number of iterations to perform. Default 40.
+        tolerance: Stop iteration if `(A - I*eigenvalue) @ v < num_vectors * tolerance`,
+                    Default 1e-13.
+        solver: Solver function of the form `x = solver(A, b)`.
+                By default, use scipy.sparse.spsolve for sparse matrices and
+                scipy.sparse.bicgstab for general LinearOperator instances.
+
+    Returns:
+        (eigenvalues, eigenvectors)
     """
     try:
         _test = operator - sparse.eye(operator.shape[0])
@@ -64,16 +70,16 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperato
         if solver is None:
             solver = lambda A, b: spalg.bicgstab(A, b)[0]
 
-    v = guess_vector
+    v = numpy.atleast_2d(guess_vectors)
     v /= norm(v)
     for _ in range(iterations):
         eigval = v.conj() @ (operator @ v)
-        if norm(operator @ v - eigval * v) < tolerance:
+        if norm(operator @ v - eigval * v) < v.shape[1] * tolerance:
             break
 
         shifted_operator = operator - shift(eigval)
         v = solver(shifted_operator, v)
-        v /= norm(v)
+        v /= norm(v, axis=0)
     return eigval, v
 
 
@@ -99,7 +105,7 @@ def signed_eigensolve(operator: sparse.spmatrix or spalg.LinearOperator,
     Shift by the absolute value of the largest eigenvalue, then find a few of the
      largest-magnitude (shifted) eigenvalues. A positive shift ensures that we find the
      largest _positive_ eigenvalues, since any negative eigenvalues will be shifted to the
-     range 0 >= neg_eigval + abs(lm_eigval) > abs(lm_eigval)
+     range `0 >= neg_eigval + abs(lm_eigval) > abs(lm_eigval)`
     '''
     shift = numpy.abs(lm_eigval)
     if negative:
