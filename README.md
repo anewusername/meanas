@@ -1,4 +1,4 @@
-# meanas README
+# meanas
 
 **meanas** is a python package for electromagnetic simulations
 
@@ -13,6 +13,7 @@ purpose- and hardware-specific solvers.
 
 
 **Contents**
+
 - Finite difference frequency domain (FDFD)
     * Library of sparse matrices for representing the electromagnetic wave
     equation in 3D, as well as auxiliary matrices for conversion between fields
@@ -39,7 +40,7 @@ those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html). Your
 solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
 
-- [WORKING Source repository](https://mpxd.net/code/jan/fdfd_tools/src/branch/wip)
+- [WIP Source repository](https://mpxd.net/code/jan/fdfd_tools/src/branch/wip)
 - *TODO* [Source repository](https://mpxd.net/code/jan/meanas)
 - PyPI *TBD*
 
@@ -47,6 +48,7 @@ linear systems, ideally with double precision.
 ## Installation
 
 **Requirements:**
+
 * python 3 (tests require 3.7)
 * numpy
 * scipy
