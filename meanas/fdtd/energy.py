@@ -2,8 +2,7 @@
 from typing import List, Callable, Tuple, Dict
 import numpy
 
-from .. import dx_lists_t, field_t, field_updater
-
+from .. import dx_lists_t, field_t, field_updater, fdmath
 
 def poynting(e: field_t,
              h: field_t,
@@ -35,10 +34,8 @@ def poynting_divergence(s: field_t = None,
     if s is None:
         s = poynting(e, h, dxes=dxes)
 
-    #TODO use deriv operators
-    ds = ((s[0] - numpy.roll(s[0], 1, axis=0)) +
-          (s[1] - numpy.roll(s[1], 1, axis=1)) +
-          (s[2] - numpy.roll(s[2], 1, axis=2)))
+    Dx, Dy, Dz = fdmath.functional.deriv_back()
+    ds = Dx(s[0]) + Dy(s[1]) + Dz(s[2])
     return ds
 
 
