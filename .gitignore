@@ -52,8 +52,8 @@ coverage.xml
 # Django stuff:
 *.log
 
-# Sphinx documentation
-docs/_build/
+# documentation
+doc/
 
 # PyBuilder
 target/
