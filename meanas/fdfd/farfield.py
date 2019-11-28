@@ -6,7 +6,7 @@ import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi
 
-from .. import fdfield_t
+from ..fdmath import fdfield_t
 
 
 def near_to_farfield(E_near: fdfield_t,

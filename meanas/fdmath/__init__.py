@@ -88,7 +88,7 @@ and
 
   where \\( \\hat{g} \\) and \\( \\tilde{g} \\) are located at \\((m,n,p)\\)
   with components at  \\( (m \\pm \\frac{1}{2},n,p) \\) etc.,
-  while \\( \\hat{h} \\) and \\( \\tilde{h} \\) are located at \\((m \pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\)
+  while \\( \\hat{h} \\) and \\( \\tilde{h} \\) are located at \\((m \\pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\)
   with components at \\((m, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\) etc.
 
 TODO: Explain fdfield_t vs vfdfield_t  / operators vs functional
