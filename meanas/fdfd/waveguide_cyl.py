@@ -13,7 +13,7 @@ import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
 
-from .. import vec, unvec, dx_lists_t, field_t, vfield_t
+from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 from . import operators
 
@@ -23,7 +23,7 @@ __author__ = 'Jan Petykiewicz'
 
 def cylindrical_operator(omega: complex,
                          dxes: dx_lists_t,
-                         epsilon: vfield_t,
+                         epsilon: vfdfield_t,
                          r0: float,
                          ) -> sparse.spmatrix:
     """
@@ -41,7 +41,7 @@ def cylindrical_operator(omega: complex,
 
     Args:
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         r0: Radius of curvature for the simulation. This should be the minimum value of
             r within the simulation domain.
@@ -83,9 +83,9 @@ def cylindrical_operator(omega: complex,
 def solve_mode(mode_number: int,
                omega: complex,
                dxes: dx_lists_t,
-               epsilon: vfield_t,
+               epsilon: vfdfield_t,
                r0: float,
-               ) -> Dict[str, complex or field_t]:
+               ) -> Dict[str, complex or fdfield_t]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
@@ -94,7 +94,7 @@ def solve_mode(mode_number: int,
     Args:
         mode_number: Number of the mode, 0-indexed
         omega: Angular frequency of the simulation
-        dxes: Grid parameters [dx_e, dx_h] as described in meanas.types.
+        dxes: Grid parameters [dx_e, dx_h] as described in meanas.fdmath.types.
               The first coordinate is assumed to be r, the second is y.
         epsilon: Dielectric constant
         r0: Radius of curvature for the simulation. This should be the minimum value of

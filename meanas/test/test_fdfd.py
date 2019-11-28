@@ -5,7 +5,8 @@ import pytest
 import numpy
 #from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import fdfd, vec, unvec
+from .. import fdfd
+from ..fdmath import vec, unvec
 from .utils import assert_close, assert_fields_close
 
 
@@ -20,6 +21,10 @@ def test_poynting_planes(sim):
     mask = (sim.j != 0).any(axis=0)
     if mask.sum() != 2:
         pytest.skip(f'test_poynting_planes will only test 2-point sources, got {mask.sum()}')
+#    for dxg in sim.dxes:
+#        for dxa in dxg:
+#            if not (dxa == sim.dxes[0][0][0]).all():
+#                pytest.skip('test_poynting_planes skips nonuniform dxes')
     points = numpy.where(mask)
     mask[points[0][0], points[1][0], points[2][0]] = 0
 
@@ -41,7 +46,6 @@ def test_poynting_planes(sim):
     src_energy = -e_dot_j[:, mask].real / 2
 
     assert_close(sum(planes), src_energy.sum())
-
 
 
 #####################################
@@ -101,6 +105,15 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
 #    is3d = (numpy.array(shape) == 1).sum() == 0
 #    if is3d:
 #        pytest.skip('Skipping dt != 0.3 because test is 3D (for speed)')
+
+#    # If no edge currents, add pmls
+#    src_mask = j_distribution.any(axis=0)
+#    th = 10
+#    #if src_mask.sum() - src_mask[th:-th, th:-th, th:-th].sum() == 0:
+#    if src_mask.sum() - src_mask[th:-th, :, :].sum() == 0:
+#        for axis in (0,):
+#            for polarity in (-1, 1):
+#                dxes = fdfd.scpml.stretch_with_scpml(dxes, axis=axis, polarity=polarity,
 
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)

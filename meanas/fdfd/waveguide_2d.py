@@ -14,7 +14,8 @@ import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
 
-from .. import vec, unvec, dx_lists_t, field_t, vfield_t
+from ..fdmath.operators import deriv_forward, deriv_back, curl_forward, curl_back, cross
+from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 from . import operators
 
@@ -24,8 +25,8 @@ __author__ = 'Jan Petykiewicz'
 
 def operator_e(omega: complex,
                dxes: dx_lists_t,
-               epsilon: vfield_t,
-               mu: vfield_t = None,
+               epsilon: vfdfield_t,
+               mu: vfdfield_t = None,
                ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
@@ -66,7 +67,7 @@ def operator_e(omega: complex,
 
     Args:
         omega: The angular frequency of the system.
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -76,8 +77,8 @@ def operator_e(omega: complex,
     if numpy.any(numpy.equal(mu, None)):
         mu = numpy.ones_like(epsilon)
 
-    Dfx, Dfy = operators.deriv_forward(dxes[0])
-    Dbx, Dby = operators.deriv_back(dxes[1])
+    Dfx, Dfy = deriv_forward(dxes[0])
+    Dbx, Dby = deriv_back(dxes[1])
 
     eps_parts = numpy.split(epsilon, 3)
     eps_xy = sparse.diags(numpy.hstack((eps_parts[0], eps_parts[1])))
@@ -95,8 +96,8 @@ def operator_e(omega: complex,
 
 def operator_h(omega: complex,
                dxes: dx_lists_t,
-               epsilon: vfield_t,
-               mu: vfield_t = None,
+               epsilon: vfdfield_t,
+               mu: vfdfield_t = None,
                ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
@@ -137,7 +138,7 @@ def operator_h(omega: complex,
 
     Args:
         omega: The angular frequency of the system.
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -169,10 +170,10 @@ def normalized_fields_e(e_xy: numpy.ndarray,
                         wavenumber: complex,
                         omega: complex,
                         dxes: dx_lists_t,
-                        epsilon: vfield_t,
-                        mu: vfield_t = None,
+                        epsilon: vfdfield_t,
+                        mu: vfdfield_t = None,
                         prop_phase: float = 0,
-                        ) -> Tuple[vfield_t, vfield_t]:
+                        ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
     Given a vector `e_xy` containing the vectorized E_x and E_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -182,7 +183,7 @@ def normalized_fields_e(e_xy: numpy.ndarray,
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`.
                     It should satisfy `operator_e() @ e_xy == wavenumber**2 * e_xy`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
         prop_phase: Phase shift `(dz * corrected_wavenumber)` over 1 cell in propagation direction.
@@ -203,10 +204,10 @@ def normalized_fields_h(h_xy: numpy.ndarray,
                         wavenumber: complex,
                         omega: complex,
                         dxes: dx_lists_t,
-                        epsilon: vfield_t,
-                        mu: vfield_t = None,
+                        epsilon: vfdfield_t,
+                        mu: vfdfield_t = None,
                         prop_phase: float = 0,
-                        ) -> Tuple[vfield_t, vfield_t]:
+                        ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
     Given a vector `h_xy` containing the vectorized H_x and H_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -216,7 +217,7 @@ def normalized_fields_h(h_xy: numpy.ndarray,
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`.
                     It should satisfy `operator_h() @ h_xy == wavenumber**2 * h_xy`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
         prop_phase: Phase shift `(dz * corrected_wavenumber)` over 1 cell in propagation direction.
@@ -237,10 +238,10 @@ def _normalized_fields(e: numpy.ndarray,
                        h: numpy.ndarray,
                        omega: complex,
                        dxes: dx_lists_t,
-                       epsilon: vfield_t,
-                       mu: vfield_t = None,
+                       epsilon: vfdfield_t,
+                       mu: vfdfield_t = None,
                        prop_phase: float = 0,
-                       ) -> Tuple[vfield_t, vfield_t]:
+                       ) -> Tuple[vfdfield_t, vfdfield_t]:
     # TODO documentation
     shape = [s.size for s in dxes[0]]
     dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
@@ -276,8 +277,8 @@ def _normalized_fields(e: numpy.ndarray,
 def exy2h(wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
-          epsilon: vfield_t,
-          mu: vfield_t = None
+          epsilon: vfdfield_t,
+          mu: vfdfield_t = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
@@ -287,7 +288,7 @@ def exy2h(wavenumber: complex,
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`.
                     It should satisfy `operator_e() @ e_xy == wavenumber**2 * e_xy`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -301,8 +302,8 @@ def exy2h(wavenumber: complex,
 def hxy2e(wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
-          epsilon: vfield_t,
-          mu: vfield_t = None
+          epsilon: vfdfield_t,
+          mu: vfdfield_t = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
@@ -312,7 +313,7 @@ def hxy2e(wavenumber: complex,
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`.
                     It should satisfy `operator_h() @ h_xy == wavenumber**2 * h_xy`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -325,7 +326,7 @@ def hxy2e(wavenumber: complex,
 
 def hxy2h(wavenumber: complex,
           dxes: dx_lists_t,
-          mu: vfield_t = None
+          mu: vfdfield_t = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
@@ -334,13 +335,13 @@ def hxy2h(wavenumber: complex,
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`.
                     It should satisfy `operator_h() @ h_xy == wavenumber**2 * h_xy`
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
     Returns:
         Sparse matrix representing the operator.
     """
-    Dfx, Dfy = operators.deriv_forward(dxes[0])
+    Dfx, Dfy = deriv_forward(dxes[0])
     hxy2hz = sparse.hstack((Dfx, Dfy)) / (1j * wavenumber)
 
     if not numpy.any(numpy.equal(mu, None)):
@@ -358,7 +359,7 @@ def hxy2h(wavenumber: complex,
 
 def exy2e(wavenumber: complex,
           dxes: dx_lists_t,
-          epsilon: vfield_t,
+          epsilon: vfdfield_t,
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
@@ -367,13 +368,13 @@ def exy2e(wavenumber: complex,
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
                     It should satisfy `operator_e() @ e_xy == wavenumber**2 * e_xy`
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
 
     Returns:
         Sparse matrix representing the operator.
     """
-    Dbx, Dby = operators.deriv_back(dxes[1])
+    Dbx, Dby = deriv_back(dxes[1])
     exy2ez = sparse.hstack((Dbx, Dby)) / (1j * wavenumber)
 
     if not numpy.any(numpy.equal(epsilon, None)):
@@ -392,7 +393,7 @@ def exy2e(wavenumber: complex,
 def e2h(wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
-        mu: vfield_t = None
+        mu: vfdfield_t = None
         ) -> sparse.spmatrix:
     """
     Returns an operator which, when applied to a vectorized E eigenfield, produces
@@ -401,7 +402,7 @@ def e2h(wavenumber: complex,
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
     Returns:
@@ -416,7 +417,7 @@ def e2h(wavenumber: complex,
 def h2e(wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfield_t
+        epsilon: vfdfield_t
         ) -> sparse.spmatrix:
     """
     Returns an operator which, when applied to a vectorized H eigenfield, produces
@@ -425,7 +426,7 @@ def h2e(wavenumber: complex,
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
 
     Returns:
@@ -441,7 +442,7 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
 
     Return:
         Sparse matrix representation of the operator.
@@ -450,9 +451,10 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     for d in dxes[0]:
         n *= len(d)
 
+    print(wavenumber, n)
     Bz = -1j * wavenumber * sparse.eye(n)
-    Dfx, Dfy = operators.deriv_forward(dxes[0])
-    return operators.cross([Dfx, Dfy, Bz])
+    Dfx, Dfy = deriv_forward(dxes[0])
+    return cross([Dfx, Dfy, Bz])
 
 
 def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
@@ -461,7 +463,7 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
 
     Return:
         Sparse matrix representation of the operator.
@@ -471,16 +473,16 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
         n *= len(d)
 
     Bz = -1j * wavenumber * sparse.eye(n)
-    Dbx, Dby = operators.deriv_back(dxes[1])
-    return operators.cross([Dbx, Dby, Bz])
+    Dbx, Dby = deriv_back(dxes[1])
+    return cross([Dbx, Dby, Bz])
 
 
-def h_err(h: vfield_t,
+def h_err(h: vfdfield_t,
           wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
-          epsilon: vfield_t,
-          mu: vfield_t = None
+          epsilon: vfdfield_t,
+          mu: vfdfield_t = None
           ) -> float:
     """
     Calculates the relative error in the H field
@@ -489,7 +491,7 @@ def h_err(h: vfield_t,
         h: Vectorized H field
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -509,12 +511,12 @@ def h_err(h: vfield_t,
     return norm(op) / norm(h)
 
 
-def e_err(e: vfield_t,
+def e_err(e: vfdfield_t,
           wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
-          epsilon: vfield_t,
-          mu: vfield_t = None
+          epsilon: vfdfield_t,
+          mu: vfdfield_t = None
           ) -> float:
     """
     Calculates the relative error in the E field
@@ -523,7 +525,7 @@ def e_err(e: vfield_t,
         e: Vectorized E field
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         omega: The angular frequency of the system
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types` (2D)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
         mu: Vectorized magnetic permeability grid (default 1 everywhere)
 
@@ -545,17 +547,17 @@ def e_err(e: vfield_t,
 def solve_modes(mode_numbers: List[int],
                 omega: complex,
                 dxes: dx_lists_t,
-                epsilon: vfield_t,
-                mu: vfield_t = None,
+                epsilon: vfdfield_t,
+                mu: vfdfield_t = None,
                 mode_margin: int = 2,
-                ) -> Tuple[List[vfield_t], List[complex]]:
+                ) -> Tuple[List[vfdfield_t], List[complex]]:
     """
     Given a 2D region, attempts to solve for the eigenmode with the specified mode numbers.
 
     Args:
        mode_numbers: List of 0-indexed mode numbers to solve for
        omega: Angular frequency of the simulation
-       dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+       dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
        epsilon: Dielectric constant
        mu: Magnetic permeability (default 1 everywhere)
        mode_margin: The eigensolver will actually solve for `(max(mode_number) + mode_margin)`
@@ -570,17 +572,18 @@ def solve_modes(mode_numbers: List[int],
     Solve for the largest-magnitude eigenvalue of the real operator
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-    A_r = waveguide.operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
+    A_r = operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
 
-    eigvals, eigvecs = signed_eigensolve(A_r, max(mode_number) + mode_margin)
-    e_xys = eigvecs[:, -(numpy.array(mode_number) + 1)]
+    eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
+    e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
-    A = waveguide.operator_e(omega, dxes, epsilon, mu)
-    eigvals, e_xys = rayleigh_quotient_iteration(A, e_xys)
+    A = operator_e(omega, dxes, epsilon, mu)
+    for nn in range(len(mode_numbers)):
+        eigvals[nn], e_xys[:, nn] = rayleigh_quotient_iteration(A, e_xys[:, nn])
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumbers = numpy.sqrt(eigvals)
@@ -592,7 +595,7 @@ def solve_modes(mode_numbers: List[int],
 def solve_mode(mode_number: int,
                *args,
                **kwargs
-               ) -> Tuple[vfield_t, complex]:
+               ) -> Tuple[vfdfield_t, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.
 
@@ -604,4 +607,5 @@ def solve_mode(mode_number: int,
     Returns:
         (e_xy, wavenumber)
     """
-    return solve_modes(mode_numbers=[mode_number], *args, **kwargs)
+    e_xys, wavenumbers = solve_modes(mode_numbers=[mode_number], *args, **kwargs)
+    return e_xys[:, 0], wavenumbers[0]

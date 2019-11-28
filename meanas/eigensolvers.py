@@ -37,20 +37,17 @@ def power_iteration(operator: sparse.spmatrix,
 
 
 def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperator,
-                                guess_vectors: numpy.ndarray,
+                                guess_vector: numpy.ndarray,
                                 iterations: int = 40,
                                 tolerance: float = 1e-13,
-                                solver=None,
+                                solver = None,
                                 ) -> Tuple[complex, numpy.ndarray]:
     """
     Use Rayleigh quotient iteration to refine an eigenvector guess.
 
-    TODO:
-        Need to test this for more than one guess_vectors.
-
     Args:
         operator: Matrix to analyze.
-        guess_vectors: Eigenvectors to refine.
+        guess_vector: Eigenvector to refine.
         iterations: Maximum number of iterations to perform. Default 40.
         tolerance: Stop iteration if `(A - I*eigenvalue) @ v < num_vectors * tolerance`,
                     Default 1e-13.
@@ -73,16 +70,16 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperato
         if solver is None:
             solver = lambda A, b: spalg.bicgstab(A, b)[0]
 
-    v = numpy.atleast_2d(guess_vectors)
+    v = numpy.squeeze(guess_vector)
     v /= norm(v)
     for _ in range(iterations):
         eigval = v.conj() @ (operator @ v)
-        if norm(operator @ v - eigval * v) < v.shape[1] * tolerance:
+        if norm(operator @ v - eigval * v) < tolerance:
             break
 
         shifted_operator = operator - shift(eigval)
         v = solver(shifted_operator, v)
-        v /= norm(v, axis=0)
+        v /= norm(v)
     return eigval, v
 
 

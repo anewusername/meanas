@@ -7,7 +7,7 @@ PML implementations
 from typing import List, Callable, Tuple, Dict
 import numpy
 
-from .. import dx_lists_t, field_t, field_updater
+from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 
 
 __author__ = 'Jan Petykiewicz'
@@ -16,7 +16,7 @@ __author__ = 'Jan Petykiewicz'
 def cpml(direction: int,
          polarity: int,
          dt: float,
-         epsilon: field_t,
+         epsilon: fdfield_t,
          thickness: int = 8,
          ln_R_per_layer: float = -1.6,
          epsilon_eff: float = 1,
@@ -25,7 +25,7 @@ def cpml(direction: int,
          ma: float = 1,
          cfs_alpha: float = 0,
          dtype: numpy.dtype = numpy.float32,
-         ) -> Tuple[Callable, Callable, Dict[str, field_t]]:
+         ) -> Tuple[Callable, Callable, Dict[str, fdfield_t]]:
 
     if direction not in range(3):
         raise Exception('Invalid direction: {}'.format(direction))
@@ -58,6 +58,7 @@ def cpml(direction: int,
 
     expand_slice = [None] * 3
     expand_slice[direction] = slice(None)
+    expand_slice = tuple(expand_slice)
 
     def par(x):
         scaling = (x / thickness) ** m
@@ -79,6 +80,7 @@ def cpml(direction: int,
         region[direction] = slice(-thickness, None)
     else:
         raise Exception('Bad polarity!')
+    region = tuple(region)
 
     se = 1 if direction == 1 else -1
 
@@ -97,7 +99,7 @@ def cpml(direction: int,
 
     # Note that this is kinda slow -- would be faster to reuse dHv*p2h for the original
     #  H update, but then you have multiple arrays and a monolithic (field + pml) update operation
-    def pml_e(e: field_t, h: field_t, epsilon: field_t) -> Tuple[field_t, field_t]:
+    def pml_e(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
         dHv = h[v][region] - numpy.roll(h[v], 1, axis=direction)[region]
         dHu = h[u][region] - numpy.roll(h[u], 1, axis=direction)[region]
         psi_e[0] *= p0e
@@ -108,7 +110,7 @@ def cpml(direction: int,
         e[v][region] -= se * dt / epsilon[v][region] * (psi_e[1] + (p2e - 1) * dHu)
         return e, h
 
-    def pml_h(e: field_t, h: field_t) -> Tuple[field_t, field_t]:
+    def pml_h(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
         dEv = (numpy.roll(e[v], -1, axis=direction)[region] - e[v][region])
         dEu = (numpy.roll(e[u], -1, axis=direction)[region] - e[u][region])
         psi_h[0] *= p0h

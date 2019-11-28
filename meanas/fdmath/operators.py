@@ -7,7 +7,7 @@ from typing import List, Callable, Tuple, Dict
 import numpy
 import scipy.sparse as sparse
 
-from .. import field_t, vfield_t
+from .types import fdfield_t, vfdfield_t
 
 
 def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
@@ -155,7 +155,7 @@ def cross(B: List[sparse.spmatrix]) -> sparse.spmatrix:
                         [-B[1], B[0], zero]])
 
 
-def vec_cross(b: vfield_t) -> sparse.spmatrix:
+def vec_cross(b: vfdfield_t) -> sparse.spmatrix:
     """
     Vector cross product operator
 

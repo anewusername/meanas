@@ -6,7 +6,8 @@ import pytest
 import numpy
 from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import fdfd, vec, unvec
+from .. import fdfd
+from ..fdmath import vec, unvec
 from .utils import assert_close, assert_fields_close
 from .test_fdfd import FDResult
 

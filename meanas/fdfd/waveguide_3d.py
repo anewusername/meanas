@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple
 import numpy
 import scipy.sparse as sparse
 
-from .. import vec, unvec, dx_lists_t, vfield_t, field_t
+from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, fdfield_t
 from . import operators, waveguide_2d, functional
 
 
@@ -18,8 +18,8 @@ def solve_mode(mode_number: int,
                axis: int,
                polarity: int,
                slices: List[slice],
-               epsilon: field_t,
-               mu: field_t = None,
+               epsilon: fdfield_t,
+               mu: fdfield_t = None,
                ) -> Dict[str, complex or numpy.ndarray]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
@@ -28,7 +28,7 @@ def solve_mode(mode_number: int,
     Args:
         mode_number: Number of the mode, 0-indexed
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         axis: Propagation axis (0=x, 1=y, 2=z)
         polarity: Propagation direction (+1 for +ve, -1 for -ve)
         slices: `epsilon[tuple(slices)]` is used to select the portion of the grid to use
@@ -71,7 +71,7 @@ def solve_mode(mode_number: int,
     wavenumber = 2/dx_prop * numpy.arcsin(wavenumber_2d * dx_prop/2)
 
     shape = [d.size for d in args_2d['dxes'][0]]
-    ve, vh = waveguide.normalized_fields_e(e_xy, wavenumber=wavenumber_2d, **args_2d, prop_phase=dx_prop * wavenumber)
+    ve, vh = waveguide_2d.normalized_fields_e(e_xy, wavenumber=wavenumber_2d, **args_2d, prop_phase=dx_prop * wavenumber)
     e = unvec(ve, shape)
     h = unvec(vh, shape)
 
@@ -98,16 +98,16 @@ def solve_mode(mode_number: int,
     return results
 
 
-def compute_source(E: field_t,
+def compute_source(E: fdfield_t,
                    wavenumber: complex,
                    omega: complex,
                    dxes: dx_lists_t,
                    axis: int,
                    polarity: int,
                    slices: List[slice],
-                   epsilon: field_t,
-                   mu: field_t = None,
-                   ) -> field_t:
+                   epsilon: fdfield_t,
+                   mu: fdfield_t = None,
+                   ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution
     necessary to position a unidirectional source at the slice location.
@@ -116,7 +116,7 @@ def compute_source(E: field_t,
         E: E-field of the mode
         wavenumber: Wavenumber of the mode
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         axis: Propagation axis (0=x, 1=y, 2=z)
         polarity: Propagation direction (+1 for +ve, -1 for -ve)
         slices: `epsilon[tuple(slices)]` is used to select the portion of the grid to use
@@ -143,13 +143,13 @@ def compute_source(E: field_t,
     return J
 
 
-def compute_overlap_e(E: field_t,
+def compute_overlap_e(E: fdfield_t,
                       wavenumber: complex,
                       dxes: dx_lists_t,
                       axis: int,
                       polarity: int,
                       slices: List[slice],
-                      ) -> field_t:                 # TODO DOCS
+                      ) -> fdfield_t:                 # TODO DOCS
     """
     Given an eigenmode obtained by `solve_mode`, calculates an overlap_e for the
     mode orthogonality relation Integrate(((E x H_mode) + (E_mode x H)) dot dn)
@@ -160,7 +160,7 @@ def compute_overlap_e(E: field_t,
         H: H-field of the mode (advanced by half of a Yee cell from E)
         wavenumber: Wavenumber of the mode
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         axis: Propagation axis (0=x, 1=y, 2=z)
         polarity: Propagation direction (+1 for +ve, -1 for -ve)
         slices: `epsilon[tuple(slices)]` is used to select the portion of the grid to use
@@ -188,13 +188,13 @@ def compute_overlap_e(E: field_t,
     return Etgt
 
 
-def expand_e(E: field_t,
+def expand_e(E: fdfield_t,
              wavenumber: complex,
              dxes: dx_lists_t,
              axis: int,
              polarity: int,
              slices: List[slice],
-             ) -> field_t:
+             ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, expands the E-field from the 2D
     slice where the mode was calculated to the entire domain (along the propagation
@@ -205,7 +205,7 @@ def expand_e(E: field_t,
     Args:
         E: E-field of the mode
         wavenumber: Wavenumber of the mode
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         axis: Propagation axis (0=x, 1=y, 2=z)
         polarity: Propagation direction (+1 for +ve, -1 for -ve)
         slices: `epsilon[tuple(slices)]` is used to select the portion of the grid to use

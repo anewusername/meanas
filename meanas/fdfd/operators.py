@@ -9,7 +9,7 @@ E- and H-field values are defined on a Yee cell; `epsilon` values should be calc
  cells centered at each E component (`mu` at each H component).
 
 Many of these functions require a `dxes` parameter, of type `dx_lists_t`; see
-the `meanas.types` submodule for details.
+the `meanas.fdmath.types` submodule for details.
 
 
 The following operators are included:
@@ -31,7 +31,7 @@ from typing import List, Tuple
 import numpy
 import scipy.sparse as sparse
 
-from .. import vec, dx_lists_t, vfield_t
+from ..fdmath import vec, dx_lists_t, vfdfield_t
 from ..fdmath.operators import shift_with_mirror, rotation, curl_forward, curl_back
 
 
@@ -40,10 +40,10 @@ __author__ = 'Jan Petykiewicz'
 
 def e_full(omega: complex,
            dxes: dx_lists_t,
-           epsilon: vfield_t,
-           mu: vfield_t = None,
-           pec: vfield_t = None,
-           pmc: vfield_t = None,
+           epsilon: vfdfield_t,
+           mu: vfdfield_t = None,
+           pec: vfdfield_t = None,
+           pmc: vfdfield_t = None,
            ) -> sparse.spmatrix:
     """
     Wave operator
@@ -60,7 +60,7 @@ def e_full(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Vectorized dielectric constant
         mu: Vectorized magnetic permeability (default 1 everywhere).
         pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
@@ -107,7 +107,7 @@ def e_full_preconditioners(dxes: dx_lists_t
     The preconditioner matrices are diagonal and complex, with `Pr = 1 / Pl`
 
     Args:
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
 
     Returns:
         Preconditioner matrices `(Pl, Pr)`.
@@ -124,10 +124,10 @@ def e_full_preconditioners(dxes: dx_lists_t
 
 def h_full(omega: complex,
            dxes: dx_lists_t,
-           epsilon: vfield_t,
-           mu: vfield_t = None,
-           pec: vfield_t = None,
-           pmc: vfield_t = None,
+           epsilon: vfdfield_t,
+           mu: vfdfield_t = None,
+           pec: vfdfield_t = None,
+           pmc: vfdfield_t = None,
            ) -> sparse.spmatrix:
     """
     Wave operator
@@ -142,7 +142,7 @@ def h_full(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Vectorized dielectric constant
         mu: Vectorized magnetic permeability (default 1 everywhere)
         pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
@@ -180,10 +180,10 @@ def h_full(omega: complex,
 
 def eh_full(omega: complex,
             dxes: dx_lists_t,
-            epsilon: vfield_t,
-            mu: vfield_t = None,
-            pec: vfield_t = None,
-            pmc: vfield_t = None
+            epsilon: vfdfield_t,
+            mu: vfdfield_t = None,
+            pec: vfdfield_t = None,
+            pmc: vfdfield_t = None
             ) -> sparse.spmatrix:
     """
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
@@ -210,7 +210,7 @@ def eh_full(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Vectorized dielectric constant
         mu: Vectorized magnetic permeability (default 1 everywhere)
         pec: Vectorized mask specifying PEC cells. Any cells where `pec != 0` are interpreted
@@ -249,8 +249,8 @@ def eh_full(omega: complex,
 
 def e2h(omega: complex,
         dxes: dx_lists_t,
-        mu: vfield_t = None,
-        pmc: vfield_t = None,
+        mu: vfdfield_t = None,
+        pmc: vfdfield_t = None,
         ) -> sparse.spmatrix:
     """
     Utility operator for converting the E field into the H field.
@@ -258,7 +258,7 @@ def e2h(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         mu: Vectorized magnetic permeability (default 1 everywhere)
         pmc: Vectorized mask specifying PMC cells. Any cells where `pmc != 0` are interpreted
           as containing a perfect magnetic conductor (PMC).
@@ -280,7 +280,7 @@ def e2h(omega: complex,
 
 def m2j(omega: complex,
         dxes: dx_lists_t,
-        mu: vfield_t = None
+        mu: vfdfield_t = None
         ) -> sparse.spmatrix:
     """
     Operator for converting a magnetic current M into an electric current J.
@@ -288,7 +288,7 @@ def m2j(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         mu: Vectorized magnetic permeability (default 1 everywhere)
 
     Returns:
@@ -302,14 +302,14 @@ def m2j(omega: complex,
     return op
 
 
-def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_e_cross(e: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Operator for computing the Poynting vector, containing the
     (E x) portion of the Poynting vector.
 
     Args:
         e: Vectorized E-field for the ExH cross product
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
 
     Returns:
         Sparse matrix containing (E x) portion of Poynting cross product.
@@ -331,13 +331,13 @@ def poynting_e_cross(e: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     return P
 
 
-def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_h_cross(h: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Operator for computing the Poynting vector, containing the (H x) portion of the Poynting vector.
 
     Args:
         h: Vectorized H-field for the HxE cross product
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
 
     Returns:
         Sparse matrix containing (H x) portion of Poynting cross product.
@@ -358,11 +358,11 @@ def poynting_h_cross(h: vfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     return P
 
 
-def e_tfsf_source(TF_region: vfield_t,
+def e_tfsf_source(TF_region: vfdfield_t,
                   omega: complex,
                   dxes: dx_lists_t,
-                  epsilon: vfield_t,
-                  mu: vfield_t = None,
+                  epsilon: vfdfield_t,
+                  mu: vfdfield_t = None,
                   ) -> sparse.spmatrix:
     """
     Operator that turns a desired E-field distribution into a
@@ -374,7 +374,7 @@ def e_tfsf_source(TF_region: vfield_t,
         TF_region: Mask, which is set to 1 inside the total-field region and 0 in the
                    scattered-field region
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Vectorized dielectric constant
         mu: Vectorized magnetic permeability (default 1 everywhere).
 
@@ -388,11 +388,11 @@ def e_tfsf_source(TF_region: vfield_t,
     return (A @ Q - Q @ A) / (-1j * omega)
 
 
-def e_boundary_source(mask: vfield_t,
+def e_boundary_source(mask: vfdfield_t,
                       omega: complex,
                       dxes: dx_lists_t,
-                      epsilon: vfield_t,
-                      mu: vfield_t = None,
+                      epsilon: vfdfield_t,
+                      mu: vfdfield_t = None,
                       periodic_mask_edges: bool = False,
                       ) -> sparse.spmatrix:
     """
@@ -405,7 +405,7 @@ def e_boundary_source(mask: vfield_t,
               i.e. any points where shifting the mask by one cell in any direction
               would change its value.
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Vectorized dielectric constant
         mu: Vectorized magnetic permeability (default 1 everywhere).
 

@@ -2,32 +2,30 @@
 Functional versions of many FDFD operators. These can be useful for performing
  FDFD calculations without needing to construct large matrices in memory.
 
-The functions generated here expect `field_t` inputs with shape (3, X, Y, Z),
+The functions generated here expect `fdfield_t` inputs with shape (3, X, Y, Z),
 e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
 """
 from typing import List, Callable, Tuple
 import numpy
 
-from .. import dx_lists_t, field_t
+from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
+
 
 __author__ = 'Jan Petykiewicz'
 
 
-field_transform_t = Callable[[field_t], field_t]
-
-
 def e_full(omega: complex,
            dxes: dx_lists_t,
-           epsilon: field_t,
-           mu: field_t = None
-           ) -> field_transform_t:
+           epsilon: fdfield_t,
+           mu: fdfield_t = None
+           ) -> fdfield_updater_t:
     """
     Wave operator for use with E-field. See `operators.e_full` for details.
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Dielectric constant
         mu: Magnetic permeability (default 1 everywhere)
 
@@ -54,16 +52,16 @@ def e_full(omega: complex,
 
 def eh_full(omega: complex,
             dxes: dx_lists_t,
-            epsilon: field_t,
-            mu: field_t = None
-            ) -> Callable[[field_t, field_t], Tuple[field_t, field_t]]:
+            epsilon: fdfield_t,
+            mu: fdfield_t = None
+            ) -> Callable[[fdfield_t, fdfield_t], Tuple[fdfield_t, fdfield_t]]:
     """
     Wave operator for full (both E and H) field representation.
     See `operators.eh_full`.
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters [dx_e, dx_h] as described in meanas.types
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Dielectric constant
         mu: Magnetic permeability (default 1 everywhere)
 
@@ -90,15 +88,15 @@ def eh_full(omega: complex,
 
 def e2h(omega: complex,
         dxes: dx_lists_t,
-        mu: field_t = None,
-        ) -> field_transform_t:
+        mu: fdfield_t = None,
+        ) -> fdfield_updater_t:
     """
     Utility operator for converting the `E` field into the `H` field.
     For use with `e_full` -- assumes that there is no magnetic current `M`.
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         mu: Magnetic permeability (default 1 everywhere)
 
     Return:
@@ -121,8 +119,8 @@ def e2h(omega: complex,
 
 def m2j(omega: complex,
         dxes: dx_lists_t,
-        mu: field_t = None,
-        ) -> field_transform_t:
+        mu: fdfield_t = None,
+        ) -> fdfield_updater_t:
     """
     Utility operator for converting magnetic current `M` distribution
     into equivalent electric current distribution `J`.
@@ -130,7 +128,7 @@ def m2j(omega: complex,
 
     Args:
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         mu: Magnetic permeability (default 1 everywhere)
 
     Returns:
@@ -153,12 +151,12 @@ def m2j(omega: complex,
         return m2j_mu
 
 
-def e_tfsf_source(TF_region: field_t,
+def e_tfsf_source(TF_region: fdfield_t,
                   omega: complex,
                   dxes: dx_lists_t,
-                  epsilon: field_t,
-                  mu: field_t = None,
-                  ) -> field_transform_t:
+                  epsilon: fdfield_t,
+                  mu: fdfield_t = None,
+                  ) -> fdfield_updater_t:
     """
     Operator that turns an E-field distribution into a total-field/scattered-field
     (TFSF) source.
@@ -168,7 +166,7 @@ def e_tfsf_source(TF_region: field_t,
                    (i.e. in the scattered-field region).
                    Should have the same shape as the simulation grid, e.g. `epsilon[0].shape`.
         omega: Angular frequency of the simulation
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         epsilon: Dielectric constant distribution
         mu: Magnetic permeability (default 1 everywhere)
 
@@ -184,7 +182,7 @@ def e_tfsf_source(TF_region: field_t,
         return neg_iwj / (-1j * omega)
 
 
-def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[field_t, field_t], field_t]:
+def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[fdfield_t, fdfield_t], fdfield_t]:
     """
     Generates a function that takes the single-frequency `E` and `H` fields
     and calculates the cross product `E` x `H` = \\( E \\times H \\) as required
@@ -201,12 +199,12 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[field_t, field_t], field_t
         instead.
 
     Args:
-        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.types`
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
 
     Returns:
         Function `f` that returns E x H as required for the poynting vector.
     """
-    def exh(e: field_t, h: field_t):
+    def exh(e: fdfield_t, h: fdfield_t):
         s = numpy.empty_like(e)
         ex = e[0] * dxes[0][0][:, None, None]
         ey = e[1] * dxes[0][1][None, :, None]

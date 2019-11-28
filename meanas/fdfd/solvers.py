@@ -9,6 +9,7 @@ import numpy
 from numpy.linalg import norm
 import scipy.sparse.linalg
 
+from ..fdmath import dx_lists_t, vfdfield_t
 from . import operators
 
 
@@ -60,16 +61,16 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
 
 
 def generic(omega: complex,
-            dxes: List[List[numpy.ndarray]],
-            J: numpy.ndarray,
-            epsilon: numpy.ndarray,
-            mu: numpy.ndarray = None,
-            pec: numpy.ndarray = None,
-            pmc: numpy.ndarray = None,
+            dxes: dx_lists_t,
+            J: vfdfield_t,
+            epsilon: vfdfield_t,
+            mu: vfdfield_t = None,
+            pec: vfdfield_t = None,
+            pmc: vfdfield_t = None,
             adjoint: bool = False,
             matrix_solver: Callable[..., numpy.ndarray] = _scipy_qmr,
             matrix_solver_opts: Dict[str, Any] = None,
-            ) -> numpy.ndarray:
+            ) -> vfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
 
@@ -78,7 +79,7 @@ def generic(omega: complex,
     Args:
         omega: Complex frequency to solve at.
         dxes: `[[dx_e, dy_e, dz_e], [dx_h, dy_h, dz_h]]` (complex cell sizes) as
-            discussed in `meanas.types`
+            discussed in `meanas.fdmath.types`
         J: Electric current distribution (at E-field locations)
         epsilon: Dielectric constant distribution (at E-field locations)
         mu: Magnetic permeability distribution (at H-field locations)

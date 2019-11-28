@@ -3,14 +3,18 @@ import numpy
 from numpy.linalg import norm
 
 import meanas
-from meanas import vec, unvec, fdtd
-from meanas.fdfd import waveguide_mode, functional, scpml, operators
+from meanas import fdtd
+from meanas.fdmath import vec, unvec
+from meanas.fdfd import waveguide_3d, functional, scpml, operators
 from meanas.fdfd.solvers import generic as generic_solver
 
 import gridlock
 
 from matplotlib import pyplot
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 __author__ = 'Jan Petykiewicz'
 
@@ -134,10 +138,10 @@ def test1(solver=generic_solver):
         'polarity': +1,
     }
 
-    wg_results = waveguide_mode.solve_waveguide_mode(mode_number=0, omega=omega, epsilon=grid.grids, **wg_args)
-    J = waveguide_mode.compute_source(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
-                                      omega=omega, epsilon=grid.grids, **wg_args)
-    e_overlap = waveguide_mode.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'], **wg_args)
+    wg_results = waveguide_3d.solve_mode(mode_number=0, omega=omega, epsilon=grid.grids, **wg_args)
+    J = waveguide_3d.compute_source(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
+                                    omega=omega, epsilon=grid.grids, **wg_args)
+    e_overlap = waveguide_3d.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'], **wg_args)
 
     pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
     # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)

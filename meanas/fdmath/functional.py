@@ -6,10 +6,10 @@ Basic discrete calculus etc.
 from typing import List, Callable, Tuple, Dict
 import numpy
 
-from .. import field_t, field_updater
+from .types import fdfield_t, fdfield_updater_t
 
 
-def deriv_forward(dx_e: List[numpy.ndarray] = None) -> field_updater:
+def deriv_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -31,7 +31,7 @@ def deriv_forward(dx_e: List[numpy.ndarray] = None) -> field_updater:
     return derivs
 
 
-def deriv_back(dx_h: List[numpy.ndarray] = None) -> field_updater:
+def deriv_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -53,7 +53,7 @@ def deriv_back(dx_h: List[numpy.ndarray] = None) -> field_updater:
     return derivs
 
 
-def curl_forward(dx_e: List[numpy.ndarray] = None) -> field_updater:
+def curl_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
     """
     Curl operator for use with the E field.
 
@@ -67,7 +67,7 @@ def curl_forward(dx_e: List[numpy.ndarray] = None) -> field_updater:
     """
     Dx, Dy, Dz = deriv_forward(dx_e)
 
-    def ce_fun(e: field_t) -> field_t:
+    def ce_fun(e: fdfield_t) -> fdfield_t:
         output = numpy.empty_like(e)
         output[0] = Dy(e[2])
         output[1] = Dz(e[0])
@@ -80,7 +80,7 @@ def curl_forward(dx_e: List[numpy.ndarray] = None) -> field_updater:
     return ce_fun
 
 
-def curl_back(dx_h: List[numpy.ndarray] = None) -> field_updater:
+def curl_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
     """
     Create a function which takes the backward curl of a field.
 
@@ -94,7 +94,7 @@ def curl_back(dx_h: List[numpy.ndarray] = None) -> field_updater:
     """
     Dx, Dy, Dz = deriv_back(dx_h)
 
-    def ch_fun(h: field_t) -> field_t:
+    def ch_fun(h: fdfield_t) -> fdfield_t:
         output = numpy.empty_like(h)
         output[0] = Dy(h[2])
         output[1] = Dz(h[0])

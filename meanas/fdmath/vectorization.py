@@ -7,13 +7,13 @@ Vectorized versions of the field use row-major (ie., C-style) ordering.
 from typing import List
 import numpy
 
-from .types import field_t, vfield_t
+from .types import fdfield_t, vfdfield_t
 
 
 __author__ = 'Jan Petykiewicz'
 
 
-def vec(f: field_t) -> vfield_t:
+def vec(f: fdfield_t) -> vfdfield_t:
     """
     Create a 1D ndarray from a 3D vector field which spans a 1-3D region.
 
@@ -28,7 +28,7 @@ def vec(f: field_t) -> vfield_t:
     return numpy.ravel(f, order='C')
 
 
-def unvec(v: vfield_t, shape: numpy.ndarray) -> field_t:
+def unvec(v: vfdfield_t, shape: numpy.ndarray) -> fdfield_t:
     """
     Perform the inverse of vec(): take a 1D ndarray and output a 3D field
      of form [f_x, f_y, f_z] where each of f_* is a len(shape)-dimensional

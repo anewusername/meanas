@@ -8,7 +8,7 @@ from typing import List, Callable
 # Field types
 # TODO: figure out a better way to set the docstrings without creating actual subclasses?
 #   Probably not a big issue since they're only used for type hinting
-class field_t(numpy.ndarray):
+class fdfield_t(numpy.ndarray):
     """
     Vector field with shape (3, X, Y, Z) (e.g. `[E_x, E_y, E_z]`)
 
@@ -16,7 +16,7 @@ class field_t(numpy.ndarray):
     """
     pass
 
-class vfield_t(numpy.ndarray):
+class vfdfield_t(numpy.ndarray):
     """
     Linearized vector field (single vector of length 3*X*Y*Z)
 
@@ -37,4 +37,4 @@ dx_lists_t = List[List[numpy.ndarray]]
 '''
 
 
-field_updater = Callable[[field_t], field_t]
+fdfield_updater_t = Callable[[fdfield_t], fdfield_t]

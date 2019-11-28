@@ -83,7 +83,7 @@ import scipy.optimize
 from scipy.linalg import norm
 import scipy.sparse.linalg as spalg
 
-from .. import field_t
+from ..fdmath import fdfield_t
 
 logger = logging.getLogger(__name__)
 
@@ -154,8 +154,8 @@ def generate_kmn(k0: numpy.ndarray,
 
 def maxwell_operator(k0: numpy.ndarray,
                      G_matrix: numpy.ndarray,
-                     epsilon: field_t,
-                     mu: field_t = None
+                     epsilon: fdfield_t,
+                     mu: fdfield_t = None
                      ) -> Callable[[numpy.ndarray], numpy.ndarray]:
     """
     Generate the Maxwell operator
@@ -227,8 +227,8 @@ def maxwell_operator(k0: numpy.ndarray,
 
 def hmn_2_exyz(k0: numpy.ndarray,
                G_matrix: numpy.ndarray,
-               epsilon: field_t,
-               ) -> Callable[[numpy.ndarray], field_t]:
+               epsilon: fdfield_t,
+               ) -> Callable[[numpy.ndarray], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      h_mn into an E-field distribution, i.e.
@@ -249,7 +249,7 @@ def hmn_2_exyz(k0: numpy.ndarray,
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: numpy.ndarray) -> field_t:
+    def operator(h: numpy.ndarray) -> fdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         d_xyz = (n * hin_m -
                  m * hin_n) * k_mag
@@ -262,8 +262,8 @@ def hmn_2_exyz(k0: numpy.ndarray,
 
 def hmn_2_hxyz(k0: numpy.ndarray,
                G_matrix: numpy.ndarray,
-               epsilon: field_t
-               ) -> Callable[[numpy.ndarray], field_t]:
+               epsilon: fdfield_t
+               ) -> Callable[[numpy.ndarray], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      h_mn into an H-field distribution, i.e.
@@ -293,8 +293,8 @@ def hmn_2_hxyz(k0: numpy.ndarray,
 
 def inverse_maxwell_operator_approx(k0: numpy.ndarray,
                                     G_matrix: numpy.ndarray,
-                                    epsilon: field_t,
-                                    mu: field_t = None
+                                    epsilon: fdfield_t,
+                                    mu: fdfield_t = None
                                     ) -> Callable[[numpy.ndarray], numpy.ndarray]:
     """
     Generate an approximate inverse of the Maxwell operator,
@@ -366,8 +366,8 @@ def find_k(frequency: float,
            tolerance: float,
            direction: numpy.ndarray,
            G_matrix: numpy.ndarray,
-           epsilon: field_t,
-           mu: field_t = None,
+           epsilon: fdfield_t,
+           mu: fdfield_t = None,
            band: int = 0,
            k_min: float = 0,
            k_max: float = 0.5,
@@ -409,8 +409,8 @@ def find_k(frequency: float,
 def eigsolve(num_modes: int,
              k0: numpy.ndarray,
              G_matrix: numpy.ndarray,
-             epsilon: field_t,
-             mu: field_t = None,
+             epsilon: fdfield_t,
+             mu: fdfield_t = None,
              tolerance: float = 1e-20,
              max_iters: int = 10000,
              reset_iters: int = 100,

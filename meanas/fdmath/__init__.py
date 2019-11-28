@@ -91,4 +91,12 @@ and
   while \\( \\hat{h} \\) and \\( \\tilde{h} \\) are located at \\((m \pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\)
   with components at \\((m, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\) etc.
 
+TODO: Explain fdfield_t vs vfdfield_t  / operators vs functional
+TODO: explain dxes
+
 """
+
+from .types import fdfield_t, vfdfield_t, dx_lists_t, fdfield_updater_t
+from .vectorization import vec, unvec
+from . import operators, functional, types, vectorization
+
