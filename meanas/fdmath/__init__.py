@@ -25,10 +25,13 @@ The derivatives are shifted by a half-cell relative to the original function:
 
      _________________________
      |     |     |     |     |
-     |  f0 |  f1 |  f2 |  f3 |
+     |  f0 |  f1 |  f2 |  f3 |      function
      |_____|_____|_____|_____|
         |     |     |     |
-        | Df0 | Df1 | Df2 | Df3
+        | Df0 | Df1 | Df2 | Df3     forward derivative (periodic boundary)
+     ___|_____|_____|_____|____
+        |     |     |     |
+        | Df1 | Df2 | Df3 | Df0     reverse derivative (periodic boundary)
      ___|_____|_____|_____|____
 
 Periodic boundaries are used unless otherwise noted.
