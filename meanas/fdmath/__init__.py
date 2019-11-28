@@ -94,6 +94,7 @@ and
   while \\( \\hat{h} \\) and \\( \\tilde{h} \\) are located at \\((m \\pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\)
   with components at \\((m, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\) etc.
 
+TODO: draw diagrams for vector derivatives
 TODO: Explain fdfield_t vs vfdfield_t  / operators vs functional
 TODO: explain dxes
 
