@@ -1,23 +1,30 @@
 """
+
 Basic discrete calculus for finite difference (fd) simulations.
+
+Discrete calculus
+=================
 
 This documentation and approach is roughly based on W.C. Chew's excellent
 "Electromagnetic Theory on a Lattice" (doi:10.1063/1.355770),
 which covers a superset of this material with similar notation and more detail.
 
 
+Derivatives
+-----------
+
 Define the discrete forward derivative as
 
     Dx_forward(f)[i] = (f[i + 1] - f[i]) / dx[i]
 
-or
+ or
     $$ [\\tilde{\\partial}_x f ]_{m + \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m + 1} - f_m) $$
 
 Likewise, discrete reverse derivative is
 
     Dx_back(f)[i] = (f[i] - f[i - 1]) / dx[i]
 
-or
+ or
     $$ [\\hat{\\partial}_x f ]_{m - \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m} - f_{m - 1}) $$
 
 
@@ -36,6 +43,9 @@ The derivatives are shifted by a half-cell relative to the original function:
 
 Periodic boundaries are used unless otherwise noted.
 
+
+Gradients and fore-vectors
+--------------------------
 
 Expanding to three dimensions, we can define two gradients
   $$ [\\tilde{\\nabla} f]_{n,m,p} = \\vec{x} [\\tilde{\\partial}_x f]_{m + \\frac{1}{2},n,p} +
@@ -60,6 +70,24 @@ on the direction of the shift. We write it as
                         \\vec{z} g^z_{m,n,p - \\frac{1}{2}} $$
 
 
+       (m, n+1, p+1) _____________ (m+1, n+1, p+1)
+                    /:           /|
+                   / :          / |
+                  /  :         /  |
+      (m, n, p+1)/____________/   |     The derivatives are defined
+                 |   :        |   |     at the Dx, Dy, Dz points,
+                 |   :........|...|     but the gradient fore-vector
+                Dz   /        |   /     is the set of all three
+                 |  Dy        |  /      and is said to be "located" at (m,n,p)
+                 | /          | /
+        (m, n, p)|/____Dx_____|/ (m+1, n, p)
+
+
+
+
+Divergences
+-----------
+
 There are also two divergences,
 
   $$ d_{n,m,p} = [\\tilde{\\nabla} \\cdot \\hat{g}]_{n,m,p}
@@ -77,15 +105,21 @@ is defined at the back-vector's (fore-vectors) location \\( (m,n,p) \\) and not 
 \\( (m \\pm \\frac{1}{2},n,p) \\) etc.
 
 
+Curls
+-----
+
 The two curls are then
+
   $$ \\begin{align}
      \\hat{h}_{m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}} &= \\\\
      [\\tilde{\\nabla} \\times \\tilde{g}]_{m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}} &=
         \\vec{x} (\\tilde{\\partial}_y g^z_{m,n,p + \\frac{1}{2}} - \\tilde{\\partial}_z g^y_{m,n + \\frac{1}{2},p}) \\\\
      &+ \\vec{y} (\\tilde{\\partial}_z g^x_{m + \\frac{1}{2},n,p} - \\tilde{\\partial}_x g^z_{m,n,p + \\frac{1}{2}}) \\\\
      &+ \\vec{z} (\\tilde{\\partial}_x g^y_{m,n + \\frac{1}{2},p} - \\tilde{\\partial}_x g^z_{m + \\frac{1}{2},n,p})
-     \\end{align}$$
-and
+     \\end{align} $$
+
+ and
+
   $$ \\tilde{h}_{m - \\frac{1}{2}, n - \\frac{1}{2}, p - \\frac{1}{2}} =
      [\\hat{\\nabla} \\times \\hat{g}]_{m - \\frac{1}{2}, n - \\frac{1}{2}, p - \\frac{1}{2}} $$
 
