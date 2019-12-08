@@ -2,6 +2,8 @@
 
 Basic discrete calculus for finite difference (fd) simulations.
 
+TODO: short description of functional vs operator form
+
 Discrete calculus
 =================
 
@@ -10,37 +12,69 @@ This documentation and approach is roughly based on W.C. Chew's excellent
 which covers a superset of this material with similar notation and more detail.
 
 
-Derivatives
------------
+Derivatives and shifted values
+------------------------------
 
 Define the discrete forward derivative as
  $$ [\\tilde{\\partial}_x f ]_{m + \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m + 1} - f_m) $$
- or
+ where \\( f \\) is a function defined at discrete locations on the x-axis (labeled using \\( m \\)).
+ The value at \\( m \\) occupies a length \\( \\Delta_{x, m} \\) along the x-axis. Note that \\( m \\)
+ is an index along the x-axis, _not_ necessarily an x-coordinate, since each length
+ \\( \\Delta_{x, m}, \\Delta_{x, m+1}, ...\\) is independently chosen.
 
-    Dx_forward(f)[i] = (f[i + 1] - f[i]) / dx[i]
+If we treat `f` as a 1D array of values, with the `i`-th value `f[i]` taking up a length `dx[i]`
+along the x-axis, the forward derivative is
+
+    deriv_forward(f)[i] = (f[i + 1] - f[i]) / dx[i]
+
 
 Likewise, discrete reverse derivative is
  $$ [\\hat{\\partial}_x f ]_{m - \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m} - f_{m - 1}) $$
-
  or
 
-    Dx_back(f)[i] = (f[i] - f[i - 1]) / dx[i]
+    deriv_back(f)[i] = (f[i] - f[i - 1]) / dx[i]
 
-The derivatives' arrays are shifted by a half-cell relative to the original function:
+The derivatives' values are shifted by a half-cell relative to the original function, and
+will have different cell widths if all the `dx[i]` ( \\( \\Delta_{x, m} \\) ) are not
+identical:
 
-    [figure: derivatives]
-     _________________________
-     |     |     |     |     |
-     |  f0 |  f1 |  f2 |  f3 |      function
-     |_____|_____|_____|_____|
-        |     |     |     |
-        | Df0 | Df1 | Df2 | Df3     forward derivative (periodic boundary)
-     ___|_____|_____|_____|____
-        |     |     |     |
-        | Df1 | Df2 | Df3 | Df0     reverse derivative (periodic boundary)
-     ___|_____|_____|_____|____
+    [figure: derivatives and cell sizes]
+        dx0   dx1      dx2      dx3      cell sizes for function
+       ----- ----- ----------- -----
+       ______________________________
+            |     |           |     |
+         f0 |  f1 |     f2    |  f3 |    function
+       _____|_____|___________|_____|
+         |     |        |        |
+         | Df0 |   Df1  |   Df2  | Df3   forward derivative (periodic boundary)
+       __|_____|________|________|___
 
-Periodic boundaries are used unless otherwise noted.
+     dx'3] dx'0   dx'1     dx'2  [dx'3   cell sizes for forward derivative
+       -- ----- -------- -------- ---
+     dx'0] dx'1   dx'2     dx'3  [dx'0   cell sizes for reverse derivative
+       ______________________________
+         |     |        |        |
+         | df1 |  df2   |   df3  | df0   reverse derivative (periodic boundary)
+       __|_____|________|________|___
+
+    Periodic boundaries are used here and elsewhere unless otherwise noted.
+
+In the above figure,
+ `f0 =` \\(f_0\\), `f1 =` \\(f_1\\)
+ `Df0 =` \\([\\tilde{\\partial}f]_{0 + \\frac{1}{2}}\\)
+ `Df1 =` \\([\\tilde{\\partial}f]_{1 + \\frac{1}{2}}\\)
+ `df0 =` \\([\\hat{\\partial}f]_{0 - \\frac{1}{2}}\\)
+ etc.
+
+The fractional subscript \\( m + \\frac{1}{2} \\) is used to indicate values defined
+ at shifted locations relative to the original \\( m \\), with corresponding lengths
+ $$ \\Delta_{x, m + \\frac{1}{2}} = \\frac{1}{2} * (\\Delta_{x, m} + \\Delta_{x, m + 1}) $$
+Just as \\( m \\) is not itself an x-coordinate, neither is \\( m + \\frac{1}{2} \\);
+carefully note the positions of the various cells in the above figure vs their labels.
+
+For the remainder of the `Discrete calculus` section, all figures will show
+constant-length cells in order to focus on the vector derivatives themselves.
+See the `Grid description` section below for additional information on this topic.
 
 
 Gradients and fore-vectors
@@ -222,10 +256,10 @@ Maxwell's Equations
 If we discretize both space (m,n,p) and time (l), Maxwell's equations become
 
  $$ \\begin{align*}
-  \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=& -&\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
-                                                                         &+& \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
-  \\hat{\\nabla} \\times \\hat{H}_{l,\\vec{r}} &=& &\\hat{\\partial}_t \\tilde{D}_{l, \\vec{r}}
-                                                                   &+& \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
+  \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &= -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
+                                                                         + \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\hat{\\nabla} \\times \\hat{H}_{l,\\vec{r} + \\frac{1}{2}} &= \\hat{\\partial}_t \\tilde{D}_{l, \\vec{r}}
+                                                                   + \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
   \\tilde{\\nabla} \\cdot \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}} &= 0 \\\\
   \\hat{\\nabla} \\cdot \\tilde{D}_{l,\\vec{r}} &= \\rho_{l,\\vec{r}}
  \\end{align*} $$
@@ -238,31 +272,106 @@ If we discretize both space (m,n,p) and time (l), Maxwell's equations become
  \\end{align*} $$
 
 where the spatial subscripts are abbreviated as \\( \\vec{r} = (m, n, p) \\) and
-\\( \\vec{r} + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}) \\).
-This is Yee's algorithm, written in a form analogous to Maxwell's equations.
+\\( \\vec{r} + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}) \\),
+\\( \\tilde{E} \\) and \\( \\hat{H} \\) are the electric and magnetic fields,
+\\( \\tilde{J} \\) and \\( \\hat{M} \\) are the electric and magnetic current distributions,
+and \\( \\epsilon \\) and \\( \\mu \\) are the dielectric permittivity and magnetic permeability.
+
+The above is Yee's algorithm, written in a form analogous to Maxwell's equations.
+The time derivatives can be expanded to form the update equations:
+
+    [code: Maxwell's equations]
+    H[i, j, k] -= (curl_forward(E[t])[i, j, k] - M[t, i, j, k]) /      mu[i, j, k]
+    E[i, j, k] += (curl_back(   H[t])[i, j, k] + J[t, i, j, k]) / epsilon[i, j, k]
+
+Note that the E-field fore-vector and H-field back-vector are offset by a half-cell, resulting
+in distinct locations for all six E- and H-field components:
+
+    [figure: Yee cell]
+          (m, n+1, p+1) _________________________ (m+1, n+1, p+1)
+                       /:                       /|
+                      / :                      / |
+                     /  :                     /  |      Locations of the
+                    /   :                    /   |      E- and H-field components
+                   /    :                   /    |      for the E fore-vector at
+                  /     :                  /     |      r = (m, n, p) and its associated
+      (m, n, p+1)/________________________/      |      H back-vector at r + 1/2 =
+                 |      :                 |      |      (m + 1/2, n + 1/2, p + 1/2)
+                 |      :                 |      |      (the large cube's center)
+                 | Hx   :                 |      |
+                 | /:   :.................|......| (m+1, n+1, p)
+                 |/ :  /                  |      /
+                Ez..........Hy            |     /
+                 |  Ey.......:..Hz        |    /        This is the Yee discretization
+                 |  /        :  /         |   /         scheme ("Yee cell").
+                 | /         : /          |  /
+                 |/          :/           | /
+      r=(m, n, p)|___________Ex___________|/ (m+1, n, p)
+
+
+Each component forms its own grid, offset from the others:
+
+    [figure: E-fields for adjacent cells]
+                        ________Ex(p+1, m+1)_____
+                       /:                       /|
+                      / :                      / |
+                     /  :                     /  |
+                   Ey(p+1)                  Ey(m+1, p+1)
+                   /    :                   /    |
+                  /    Ez(n+1)             /     Ez(m+1, n+1)
+                 /__________Ex(p+1)_______/      |
+                 |      :                 |      |
+                 |      :                 |      |     This figure shows which fore-vector
+                 |      :                 |      |     each e-field component belongs to.
+                 |      :.........Ex(n+1).|......|     Indices are shortened; e.g. Ex(p+1)
+                 |     /                  |      /     means "Ex for the fore-vector located
+                Ez    /                  Ez(m+1)/      at (m, n, p+1)".
+                 |  Ey                    |    /
+                 |  /                     |  Ey(m+1)
+                 | /                      |  /
+                 |/                       | /
+      r=(m, n, p)|___________Ex___________|/
+
 
 The divergence equations can be derived by taking the divergence of the curl equations
 and combining them with charge continuity,
  $$ \\hat{\\nabla} \\cdot \\tilde{J} + \\hat{\\partial}_t \\rho = 0 $$
  implying that the discrete Maxwell's equations do not produce spurious charges.
 
-TODO: Maxwell's equations explanation
-TODO: Maxwell's equations plaintext
 
 Wave equation
 -------------
 
-$$
- \\hat{\\nabla} \\times \\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l, \\vec{r}}
-            + \\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\cdot \\tilde{E}_{l, \\vec{r}}
-            = \\tilde{\\partial}_t \\tilde{J}_{l - \\frac{1}{2}, \\vec{r}} $$
+Taking the backward curl of the \\( \\tilde{\\nabla} \\times \\tilde{E} \\) equation and
+replacing the resulting \\( \\hat{\\nabla} \\times \\hat{H} \\) term using its respective equation,
+and setting \\( \\hat{M} \\) to zero, we can form the discrete wave equation:
 
-TODO: wave equation explanation
-TODO: wave equation plaintext
+$$
+  \\begin{align*}
+  \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=
+      -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
+                          + \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=
+    -\\tilde{\\partial}_t \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
+    \\hat{\\nabla} \\times (-\\tilde{\\partial}_t \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}})  \\\\
+  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
+    -\\tilde{\\partial}_t \\hat{\\nabla} \\times \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
+    -\\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\tilde{E}_{l, \\vec{r}} + \\hat{\\partial}_t \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
+  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l, \\vec{r}})
+            + \\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\cdot \\tilde{E}_{l, \\vec{r}}
+            &= \\tilde{\\partial}_t \\tilde{J}_{l - \\frac{1}{2}, \\vec{r}}
+  \\end{align*}
+$$
+
 
 
 Grid description
 ================
+
+The
+
 TODO: explain dxes
 
 """
