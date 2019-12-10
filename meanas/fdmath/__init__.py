@@ -291,50 +291,52 @@ The time derivatives can be expanded to form the update equations:
 Note that the E-field fore-vector and H-field back-vector are offset by a half-cell, resulting
 in distinct locations for all six E- and H-field components:
 
-    [figure: Yee cell]
-          (m, n+1, p+1) _________________________ (m+1, n+1, p+1)
-                       /:                       /|
-       z y            / :                      / |
-       |/_x          /  :                     /  |      Locations of the
-                    /   :                    /   |      E- and H-field components
-                   /    :                   /    |      for the E fore-vector at
-                  /     :                  /     |      r = (m, n, p) and its associated
-      (m, n, p+1)/________________________/      |      H back-vector at r + 1/2 =
-                 |      :                 |      |      (m + 1/2, n + 1/2, p + 1/2)
-                 |      :                 |      |      (the large cube's center)
-                 | Hx   :                 |      |
-                 | /:   :.................|......| (m+1, n+1, p)
-                 |/ :  /                  |     /
-                Ez..........Hy            |    /
-                 |  Ey.......:..Hz        |   /         This is the Yee discretization
-                 |  /        :  /         |  /          scheme ("Yee cell").
-                 | /         : /          | /
-                 |/          :/           |/
-      r=(m, n, p)|___________Ex___________|  (m+1, n, p)
+    [figure: Field components]
 
+            (m - 1/2,=> ____________Hx__________[H] <= r + 1/2 = (m + 1/2,
+             n + 1/2,  /:           /:          /|                n + 1/2,
+       z y   p + 1/2) / :          / :         / |                p + 1/2)
+       |/_x          /  :         /  :        /  |
+                    /   :       Ez__________Hy   |      Locations of the E- and
+                   /    :        :   :      /|   |      H-field components for the
+     (m - 1/2,    /     :        :  Ey...../.|..Hz      [E] fore-vector at r = (m,n,p)
+      n - 1/2, =>/________________________/  |  /|      (the large cube's center)
+      p + 1/2)   |      :        : /      |  | / |      and [H] back-vector at r + 1/2
+                 |      :        :/       |  |/  |      (the top right corner)
+                 |      :       [E].......|.Ex   |
+                 |      :.................|......| <= (m + 1/2, n + 1/2, p + 1/2)
+                 |     /                  |     /
+                 |    /                   |    /
+                 |   /                    |   /         This is the Yee discretization
+                 |  /                     |  /          scheme ("Yee cell").
+    r - 1/2 =    | /                      | /
+     (m - 1/2,   |/                       |/
+      n - 1/2,=> |________________________| <= (m + 1/2, n - 1/2, p - 1/2)
+      p - 1/2)
 
 Each component forms its own grid, offset from the others:
 
     [figure: E-fields for adjacent cells]
-                        ________Ex(p+1, m+1)_____
-      z y              /:                       /|
-      |/_x            / :                      / |
-                     /  :                     /  |
-                   Ey(p+1)                  Ey(m+1, p+1)
-                   /    :                   /    |
-                  /    Ez(n+1)             /     Ez(m+1, n+1)
-                 /__________Ex(p+1)_______/      |
-                 |      :                 |      |
-                 |      :                 |      |     This figure shows which fore-vector
-                 |      :                 |      |     each e-field component belongs to.
-                 |      :.........Ex(n+1).|......|     Indices are shortened; e.g. Ex(p+1)
-                 |     /                  |     /      means "Ex for the fore-vector located
-                Ez    /                  Ez(m+1)       at (m, n, p+1)".
-                 |  Ey                    |   /
-                 |  /                     | Ey(m+1)
-                 | /                      | /
-                 |/                       |/
-      r=(m, n, p)|___________Ex___________|
+
+                  H1__________Hx0_________H0
+      z y        /:                       /|
+      |/_x      / :                      / |    This figure shows H back-vector locations
+               /  :                     /  |    H0, H1, etc. and their associated components
+             Hy1  :                   Hy0  |    H0 = (Hx0, Hy0, Hz0) etc.
+             /    :                   /    |
+            /    Hz1                 /     Hz0
+           H2___________Hx3_________H3     |    The equivalent drawing for E would have
+           |      :                 |      |    fore-vectors located at the cube's
+           |      :                 |      |    center (and the centers of adjacent cubes),
+           |      :                 |      |    with components on the cube's faces.
+           |      H5..........Hx4...|......H4
+           |     /                  |     /
+          Hz2   /                  Hz2   /
+           |   /                    |   /
+           | Hy6                    | Hy4
+           | /                      | /
+           |/                       |/
+           H6__________Hx7__________H7
 
 
 The divergence equations can be derived by taking the divergence of the curl equations
@@ -376,7 +378,7 @@ Grid description
 
 As described in the section on scalar discrete derivatives above, cell widths along
 each axis can be arbitrary and independently defined. Moreover, all field components
-are defined at "derived" or "dual" positions, in between the "base" grid points on
+are defined at "derived" or "dual" positions, in-between the "base" grid points on
 one or more axes.
 
     [figure: 3D base and derived grids]
@@ -404,11 +406,9 @@ one or more axes.
       |___________|_______|_______|                  ______|_________|_______|___
           dx[0]     dx[1]   dx[2]                            dx'[0]   dx'[1]  dx'[2]
 
-                Base grid                             Shifted one half-cell right
-                                          (e.g. for 1D forward x derivative of all components)
-                                                 Some lines are omitted for clarity.
-
-       z y         : /        : /     :dz'[1]
+                Base grid                         Shifted one half-cell right (e.g. for 1D
+                                                  forward x derivative of all components).
+       z y         : /        : /     :dz'[1]        Some lines are omitted for clarity.
        |/_x        :/         :/      :/
             .......:..........:.......:...
                |  /:      |  /:   |  /:
@@ -416,7 +416,7 @@ one or more axes.
                |/  :      |/  :   |/  :dz'[0]
         ______________________________
               /|   :/    /|   :/ /|   :/dy'[1]
-             /.|...:..../.|...:./.|.. :....
+             /.|...:..../.|...:./.|...:....
                |  /:      |  /:   |  /:
                | / :      | / :   | /dy'[0]
                |/  :      |/  :   |/  :
@@ -428,68 +428,117 @@ one or more axes.
 
       All three dimensions shifted by one half-
       cell. This is quite hard to visualize
-      (and probably not entirely to scale).
+      (and probably not entirely to scale); see
+      later figures for a better representation.
 
 
 Nevertheless, while the spacing
 
 
     [figure: Component centers]
-              ___________________________________________
-     z y     /:                        /:               /|
-     |/_x   / :                       / :              / |
-           /  :                      /  :             /  |
-         Ey...........Hz           Ey.....Hz         /   |
-         /    :       /            /    :  /        /    |
-        /     :      /            /     : /        /     |
-       /      :     /            /      :/        /      |
-      /___________Ex____________/______Ex________/       |
-      |       :                 |       :        |       |
-      |       :                 |       :        |       |
-      |  Hx   :                 |  Hx   :        |  Hx   |
-      |  /:   :.................|../:...:........|../:...|
-      | / :  /                  | / :  /         | / :  /
-      |/  : /                   |/  : /          |/  : /
-     Ez...........Hy           Ez......Hy       Ez   :/
-      |  Ey........:..Hz        |  Ey...:..Hz    |  Ey
-      |  /         :  /         |  /    :  /     |  /
-      | /          : /          | /     : /      | /
-      |/           :/           |/      :/       |/
-      |___________Ex____________|_______Ex_______|
+             [H]__________Hx___________[H]______Hx______[H]
+     z y     /:           /:           /:       /:      /|   |
+     |/_x   / :          / :          / :      / :     / |   |
+           /  :         /  :         /  :     /  :    /  |   |
+         Hy   :       Ez...........Hy   :   Ez......Hy   |   |
+         /:   :        :   :       /:   :    :   :  /|   |   |
+        / :  Hz        :  Ey....../.:..Hz    :  Ey./.|..Hz   | dz[0]
+       /  :  /:        :  /      /  :  /:    :  / /  |  /|   |
+      /_________________________/________________/   | / |   |
+      |   :/  :        :/       |   :/  :    :/  |   |/  |   |
+      |  Ex   :       [E].......|..Ex   :   [E]..|..Ex   |   |
+      |       :                 |       :        |       |   |
+      |      [H]..........Hx....|......[H].....Hx|......[H]
+      |      /                  |      /         |      /    /
+      |     /                   |     /          |     /    /
+     Hz    /                   Hz    /          Hz    /    /
+      |  Hy                     |  Hy            |  Hy    /
+      |  /                      |  /             |  /    / dy[0]
+      | /                       | /              | /    /
+      |/                        |/               |/    /
+     [H]__________Hx___________[H]______Hx______[H]   /
+
+       ------------------------- ----------------
+                 dx[0]                  dx[1]
 
       Part of a nonuniform "base grid", with labels specifying
-      positions of the various field components.
+      positions of the various field components. [E] fore-vectors
+      are at the cell centers, and [H] back-vectors are at the
+      vertices. H components along the near (-y) top (+z) edge
+      have been omitted to make the insides of the cubes easier
+      to visualize.
 
-      z y     mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
-      |/_x              m:                   m:
-                       m :                  m :
-         Ey...........m..:.........Ey......m..:.....Ey
-                     m   :                m   :
-                    m    :               m    :
-              _____m_____:______________m_____:________
-      mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
-                  |    / :             |    / :
-                  |   /  :             |   /  :
-                  |  /   :             |  /   :
-              wwww|w/wwww:wwwwwwwwwwwww|w/wwww:wwwwwwwwww
-                  |/    w              |/    w
-      ____________|____________________|__________
-         Ey.......|...w............Ey..|...w........Ey
-                  |  w                 |  w
-                  | w                  | w
-                  |w                   |w
-      wwwwwwwwwwww|wwwwwwwwwwwwwwwwwwww|wwwwwwwwww
+              <__________________________________________>
+     z y     <<           /:           /    /:          >>    |
+     |/_x   < <          / :          /    / :         > >    |
+           <  <         /  :         /    /  :        >  >    |
+          <   <        /   :        /    /   :       >   >    |
+         <:   <       /    :        :   /    :      >:   >    |
+        < :   <      /     :        :  /     :     > :   >    | dz[0]
+       <  :   <     /      :        : /      :    >  :   >    |
+      <____________/_____________________________>   :   >    |
+      <   :   <    |       :        :|       :   >   :   >    |
+      <  Ex   <    |       :       Ex|       :   >  Ex   >    |
+      <   :   <    |       :        :|       :   >   :   >    |
+      <   :   <....|.......:........:|.......:...>...:...>
+      <   :  <     |      /         :|  /   /    >   :  >     /
+      <   : <      |     /          :| /   /     >   : >     /
+      <   :<       |    /           :|/   /      >   :>     /
+      <   <        |   /            :|   /       >   >     /
+      <  <         |  /              |  /        >  >     / dy[0]
+      < <          | /               | /         > >     /
+      <<           |/                |/          >>     /
+      <____________|_________________|___________>     /
 
-     The Ey values are positioned on the y-edges of the base
-     grid, but they represent the Ey field in a volume that
-     contains (but isn't necessarily centered on) the points
-     at which they are defined.
+      ~------------ ----------------- -----------~
+         dx'[-1]          dx'[0]          dx'[1]
 
-     Here, the 'Ey' labels represent the same points as before;
-     the grid lines _|:/ are edges of the area represented
-     by each Ey value, and the lines drawn using m.w represent
-     areas where a cell's faces extend beyond the drawn area
-     (i.e. where the drawing is truncated in the z-direction).
+     The Ex values are positioned on the x-faces of the base
+     grid. They represent the Ex field in volumes shifted by
+     a half-cell in the x-dimension, as shown here. Only the
+     center cell is fully shown; the other two are truncated
+     (shown using >< markers).
+
+     Note that the Ex positions are the in the same positions
+     as the previous figure; only the cell boundaries have moved.
+     Also note that the points at which Ex is defined are not
+     necessarily centered in the volumes they represent; non-
+     uniform cell sizes result in off-center volumes like the
+     center cell here.
+
+      z y    mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm    s
+      |/_x  <<           m:                    m:      >>    |
+           < <          m :                   m :     > >    | dz'[1]
+         Hy............m...........Hy........m......Hy  >    |
+         <   <        m   :                 m   :   >   >    |
+        <    <       m    :                m    :  >    >    |
+       <     _______m_____:_______________m_____:_>______
+      mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm      >    |
+      <      <     |    / :              |    / :>      >    |
+      <      <     |   /  :              |   /  :>      >    | dz'[0]
+      <      <     |  /   :              |  /   :>      >    |
+      <      wwwwww|w/wwwwwwwwwwwwwwwwwww|w/wwwww>wwwwwww    s
+      <     <      |/    w               |/    w >     >    /
+      _____________|_____________________|________    >    /
+      <  Hy........|...w...........Hy....|...w...>..Hy    /
+      <  <         |  w                  |  w    >  >    / dy[0]
+      < <          | w                   | w     > >    /
+      <<           |w                    |w      >>    /
+      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+
+      ~------------ --------------------- -------~
+         dx'[-1]            dx'[0]          dx'[1]
+
+     The Hy values are positioned on the y-edges of the base
+     grid. Again here, the 'Hy' labels represent the same points
+     as in the basic grid figure above; the edges have shifted
+     by a half-cell along the x- and z-axes.
+
+     The grid lines _|:/ are edges of the area represented by
+     each Hy value, and the lines drawn using <m>.w represent
+     edges where a cell's faces extend beyond the drawn area
+     (i.e. where the drawing is truncated in the x- or z-
+     directions).
 
 
 TODO: explain dxes
