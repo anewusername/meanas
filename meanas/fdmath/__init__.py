@@ -533,9 +533,43 @@ are shifted in two dimensions (x and z) compared to the base grid.
      directions).
 
 
-TODO: explain dxes
+Datastructure: dx_lists_t
+-------------------
 
+In this documentation, the E fore-vectors are placed on the base grid. An
+equivalent formulation could place the H back-vectors on the base grid instead.
+However, in the case of a non-uniform grid, the operation to get from the "base"
+cell widths to "derived" ones is not its own inverse.
 
+The base grid's cell sizes could be fully described by a list of three 1D arrays,
+specifying the cell widths along all three axes:
+
+    [dx, dy, dz] = [[dx[0], dx[1], ...], [dy[0], ...], [dz[0], ...]]
+
+Note that this is a list-of-arrays rather than a 2D array, as the simulation domain
+may have a different number of cells along each axis.
+
+Knowing the base grid's cell widths and the boundary conditions (periodic unless
+otherwise noted) is enough information to calculate the cell widths  `dx'`, `dy'`,
+and `dz'` for the derived grids.
+
+However, since most operations are trivially generalized to allow either E or H
+to be defined on the base grid, they are written to take the a full set of base
+and derived cell widths, distinguished by which field they apply to rather than
+their "base" or "derived" status. This removes the need for each function to
+generate the derived widths, and makes the "base" vs "derived" distinction
+unnecessary in the code.
+
+The resulting data structure containing all the cell widths takes the form of a
+list-of-lists-of-arrays. The first list-of-arrays provides the cell widths for
+the E-field fore-vectors, while the second list-of-arrays does the same for the
+H-field back-vectors:
+
+     [[[dx_e[0], dx_e[1], ...], [dy_e[0], ...], [dz_e[0], ...]],
+      [[dx_h[0], dx_h[1], ...], [dy_h[0], ...], [dz_h[0], ...]]]
+
+   where `dx_e[0]` is the x-width of the `m=0` cells, as used when calculating dE/dx,
+   and `dy_h[0]` is  the y-width of the `n=0` cells, as used when calculating dH/dy, etc.
 
 """
 
