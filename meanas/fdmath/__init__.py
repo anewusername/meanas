@@ -435,9 +435,15 @@ The result looks something like this:
       have been omitted to make the insides of the cubes easier
       to visualize.
 
-This figure shows where all the components are located; however, it is also useful to show
-what volumes those components are responsible for representing. Consider the Ex component:
-two of its nearest neighbors are E fore-vectors, labeled `[E]` in the figure.
+The above figure shows where all the components are located; however, it is also useful to show
+what volumes those components correspond to. Consider the Ex component at `m = +1/2`: it is
+shifted in the x-direction by a half-cell from the E fore-vector at `m = 0` (labeled `[E]`
+in the figure). It corresponds to a volume between `m = 0` and `m = +1` (the other
+dimensions are not shifted, i.e. they are still bounded by `n, p = +-1/2`). (See figure
+below). Since `m` is an index and not an x-coordinate, the Ex component is not necessarily
+at the center of the volume it represents, and the x-length of its volume is the derived
+quantity `dx'[0] = (dx[0] + dx[1]) / 2` rather than the base `dx`.
+(See also `Scalar derivatives and cell shifts`).
 
     [figure: Ex volumes]
                                                                  p=
@@ -481,6 +487,9 @@ two of its nearest neighbors are E fore-vectors, labeled `[E]` in the figure.
      necessarily centered in the volumes they represent; non-
      uniform cell sizes result in off-center volumes like the
      center cell here.
+
+The next figure shows the volumes corresponding to the Hy components, which
+are shifted in two dimensions (x and z) compared to the base grid.
 
     [figure: Hy volumes]
                                                                  p=
