@@ -451,7 +451,6 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     for d in dxes[0]:
         n *= len(d)
 
-    print(wavenumber, n)
     Bz = -1j * wavenumber * sparse.eye(n)
     Dfx, Dfy = deriv_forward(dxes[0])
     return cross([Dfx, Dfy, Bz])
