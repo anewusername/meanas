@@ -8,7 +8,7 @@ Fields, Functions, and Operators
 
 Discrete fields are stored in one of two forms:
 
-- The `field_t` form is a multidimensional numpy array
+- The `field_t` form is a multidimensional `numpy.ndarray`
     + For a scalar field, this is just `U[m, n, p]`, where `m`, `n`, and `p` are
       discrete indices referring to positions on the x, y, and z axes respectively.
     + For a vector field, the first index specifies which vector component is accessed:
