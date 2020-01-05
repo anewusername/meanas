@@ -387,41 +387,43 @@ to make the illustration simpler; we need at least two cells in the x dimension 
 demonstrate how nonuniform `dx` affects the various components.
 
 Place the E fore-vectors at integer indices \\( r = (m, n, p) \\) and the H back-vectors
-at fractional indices \\( r + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}.
-Remember that these are indices and not coordinates; they can coorespond to arbitrary
-(monotonically increasing) coordinates depending on the cell widths.
+at fractional indices \\( r + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2},
+p + \\frac{1}{2}) \\). Remember that these are indices and not coordinates; they can
+correspond to arbitrary (monotonically increasing) coordinates depending on the cell widths.
 
 Draw lines to denote the planes on which the H components and back-vectors are defined.
 For simplicity, don't draw the equivalent planes for the E components and fore-vectors,
 except as necessary to show their locations -- it's easiest to just connect them to their
-associated H-equivalents. The result looks something like this:
+associated H-equivalents.
+
+The result looks something like this:
 
     [figure: Component centers]
-                                                                    p=
-              [H]__________Hx___________[H]______Hx______[H]   __ +1/2
-      z y     /:           /:           /:       /:      /|     |      |
-      |/_x   / :          / :          / :      / :     / |     |      |
-            /  :         /  :         /  :     /  :    /  |     |      |
-          Hy   :       Ez...........Hy   :   Ez......Hy   |     |      |
-          /:   :        :   :       /:   :    :   :  /|   |     |      |
-         / :  Hz        :  Ey....../.:..Hz    :  Ey./.|..Hz    __ 0    | dz[0]
-        /  :  /:        :  /      /  :  /:    :  / /  |  /|     |      |
-       /_________________________/________________/   | / |     |      |
-       |   :/  :        :/       |   :/  :    :/  |   |/  |     |      |
-       |  Ex   :       [E].......|..Ex   :   [E]..|..Ex   |     |      |
-       |       :                 |       :        |       |     |      |
-       |      [H]..........Hx....|......[H].....Hx|......[H]   __ --------- (m=+1/2, p=-1/2)
-       |      /                  |      /         |      /     /       /
-       |     /                   |     /          |     /     /       /
-      Hz    /                   Hz    /          Hz    /     /       /
-       |  Hy                     |  Hy            |  Hy    __ 0     / dy[0]
-       |  /                      |  /             |  /     /       /
-       | /                       | /              | /     /       /
-       |/                        |/               |/     /       /
-      [H]__________Hx___________[H]______Hx______[H]   __ -1/2  /
+                                                                 p=
+              [H]__________Hx___________[H]_____Hx______[H]   __ +1/2
+      z y     /:           /:           /:      /:      /|     |      |
+      |/_x   / :          / :          / :     / :     / |     |      |
+            /  :         /  :         /  :    /  :    /  |     |      |
+          Hy   :       Ez...........Hy   :  Ez......Hy   |     |      |
+          /:   :        :   :       /:   :   :   :  /|   |     |      |
+         / :  Hz        :  Ey....../.:..Hz   :  Ey./.|..Hz    __ 0    | dz[0]
+        /  :  /:        :  /      /  :  /:   :  / /  |  /|     |      |
+       /_________________________/_______________/   | / |     |      |
+       |   :/  :        :/       |   :/  :   :/  |   |/  |     |      |
+       |  Ex   :       [E].......|..Ex   :  [E]..|..Ex   |     |      |
+       |       :                 |       :       |       |     |      |
+       |      [H]..........Hx....|......[H].....H|x.....[H]   __ --------- (n=+1/2, p=-1/2)
+       |      /                  |      /        |      /     /       /
+      Hz     /                  Hz     /        Hz     /     /       /
+       |    /                    |    /          |    /     /       /
+       |  Hy                     |  Hy           |  Hy    __ 0     / dy[0]
+       |  /                      |  /            |  /     /       /
+       | /                       | /             | /     /       /
+       |/                        |/              |/     /       /
+      [H]__________Hx___________[H]_____Hx______[H]   __ -1/2  /
                                                            =n
-       |------------|------------|--------|------|
-     -1/2           0          +1/2      +1    +3/2 = m
+       |------------|------------|-------|-------|
+     -1/2           0          +1/2     +1     +3/2 = m
 
         ------------------------- ----------------
                   dx[0]                  dx[1]
@@ -438,36 +440,40 @@ what volumes those components are responsible for representing. Consider the Ex 
 two of its nearest neighbors are E fore-vectors, labeled `[E]` in the figure.
 
     [figure: Ex volumes]
-              <__________________________________________>
-     z y     <<           /:           /    /:          >>    |
-     |/_x   < <          / :          /    / :         > >    |
-           <  <         /  :         /    /  :        >  >    |
-          <   <        /   :        /    /   :       >   >    |
-         <:   <       /    :        :   /    :      >:   >    |
-        < :   <      /     :        :  /     :     > :   >    | dz[0]
-       <  :   <     /      :        : /      :    >  :   >    |
-      <____________/_____________________________>   :   >    |
-      <   :   <    |       :        :|       :   >   :   >    |
-      <  Ex   <    |       :       Ex|       :   >  Ex   >    |
-      <   :   <    |       :        :|       :   >   :   >    |
-      <   :   <....|.......:........:|.......:...>...:...>
-      <   :  <     |      /         :|  /   /    >   :  >     /
-      <   : <      |     /          :| /   /     >   : >     /
-      <   :<       |    /           :|/   /      >   :>     /
-      <   <        |   /            :|   /       >   >     /
-      <  <         |  /              |  /        >  >     / dy[0]
-      < <          | /               | /         > >     /
-      <<           |/                |/          >>     /
-      <____________|_________________|___________>     /
+                                                                 p=
+               <_________________________________________>   __ +1/2
+      z y     <<           /:           /       /:      >>    |      |
+      |/_x   < <          / :          /       / :     > >    |      |
+            <  <         /  :         /       /  :    >  >    |      |
+           <   <        /   :        /       /   :   >   >    |      |
+          <:   <       /    :        :      /    :  >:   >    |      |
+         < :   <      /     :        :     /     : > :   >   __ 0    | dz[0]
+        <  :   <     /      :        :    /      :>  :   >    |      |
+       <____________/____________________/_______>   :   >    |      |
+       <   :   <    |       :        :   |       >   :   >    |      |
+       <  Ex   <    |       :       Ex   |       >  Ex   >    |      |
+       <   :   <    |       :        :   |       >   :   >    |      |
+       <   :   <....|.......:........:...|.......>...:...>   __ --------- (n=+1/2, p=-1/2)
+       <   :  <     |      /         :  /|      />   :  >    /       /
+       <   : <      |     /          : / |     / >   : >    /       /
+       <   :<       |    /           :/  |    /  >   :>    /       /
+       <   <        |   /            :   |   /   >   >    _ 0     / dy[0]
+       <  <         |  /                 |  /    >  >    /       /
+       < <          | /                  | /     > >    /       /
+       <<           |/                   |/      >>    /       /
+       <____________|____________________|_______>   __ -1/2  /
+                                                         =n
+       |------------|------------|-------|-------|
+     -1/2           0          +1/2      +1    +3/2 = m
 
-      ~------------ ----------------- -----------~
-         dx'[-1]          dx'[0]          dx'[1]
+       ~------------ -------------------- -------~
+         dx'[-1]          dx'[0]           dx'[1]
 
      The Ex values are positioned on the x-faces of the base
      grid. They represent the Ex field in volumes shifted by
      a half-cell in the x-dimension, as shown here. Only the
-     center cell is fully shown; the other two are truncated
-     (shown using >< markers).
+     center cell (with width dx'[0]) is fully shown; the
+     other two are truncated (shown using >< markers).
 
      Note that the Ex positions are the in the same positions
      as the previous figure; only the cell boundaries have moved.
@@ -477,28 +483,34 @@ two of its nearest neighbors are E fore-vectors, labeled `[E]` in the figure.
      center cell here.
 
     [figure: Hy volumes]
-      z y    mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm    s
-      |/_x  <<           m:                    m:      >>    |
-           < <          m :                   m :     > >    | dz'[1]
-         Hy............m...........Hy........m......Hy  >    |
-         <   <        m   :                 m   :   >   >    |
-        <    <       m    :                m    :  >    >    |
-       <     _______m_____:_______________m_____:_>______
-      mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm      >    |
-      <      <     |    / :              |    / :>      >    |
-      <      <     |   /  :              |   /  :>      >    | dz'[0]
-      <      <     |  /   :              |  /   :>      >    |
-      <      wwwwww|w/wwwwwwwwwwwwwwwwwww|w/wwwww>wwwwwww    s
-      <     <      |/    w               |/    w >     >    /
-      _____________|_____________________|________    >    /
-      <  Hy........|...w...........Hy....|...w...>..Hy    /
-      <  <         |  w                  |  w    >  >    / dy[0]
-      < <          | w                   | w     > >    /
-      <<           |w                    |w      >>    /
-      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+                                                                 p=
+      z y     mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm   __ +1/2  s
+      |/_x   <<           m:                    m:      >>    |       |
+            < <          m :                   m :     > >    |       | dz'[1]
+           <  <         m  :                  m  :    >  >    |       |
+         Hy........... m........Hy...........m......Hy   >    |       |
+         <    <       m    :                m    :  >    >    |       |
+        <     ______ m_____:_______________m_____:_>______   __ 0
+       <      <     m     /:              m     / >      >    |       |
+      mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm       >    |       |
+      <       <    |    /  :             |    /  >       >    |       | dz'[0]
+      <       <    |   /   :             |   /   >       >    |       |
+      <       <    |  /    :             |  /    >       >    |       |
+      <       wwwww|w/wwwwwwwwwwwwwwwwwww|w/wwwww>wwwwwwww   __       s
+      <      <     |/     w              |/     w>      >    /         /
+      _____________|_____________________|________     >    /         /
+      <    <       |    w                |    w  >    >    /         /
+      <  Hy........|...w........Hy.......|...w...>..Hy    _ 0       / dy[0]
+      < <          |  w                  |  w    >  >    /         /
+      <<           | w                   | w     > >    /         /
+      <            |w                    |w      >>    /         /
+      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww   __ -1/2    /
+
+      |------------|------------|--------|-------|
+    -1/2           0          +1/2      +1     +3/2 = m
 
       ~------------ --------------------- -------~
-         dx'[-1]            dx'[0]          dx'[1]
+         dx'[-1]            dx'[0]         dx'[1]
 
      The Hy values are positioned on the y-edges of the base
      grid. Again here, the 'Hy' labels represent the same points
