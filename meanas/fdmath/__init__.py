@@ -8,20 +8,20 @@ Fields, Functions, and Operators
 
 Discrete fields are stored in one of two forms:
 
-- The `field_t` form is a multidimensional `numpy.ndarray`
+- The `fdfield_t` form is a multidimensional `numpy.ndarray`
     + For a scalar field, this is just `U[m, n, p]`, where `m`, `n`, and `p` are
       discrete indices referring to positions on the x, y, and z axes respectively.
     + For a vector field, the first index specifies which vector component is accessed:
       `E[:, m, n, p] = [Ex[m, n, p], Ey[m, n, p], Ez[m, n, p]]`.
-- The `vfield_t` form is simply a vectorzied (i.e. 1D) version of the `field_t`,
+- The `vfdfield_t` form is simply a vectorzied (i.e. 1D) version of the `field_t`,
     as obtained by `meanas.fdmath.vectorization.vec` (effectively just `numpy.ravel`)
 
 Operators which act on fields also come in two forms:
     + Python functions, created by the functions in `meanas.fdmath.functional`.
-        The generated functions act on fields in the `field_t` form.
+        The generated functions act on fields in the `fdfield_t` form.
     + Linear operators, usually 2D sparse matrices using `scipy.sparse`, created
         by `meanas.fdmath.operators`. These operators act on vectorized fields in the
-        `vfield_t` form.
+        `vfdfield_t` form.
 
 The operations performed should be equivalent: `functional.op(*args)(E)` should be
 equivalent to `unvec(operators.op(*args) @ vec(E), E.shape[1:])`.

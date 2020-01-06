@@ -29,12 +29,15 @@ dx_lists_t = List[List[numpy.ndarray]]
 '''
  'dxes' datastructure which contains grid cell width information in the following format:
 
-     [[[dx_e_0, dx_e_1, ...], [dy_e_0, ...], [dz_e_0, ...]],
-      [[dx_h_0, dx_h_1, ...], [dy_h_0, ...], [dz_h_0, ...]]]
+     [[[dx_e[0], dx_e[1], ...], [dy_e[0], ...], [dz_e[0], ...]],
+      [[dx_h[0], dx_h[1], ...], [dy_h[0], ...], [dz_h[0], ...]]]
 
-   where `dx_e_0` is the x-width of the `x=0` cells, as used when calculating dE/dx,
-   and `dy_h_0` is  the y-width of the `y=0` cells, as used when calculating dH/dy, etc.
+   where `dx_e[0]` is the x-width of the `x=0` cells, as used when calculating dE/dx,
+   and `dy_h[0]` is the y-width of the `y=0` cells, as used when calculating dH/dy, etc.
 '''
 
 
 fdfield_updater_t = Callable[[fdfield_t], fdfield_t]
+'''
+ Convenience type for functions which take and return an fdfield_t
+'''
