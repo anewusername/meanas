@@ -21,27 +21,31 @@ def near_to_farfield(E_near: fdfield_t,
 
     The input fields should be complex phasors.
 
-    :param E_near: List of 2 ndarrays containing the 2D phasor field slices for the transverse
-        E fields (e.g. [Ex, Ey] for calculating the farfield toward the z-direction).
-    :param H_near: List of 2 ndarrays containing the 2D phasor field slices for the transverse
-        H fields (e.g. [Hx, hy] for calculating the farfield towrad the z-direction).
-    :param dx: Cell size along x-dimension, in units of wavelength.
-    :param dy: Cell size along y-dimension, in units of wavelength.
-    :param padded_size: Shape of the output. A single integer `n` will be expanded to `(n, n)`.
-        Powers of 2 are most efficient for FFT computation.
-        Default is the smallest power of 2 larger than the input, for each axis.
-    :returns: Dict with keys
-        'E_far': Normalized E-field farfield; multiply by
-            (i k exp(-i k r) / (4 pi r)) to get the actual field value.
-        'H_far': Normalized H-field farfield; multiply by
-            (i k exp(-i k r) / (4 pi r)) to get the actual field value.
-        'kx', 'ky': Wavevector values corresponding to the x- and y- axes in E_far and H_far,
-            normalized to wavelength (dimensionless).
-        'dkx', 'dky': step size for kx and ky, normalized to wavelength.
-        'theta': arctan2(ky, kx) corresponding to each (kx, ky).
-            This is the angle in the x-y plane, counterclockwise from above, starting from +x.
-        'phi': arccos(kz / k) corresponding to each (kx, ky).
-            This is the angle away from +z.
+    Args:
+        E_near: List of 2 ndarrays containing the 2D phasor field slices for the transverse
+                E fields (e.g. [Ex, Ey] for calculating the farfield toward the z-direction).
+        H_near: List of 2 ndarrays containing the 2D phasor field slices for the transverse
+                H fields (e.g. [Hx, hy] for calculating the farfield towrad the z-direction).
+        dx: Cell size along x-dimension, in units of wavelength.
+        dy: Cell size along y-dimension, in units of wavelength.
+        padded_size: Shape of the output. A single integer `n` will be expanded to `(n, n)`.
+                     Powers of 2 are most efficient for FFT computation.
+                     Default is the smallest power of 2 larger than the input, for each axis.
+
+    Returns:
+        Dict with keys
+
+        -   `E_far`: Normalized E-field farfield; multiply by
+                (i k exp(-i k r) / (4 pi r)) to get the actual field value.
+        -   `H_far`: Normalized H-field farfield; multiply by
+                (i k exp(-i k r) / (4 pi r)) to get the actual field value.
+        -   `kx`, `ky`: Wavevector values corresponding to the x- and y- axes in E_far and H_far,
+                normalized to wavelength (dimensionless).
+        -   `dkx`, `dky`: step size for kx and ky, normalized to wavelength.
+        -   `theta`: arctan2(ky, kx) corresponding to each (kx, ky).
+                This is the angle in the x-y plane, counterclockwise from above, starting from +x.
+        -   `phi`: arccos(kz / k) corresponding to each (kx, ky).
+                This is the angle away from +z.
     """
 
     if not len(E_near) == 2:
@@ -129,23 +133,27 @@ def far_to_nearfield(E_far: fdfield_t,
 
     The input fields should be complex phasors.
 
-    :param E_far: List of 2 ndarrays containing the 2D phasor field slices for the transverse
-        E fields (e.g. [Ex, Ey] for calculating the nearfield toward the z-direction).
-        Fields should be normalized so that
-            E_far = E_far_actual / (i k exp(-i k r) / (4 pi r))
-    :param H_far: List of 2 ndarrays containing the 2D phasor field slices for the transverse
-        H fields (e.g. [Hx, hy] for calculating the nearfield toward the z-direction).
-        Fields should be normalized so that
-            H_far = H_far_actual / (i k exp(-i k r) / (4 pi r))
-    :param dkx: kx discretization, in units of wavelength.
-    :param dky: ky discretization, in units of wavelength.
-    :param padded_size: Shape of the output. A single integer `n` will be expanded to `(n, n)`.
-        Powers of 2 are most efficient for FFT computation.
-        Default is the smallest power of 2 larger than the input, for each axis.
-    :returns: Dict with keys
-        'E': E-field nearfield
-        'H': H-field nearfield
-        'dx', 'dy': spatial discretization, normalized to wavelength (dimensionless)
+    Args:
+        E_far: List of 2 ndarrays containing the 2D phasor field slices for the transverse
+                E fields (e.g. [Ex, Ey] for calculating the nearfield toward the z-direction).
+                Fields should be normalized so that
+                E_far = E_far_actual / (i k exp(-i k r) / (4 pi r))
+        H_far: List of 2 ndarrays containing the 2D phasor field slices for the transverse
+                H fields (e.g. [Hx, hy] for calculating the nearfield toward the z-direction).
+                Fields should be normalized so that
+                H_far = H_far_actual / (i k exp(-i k r) / (4 pi r))
+        dkx: kx discretization, in units of wavelength.
+        dky: ky discretization, in units of wavelength.
+        padded_size: Shape of the output. A single integer `n` will be expanded to `(n, n)`.
+                     Powers of 2 are most efficient for FFT computation.
+                     Default is the smallest power of 2 larger than the input, for each axis.
+
+    Returns:
+        Dict with keys
+
+        -   `E`: E-field nearfield
+        -   `H`: H-field nearfield
+        -   `dx`, `dy`: spatial discretization, normalized to wavelength (dimensionless)
     """
 
     if not len(E_far) == 2:

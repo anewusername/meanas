@@ -20,9 +20,10 @@ def perturbed_l3(a: float, radius: float, **kwargs) -> Pattern:
     """
     Generate a masque.Pattern object containing a perturbed L3 cavity.
 
-    :param a: Lattice constant.
-    :param radius: Hole radius, in units of a (lattice constant).
-    :param kwargs: Keyword arguments:
+    Args:
+        a: Lattice constant.
+        radius: Hole radius, in units of a (lattice constant).
+        **kwargs: Keyword arguments:
         hole_dose, trench_dose, hole_layer, trench_layer: Shape properties for Pattern.
                 Defaults *_dose=1, hole_layer=0, trench_layer=1.
         shifts_a, shifts_r: passed to pcgen.l3_shift; specifies lattice constant (1 -
@@ -30,11 +31,13 @@ def perturbed_l3(a: float, radius: float, **kwargs) -> Pattern:
                 holes adjacent to the defect (same row). Defaults are 0.15 shift for
                 first hole, 0.075 shift for third hole, and no radius change.
         xy_size: [x, y] number of mirror periods in each direction; total size is
-                2 * n + 1 holes in each direction. Default [10, 10].
+                `2 * n + 1` holes in each direction. Default `[10, 10]`.
         perturbed_radius: radius of holes perturbed to form an upwards-driected beam
                 (multiplicative factor). Default 1.1.
         trench width: Width of the undercut trenches. Default 1.2e3.
-    :return: masque.Pattern object containing the L3 design
+
+    Return:
+        `masque.Pattern` object containing the L3 design
     """
 
     default_args = {'hole_dose':    1,

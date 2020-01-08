@@ -4,47 +4,54 @@ Bloch eigenmode solver/operators
 This module contains functions for generating and solving the
  3D Bloch eigenproblem. The approach is to transform the problem
  into the (spatial) fourier domain, transforming the equation
-   1/mu * curl(1/eps * curl(H)) = (w/c)^2 H
+
+    1/mu * curl(1/eps * curl(H)) = (w/c)^2 H
+
  into
-   conv(1/mu_k, ik x conv(1/eps_k, ik x H_k)) = (w/c)^2 H_k
+
+    conv(1/mu_k, ik x conv(1/eps_k, ik x H_k)) = (w/c)^2 H_k
+
  where:
-  - the _k subscript denotes a 3D fourier transformed field
-  - each component of H_k corresponds to a plane wave with wavevector k
-  - x is the cross product
-  - conv denotes convolution
 
- Since k and H are orthogonal for each plane wave, we can use each
- k to create an orthogonal basis (k, m, n), with k x m = n, and
- |m| = |n| = 1. The cross products are then simplified with
+  - the `_k` subscript denotes a 3D fourier transformed field
+  - each component of `H_k` corresponds to a plane wave with wavevector `k`
+  - `x` is the cross product
+  - `conv()` denotes convolution
 
- k @ h = kx hx + ky hy + kz hz = 0 = hk
- h = hk + hm + hn = hm + hn
- k = kk + km + kn = kk = |k|
+ Since `k` and `H` are orthogonal for each plane wave, we can use each
+ `k` to create an orthogonal basis (k, m, n), with `k x m = n`, and
+ `|m| = |n| = 1`. The cross products are then simplified with
 
- k x h = (ky hz - kz hy,
-          kz hx - kx hz,
-          kx hy - ky hx)
-       = ((k x h) @ k, (k x h) @ m, (k x h) @ n)_kmn
-       = (0, (m x k) @ h, (n x k) @ h)_kmn         # triple product ordering
-       = (0, kk (-n @ h), kk (m @ h))_kmn          # (m x k) = -|k| n, etc.
-       = |k| (0, -h @ n, h @ m)_kmn
+    k @ h = kx hx + ky hy + kz hz = 0 = hk
+    h = hk + hm + hn = hm + hn
+    k = kk + km + kn = kk = |k|
 
- k x h = (km hn - kn hm,
-          kn hk - kk hn,
-          kk hm - km hk)_kmn
-       = (0, -kk hn, kk hm)_kmn
-       = (-kk hn)(mx, my, mz) + (kk hm)(nx, ny, nz)
-       = |k| (hm * (nx, ny, nz) - hn * (mx, my, mz))
+    k x h = (ky hz - kz hy,
+             kz hx - kx hz,
+             kx hy - ky hx)
+          = ((k x h) @ k, (k x h) @ m, (k x h) @ n)_kmn
+          = (0, (m x k) @ h, (n x k) @ h)_kmn         # triple product ordering
+          = (0, kk (-n @ h), kk (m @ h))_kmn          # (m x k) = -|k| n, etc.
+          = |k| (0, -h @ n, h @ m)_kmn
 
- where h is shorthand for H_k, (...)_kmn deontes the (k, m, n) basis,
- and e.g. hm is the component of h in the m direction.
+    k x h = (km hn - kn hm,
+             kn hk - kk hn,
+             kk hm - km hk)_kmn
+          = (0, -kk hn, kk hm)_kmn
+          = (-kk hn)(mx, my, mz) + (kk hm)(nx, ny, nz)
+          = |k| (hm * (nx, ny, nz) - hn * (mx, my, mz))
 
- We can also simplify conv(X_k, Y_k) as fftn(X * ifftn(Y_k)).
+ where `h` is shorthand for `H_k`, `(...)_kmn` deontes the `(k, m, n)` basis,
+ and e.g. `hm` is the component of `h` in the `m` direction.
 
- Using these results and storing H_k as h = (hm, hn), we have
-  e_xyz = fftn(1/eps * ifftn(|k| (hm * n - hn * m)))
-  b_mn = |k| (-e_xyz @ n, e_xyz @ m)
-  h_mn = fftn(1/mu * ifftn(b_m * m + b_n * n))
+ We can also simplify `conv(X_k, Y_k)` as `fftn(X * ifftn(Y_k))`.
+
+ Using these results and storing `H_k` as `h = (hm, hn)`, we have
+
+    e_xyz = fftn(1/eps * ifftn(|k| (hm * n - hn * m)))
+    b_mn = |k| (-e_xyz @ n, e_xyz @ m)
+    h_mn = fftn(1/mu * ifftn(b_m * m + b_n * n))
+
  which forms the operator from the left side of the equation.
 
  We can then use a preconditioned block Rayleigh iteration algorithm, as in
@@ -120,12 +127,15 @@ def generate_kmn(k0: numpy.ndarray,
     """
     Generate a (k, m, n) orthogonal basis for each k-vector in the simulation grid.
 
-    :param k0: [k0x, k0y, k0z], Bloch wavevector, in G basis.
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param shape: [nx, ny, nz] shape of the simulation grid.
-    :return: (|k|, m, n) where |k| has shape tuple(shape) + (1,)
-            and m, n have shape tuple(shape) + (3,).
-            All are given in the xyz basis (e.g. |k|[0,0,0] = norm(G_matrix @ k0)).
+    Args:
+        k0: [k0x, k0y, k0z], Bloch wavevector, in G basis.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        shape: [nx, ny, nz] shape of the simulation grid.
+
+    Returns:
+        `(|k|, m, n)` where `|k|` has shape `tuple(shape) + (1,)`
+            and `m`, `n` have shape `tuple(shape) + (3,)`.
+            All are given in the xyz basis (e.g. `|k|[0,0,0] = norm(G_matrix @ k0)`).
     """
     k0 = numpy.array(k0)
 
@@ -159,21 +169,27 @@ def maxwell_operator(k0: numpy.ndarray,
                      ) -> Callable[[numpy.ndarray], numpy.ndarray]:
     """
     Generate the Maxwell operator
+
         conv(1/mu_k, ik x conv(1/eps_k, ik x ___))
+
     which is the spatial-frequency-space representation of
+
         1/mu * curl(1/eps * curl(___))
 
-    The operator is a function that acts on a vector h_mn of size (2 * epsilon[0].size)
+    The operator is a function that acts on a vector h_mn of size `2 * epsilon[0].size`
 
-    See the module-level docstring for more information.
+    See the `meanas.fdfd.bloch` docstring for more information.
 
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :param mu: Magnetic permability distribution for the simulation.
-        Default None (1 everywhere).
-    :return: Function which applies the maxwell operator to h_mn.
+    Args:
+        k0: Bloch wavevector, `[k0x, k0y, k0z]`.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+        mu: Magnetic permability distribution for the simulation.
+            Default None (1 everywhere).
+
+    Returns:
+        Function which applies the maxwell operator to h_mn.
     """
 
     shape = epsilon[0].shape + (1,)
@@ -189,8 +205,11 @@ def maxwell_operator(k0: numpy.ndarray,
 
         h is complex 2-field in (m, n) basis, vectorized
 
-        :param h: Raveled h_mn; size (2 * epsilon[0].size).
-        :return: Raveled conv(1/mu_k, ik x conv(1/eps_k, ik x h_mn)).
+        Args:
+            h: Raveled h_mn; size `2 * epsilon[0].size`.
+
+        Returns:
+            Raveled conv(1/mu_k, ik x conv(1/eps_k, ik x h_mn)).
         """
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
 
@@ -231,18 +250,22 @@ def hmn_2_exyz(k0: numpy.ndarray,
                ) -> Callable[[numpy.ndarray], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
-     h_mn into an E-field distribution, i.e.
+     `h_mn` into an E-field distribution, i.e.
+
         ifft(conv(1/eps_k, ik x h_mn))
 
-    The operator is a function that acts on a vector h_mn of size (2 * epsilon[0].size)
+    The operator is a function that acts on a vector `h_mn` of size `2 * epsilon[0].size`.
 
-    See the module-level docstring for more information.
+    See the `meanas.fdfd.bloch` docstring for more information.
 
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :return: Function for converting h_mn into E_xyz
+    Args:
+        k0: Bloch wavevector, `[k0x, k0y, k0z]`.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+
+    Returns:
+        Function for converting `h_mn` into `E_xyz`
     """
     shape = epsilon[0].shape + (1,)
     epsilon = numpy.stack(epsilon, 3)
@@ -266,18 +289,22 @@ def hmn_2_hxyz(k0: numpy.ndarray,
                ) -> Callable[[numpy.ndarray], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
-     h_mn into an H-field distribution, i.e.
+     `h_mn` into an H-field distribution, i.e.
+
         ifft(h_mn)
 
-    The operator is a function that acts on a vector h_mn of size (2 * epsilon[0].size)
+    The operator is a function that acts on a vector `h_mn` of size `2 * epsilon[0].size`.
 
-    See the module-level docstring for more information.
+    See the `meanas.fdfd.bloch` docstring for more information.
 
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        Only epsilon[0].shape is used.
-    :return: Function for converting h_mn into H_xyz
+    Args:
+        k0: Bloch wavevector, `[k0x, k0y, k0z]`.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 Only `epsilon[0].shape` is used.
+
+    Returns:
+        Function for converting `h_mn` into `H_xyz`
     """
     shape = epsilon[0].shape + (1,)
     _k_mag, m, n = generate_kmn(k0, G_matrix, shape)
@@ -298,18 +325,23 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
                                     ) -> Callable[[numpy.ndarray], numpy.ndarray]:
     """
     Generate an approximate inverse of the Maxwell operator,
+
         ik x conv(eps_k, ik x conv(mu_k, ___))
+
      which can be used to improve the speed of ARPACK in shift-invert mode.
 
-    See the module-level docstring for more information.
+    See the `meanas.fdfd.bloch` docstring for more information.
 
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :param mu: Magnetic permability distribution for the simulation.
-        Default None (1 everywhere).
-    :return: Function which applies the approximate inverse of the maxwell operator to h_mn.
+    Args:
+        k0: Bloch wavevector, `[k0x, k0y, k0z]`.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+        mu: Magnetic permability distribution for the simulation.
+            Default None (1 everywhere).
+
+    Returns:
+        Function which applies the approximate inverse of the maxwell operator to `h_mn`.
     """
     shape = epsilon[0].shape + (1,)
     epsilon = numpy.stack(epsilon, 3)
@@ -325,8 +357,11 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
 
         h is complex 2-field in (m, n) basis, vectorized
 
-        :param h: Raveled h_mn; size (2 * epsilon[0].size).
-        :return: Raveled ik x conv(eps_k, ik x conv(mu_k, h_mn))
+        Args:
+            h: Raveled h_mn; size `2 * epsilon[0].size`.
+
+        Returns:
+            Raveled ik x conv(eps_k, ik x conv(mu_k, h_mn))
         """
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
 
@@ -376,16 +411,20 @@ def find_k(frequency: float,
     """
     Search for a bloch vector that has a given frequency.
 
-    :param frequency: Target frequency.
-    :param tolerance: Target frequency tolerance.
-    :param direction: k-vector direction to search along.
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :param mu: Magnetic permability distribution for the simulation.
-        Default None (1 everywhere).
-    :param band: Which band to search in. Default 0 (lowest frequency).
-    return: (k, actual_frequency) The found k-vector and its frequency
+    Args:
+        frequency: Target frequency.
+        tolerance: Target frequency tolerance.
+        direction: k-vector direction to search along.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+        mu: Magnetic permability distribution for the simulation.
+            Default None (1 everywhere).
+        band: Which band to search in. Default 0 (lowest frequency).
+
+    Returns:
+        `(k, actual_frequency)`
+        The found k-vector and its frequency.
     """
 
     direction = numpy.array(direction) / norm(direction)
@@ -419,16 +458,19 @@ def eigsolve(num_modes: int,
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
      k0 of the specified structure.
 
-    :param k0: Bloch wavevector, [k0x, k0y, k0z].
-    :param G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
-    :param epsilon: Dielectric constant distribution for the simulation.
-        All fields are sampled at cell centers (i.e., NOT Yee-gridded)
-    :param mu: Magnetic permability distribution for the simulation.
-        Default None (1 everywhere).
-    :param tolerance: Solver stops when fractional change in the objective
-        trace(Z.H @ A @ Z @ inv(Z Z.H)) is smaller than the tolerance
-    :return: (eigenvalues, eigenvectors) where eigenvalues[i] corresponds to the
-        vector eigenvectors[i, :]
+    Args:
+        k0: Bloch wavevector, `[k0x, k0y, k0z]`.
+        G_matrix: 3x3 matrix, with reciprocal lattice vectors as columns.
+        epsilon: Dielectric constant distribution for the simulation.
+                 All fields are sampled at cell centers (i.e., NOT Yee-gridded)
+        mu: Magnetic permability distribution for the simulation.
+            Default `None` (1 everywhere).
+        tolerance: Solver stops when fractional change in the objective
+                   `trace(Z.H @ A @ Z @ inv(Z Z.H))` is smaller than the tolerance
+
+    Returns:
+        `(eigenvalues, eigenvectors)` where `eigenvalues[i]` corresponds to the
+        vector `eigenvectors[i, :]`
     """
     h_size = 2 * epsilon[0].size
 
