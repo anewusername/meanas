@@ -37,7 +37,7 @@ dx_lists_t = List[List[numpy.ndarray]]
 '''
 
 
-fdfield_updater_t = Callable[[fdfield_t], fdfield_t]
+fdfield_updater_t = Callable[..., fdfield_t]
 '''
  Convenience type for functions which take and return an fdfield_t
 '''

@@ -392,12 +392,107 @@ $$
     -\\tilde{\\partial}_t \\hat{\\nabla} \\times \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}  \\\\
   \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
     -\\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\tilde{E}_{l, \\vec{r}} + \\hat{\\partial}_t \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
-  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l, \\vec{r}})
+  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}})
             + \\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\cdot \\tilde{E}_{l, \\vec{r}}
             &= \\tilde{\\partial}_t \\tilde{J}_{l - \\frac{1}{2}, \\vec{r}}
   \\end{align*}
 $$
 
+
+Frequency domain
+----------------
+
+We can substitute in a time-harmonic fields
+
+$$
+ \\begin{align*}
+ \\tilde{E}_\\vec{r} &= \\tilde{E}_\\vec{r} e^{-\\imath \\omega l \\Delta_t} \\\\
+ \\tilde{J}_\\vec{r} &= \\tilde{J}_\\vec{r} e^{-\\imath \\omega (l - \\frac{1}{2}) \\Delta_t}
+ \\end{align*}
+$$
+
+resulting in
+
+$$
+ \\begin{align*}
+ \\tilde{\\partial}_t &\\Rightarrow (e^{ \\imath \\omega \\Delta_t} - 1) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_t} \\sin(\\omega \\Delta_t / 2) e^{-\\imath \\omega \\Delta_t / 2} = -\\imath \\Omega e^{-\\imath \\omega \\Delta_t / 2}\\\\
+   \\hat{\\partial}_t &\\Rightarrow (1 - e^{-\\imath \\omega \\Delta_t}) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_t} \\sin(\\omega \\Delta_t / 2) e^{ \\imath \\omega \\Delta_t / 2} = -\\imath \\Omega e^{ \\imath \\omega \\Delta_t / 2}\\\\
+ \\Omega &= 2 \\sin(\\omega \\Delta_t / 2) / \\Delta_t
+ \\end{align*}
+$$
+
+This gives the frequency-domain wave equation,
+
+$$
+ \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r})
+    -\\Omega^2 \\epsilon_\\vec{r} \\cdot \\tilde{E}_\\vec{r} = \\imath \\Omega \\tilde{J}_\\vec{r}
+$$
+
+
+Plane waves and Dispersion relation
+------------------------------------
+
+With uniform material distribution and no sources
+
+$$
+ \\begin{align*}
+ \\mu_{\\vec{r} + \\frac{1}{2}} &= \\mu \\\\
+ \\epsilon_\\vec{r} &= \\epsilon \\\\
+ \\tilde{J}_\\vec{r} &= 0 \\\\
+ \\end{align*}
+$$
+
+the frequency domain wave equation simplifies to
+
+$$ \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r} - \\Omega^2 \\epsilon \\mu \\tilde{E}_\\vec{r} = 0 $$
+
+Since \\( \\hat{\\nabla} \\cdot \\tilde{E}_\\vec{r} = 0 \\), we can simplify
+
+$$
+ \\begin{align*}
+ \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r}
+   &= \\tilde{\\nabla}(\\hat{\\nabla} \\cdot \\tilde{E}_\\vec{r}) - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_\\vec{r} \\\\
+   &= - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_\\vec{r} \\\\
+   &= - \\tilde{\\nabla}^2 \\tilde{E}_\\vec{r}
+ \\end{align*}
+$$
+
+and we get
+
+$$  \\tilde{\\nabla}^2 \\tilde{E}_\\vec{r} + \\Omega^2 \\epsilon \\mu \\tilde{E}_\\vec{r} = 0 $$
+
+We can convert this to three scalar-wave equations of the form
+
+$$ (\\tilde{\\nabla}^2 + K^2) \\phi_\\vec{r} = 0 $$
+
+with \\( K^2 = \\Omega^2 \\mu \\epsilon \\). Now we let
+
+$$  \\phi_\\vec{r} = A e^{\\imath (k_x m \\Delta_x + k_y n \\Delta_y + k_z p \\Delta_z)}  $$
+
+resulting in
+
+$$
+ \\begin{align*}
+ \\tilde{\\partial}_x &\\Rightarrow (e^{ \\imath k_x \\Delta_x} - 1) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_x} \\sin(k_x \\Delta_x / 2) e^{ \\imath k_x \\Delta_x / 2} = \\imath K_x e^{ \\imath k_x \\Delta_x / 2}\\\\
+   \\hat{\\partial}_x &\\Rightarrow (1 - e^{-\\imath k_x \\Delta_x}) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_x} \\sin(k_x \\Delta_x / 2) e^{-\\imath k_x \\Delta_x / 2} = \\imath K_x e^{-\\imath k_x \\Delta_x / 2}\\\\
+ K_x &= 2 \\sin(k_x \\Delta_x / 2) / \\Delta_x \\\\
+ \\end{align*}
+$$
+
+with similar expressions for the y and z dimnsions (and \\( K_y, K_z \\)).
+
+This implies
+
+$$
+  \\tilde{\\nabla}^2 = -(K_x^2 + K_y^2 + K_z^2) \\phi_\\vec{r} \\\\
+  K_x^2 + K_y^2 + K_z^2 = \\Omega^2 \\mu \\epsilon = \\Omega^2 / c^2
+$$
+
+Assuming real \\( (k_x, k_y, k_z), \\omega \\) will be real only if
+
+$$ c^2 \\Delta_t^2 = \\frac{\\Delta_t^2}{\\mu \\epsilon} < 1/(\\frac{1}{\\Delta_x^2} + \\frac{1}{\\Delta_y^2} + \\frac{1}{\\Delta_z^2}) $$
+
+If \\( \\Delta_x = \\Delta_y = \\Delta_z \\), this simplifies to \\( c \\Delta_t  < \\frac{\\Delta_x}{\\sqrt{3}} \\).
 
 
 Grid description
@@ -598,6 +693,46 @@ H-field back-vectors:
    where `dx_e[0]` is the x-width of the `m=0` cells, as used when calculating dE/dx,
    and `dy_h[0]` is  the y-width of the `n=0` cells, as used when calculating dH/dy, etc.
 
+
+Permittivity and Permeability
+=============================
+
+Since each vector component of E and H is defined in a different location and represents
+a different volume, the value of the spatially-discrete `epsilon` and `mu` can also be
+different for all three field components, even when representing a simple planar interface
+between two isotropic materials.
+
+As a result, `epsilon` and `mu` are taken to have the same dimensions as the field, and
+composed of the three diagonal tensor components:
+
+    [equations: epsilon_and_mu]
+    epsilon = [epsilon_xx, epsilon_yy, epsilon_zz]
+    mu = [mu_xx, mu_yy, mu_zz]
+
+or
+
+$$
+ \\epsilon = \\begin{bmatrix} \\epsilon_{xx} & 0 & 0 \\\\
+                              0 & \\epsilon_{yy} & 0 \\\\
+                              0 & 0 & \\epsilon_{zz} \\end{bmatrix}
+$$
+$$
+ \\mu = \\begin{bmatrix} \\mu_{xx} & 0 & 0 \\\\
+                         0 & \\mu_{yy} & 0 \\\\
+                         0 & 0 & \\mu_{zz} \\end{bmatrix}
+$$
+
+where the off-diagonal terms (e.g. `epsilon_xy`) are assumed to be zero.
+
+High-accuracy volumetric integration of shapes on multiple grids can be performed
+by the [gridlock](https://mpxd.net/code/jan/gridlock) module.
+
+The values of the vacuum permittivity and permability effectively become scaling
+factors that appear in several locations (e.g. between the E and H fields). In
+order to limit floating-point inaccuracy and simplify calculations, they are often
+set to 1 and relative permittivities and permeabilities are used in their places;
+the true values can be multiplied back in after the simulation is complete if non-
+normalized results are needed.
 """
 
 from .types import fdfield_t, vfdfield_t, dx_lists_t, fdfield_updater_t

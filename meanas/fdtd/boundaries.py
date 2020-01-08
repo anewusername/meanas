@@ -1,5 +1,7 @@
 """
 Boundary conditions
+
+#TODO conducting boundary documentation
 """
 
 from typing import List, Callable, Tuple, Dict

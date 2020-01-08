@@ -5,10 +5,14 @@ import numpy
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import deriv_back, deriv_forward
 
+
 def poynting(e: fdfield_t,
              h: fdfield_t,
              dxes: dx_lists_t = None,
              ) -> fdfield_t:
+    """
+    Calculate the poynting vector
+    """
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
@@ -32,6 +36,9 @@ def poynting_divergence(s: fdfield_t = None,
                         h: fdfield_t = None,
                         dxes: dx_lists_t = None,
                         ) -> fdfield_t:
+    """
+    Calculate the divergence of the poynting vector
+    """
     if s is None:
         s = poynting(e, h, dxes=dxes)
 
