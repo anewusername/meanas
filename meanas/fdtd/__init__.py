@@ -1,6 +1,9 @@
 """
 Utilities for running finite-difference time-domain (FDTD) simulations
 
+See the discussion of `Maxwell's Equations` in `meanas.fdmath` for basic
+mathematical background.
+
 
 Timestep
 ========
@@ -19,13 +22,120 @@ Based on this, we can set
 The `dx_min`, `dy_min`, `dz_min` should be the minimum value across both the base and derived grids.
 
 
-Poynting Vector
-===============
-# TODO
+Poynting Vector and Energy Conservation
+=======================================
 
-Energy conservation
-===================
-# TODO
+Let
+
+$$ \\begin{align*}
+  \\tilde{S}_{l, l', \\vec{r}} &=& &\\tilde{E}_{l, \\vec{r}} \\otimes \\hat{H}_{l', \\vec{r} + \\frac{1}{2}}  \\\\
+  &=&  &\\vec{x} (\\tilde{E}^y_{l,m+1,n,p} \\hat{H}^z_{l',\\vec{r} + \\frac{1}{2}} - \\tilde{E}^z_{l,m+1,n,p} \\hat{H}^y_{l', \\vec{r} + \\frac{1}{2}}) \\\\
+  & &+ &\\vec{y} (\\tilde{E}^z_{l,m,n+1,p} \\hat{H}^x_{l',\\vec{r} + \\frac{1}{2}} - \\tilde{E}^x_{l,m,n+1,p} \\hat{H}^z_{l', \\vec{r} + \\frac{1}{2}}) \\\\
+  & &+ &\\vec{z} (\\tilde{E}^x_{l,m,n,p+1} \\hat{H}^y_{l',\\vec{r} + \\frac{1}{2}} - \\tilde{E}^y_{l,m,n,p+1} \\hat{H}^z_{l', \\vec{r} + \\frac{1}{2}})
+   \\end{align*}
+$$
+
+where \\( \\vec{r} = (m, n, p) \\) and \\( \\otimes \\) is a modified cross product
+in which the \\( \\tilde{E} \\) terms are shifted as indicated.
+
+By taking the divergence and rearranging terms, we can show that
+
+$$
+  \\begin{align*}
+  \\hat{\\nabla} \\cdot \\tilde{S}_{l, l', \\vec{r}}
+   &= \\hat{\\nabla} \\cdot (\\tilde{E}_{l, \\vec{r}} \\otimes \\hat{H}_{l', \\vec{r} + \\frac{1}{2}})  \\\\
+   &= \\hat{H}_{l', \\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l, \\vec{r}} -
+      \\tilde{E}_{l, \\vec{r}} \\cdot \\hat{\\nabla} \\times \\hat{H}_{l', \\vec{r} + \\frac{1}{2}} \\\\
+   &= \\hat{H}_{l', \\vec{r} + \\frac{1}{2}} \\cdot
+            (-\\tilde{\\partial}_t \\mu_{\\vec{r} + \\frac{1}{2}} \\hat{H}_{l - \\frac{1}{2}, \\vec{r} + \\frac{1}{2}} -
+                \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}) -
+      \\tilde{E}_{l, \\vec{r}} \\cdot (\\hat{\\partial}_t \\tilde{\\epsilon}_\\vec{r} \\tilde{E}_{l'+\\frac{1}{2}, \\vec{r}} +
+                \\tilde{J}_{l', \\vec{r}}) \\\\
+   &= \\hat{H}_{l'} \\cdot (-\\mu / \\Delta_t)(\\hat{H}_{l + \\frac{1}{2}} - \\hat{H}_{l - \\frac{1}{2}}) -
+      \\tilde{E}_l \\cdot (\\epsilon / \\Delta_t )(\\tilde{E}_{l'+\\frac{1}{2}} - \\tilde{E}_{l'-\\frac{1}{2}})
+      - \\hat{H}_{l'} \\cdot \\hat{M}_{l-1} - \\tilde{E}_l \\cdot \\tilde{J}_{l'} \\\\
+  \\end{align*}
+$$
+
+where in the last line the spatial subscripts have been dropped to emphasize
+the time subscripts \\( l, l' \\), i.e.
+
+$$
+  \\begin{align*}
+  \\tilde{E}_l &= \\tilde{E}_{l, \\vec{r}} \\\\
+  \\hat{H}_l &= \\tilde{H}_{l, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\tilde{\\epsilon} &= \\tilde{\\epsilon}_\\vec{r}  \\\\
+  \\end{align*}
+$$
+
+etc.
+For \\( l' = l + \\frac{1}{2} \\) we get
+
+$$
+  \\begin{align*}
+  \\hat{\\nabla} \\cdot \\tilde{S}_{l, l + \\frac{1}{2}}
+   &= \\hat{H}_{l + \\frac{1}{2}} \\cdot
+            (-\\mu / \\Delta_t)(\\hat{H}_{l + \\frac{1}{2}} - \\hat{H}_{l - \\frac{1}{2}}) -
+      \\tilde{E}_l \\cdot (\\epsilon / \\Delta_t)(\\tilde{E}_{l+1} - \\tilde{E}_l)
+      - \\hat{H}_{l'} \\cdot \\hat{M}_l - \\tilde{E}_l \\cdot \\tilde{J}_{l + \\frac{1}{2}} \\\\
+   &= (-\\mu / \\Delta_t)(\\hat{H}^2_{l + \\frac{1}{2}} - \\hat{H}_{l + \\frac{1}{2}} \\cdot \\hat{H}_{l - \\frac{1}{2}}) -
+      (\\epsilon / \\Delta_t)(\\tilde{E}_{l+1} \\cdot \\tilde{E}_l - \\tilde{E}^2_l)
+      - \\hat{H}_{l'} \\cdot \\hat{M}_l - \\tilde{E}_l \\cdot \\tilde{J}_{l + \\frac{1}{2}} \\\\
+   &= -(\\mu \\hat{H}^2_{l + \\frac{1}{2}}
+       +\\epsilon \\tilde{E}_{l+1} \\cdot \\tilde{E}_l) / \\Delta_t \\ \\
+      +(\\mu \\hat{H}_{l + \\frac{1}{2}} \\cdot \\hat{H}_{l - \\frac{1}{2}}
+       +\\epsilon \\tilde{E}^2_l) / \\Delta_t \\ \\
+      - \\hat{H}_{l+\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
+      - \\tilde{E}_l \\cdot \\tilde{J}_{l+\\frac{1}{2}} \\\\
+  \\end{align*}
+$$
+
+and for \\( l' = l - \\frac{1}{2} \\),
+
+$$
+  \\begin{align*}
+  \\hat{\\nabla} \\cdot \\tilde{S}_{l, l - \\frac{1}{2}}
+   &=  (\\mu \\hat{H}^2_{l - \\frac{1}{2}}
+       +\\epsilon \\tilde{E}_{l-1} \\cdot \\tilde{E}_l) / \\Delta_t \\ \\
+      -(\\mu \\hat{H}_{l + \\frac{1}{2}} \\cdot \\hat{H}_{l - \\frac{1}{2}}
+       +\\epsilon \\tilde{E}^2_l) / \\Delta_t \\ \\
+      - \\hat{H}_{l-\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
+      - \\tilde{E}_l \\cdot \\tilde{J}_{l-\\frac{1}{2}} \\\\
+  \\end{align*}
+$$
+
+These two results form the discrete time-domain analogue to Poynting's theorem.
+They hint at the expressions for the energy, which can be calculated at the same
+time-index as either the E or H field:
+
+$$
+ \\begin{align*}
+ U_l &= \\epsilon \\tilde{E}^2_l + \\mu \\hat{H}_{l + \\frac{1}{2}} \\cdot \\hat{H}_{l - \\frac{1}{2}} \\\\
+ U_{l + \\frac{1}{2}} &= \\epsilon \\tilde{E}_l \\cdot \\tilde{E}_{l + 1} + \\mu \\hat{H}^2_{l + \\frac{1}{2}} \\\\
+ \\end{align*}
+$$
+
+Rewriting the Poynting theorem in terms of the energy expressions,
+
+$$
+  \\begin{align*}
+  (U_{l+\\frac{1}{2}} - U_l) / \\Delta_t
+   &= -\\hat{\\nabla} \\cdot \\tilde{S}_{l, l + \\frac{1}{2}} \\ \\
+      - \\hat{H}_{l+\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
+      - \\tilde{E}_l \\cdot \\tilde{J}_{l+\\frac{1}{2}} \\\\
+  (U_l - U_{l-\\frac{1}{2}}) / \\Delta_t
+   &= -\\hat{\\nabla} \\cdot \\tilde{S}_{l, l - \\frac{1}{2}} \\ \\
+      - \\hat{H}_{l-\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
+      - \\tilde{E}_l \\cdot \\tilde{J}_{l-\\frac{1}{2}} \\\\
+ \\end{align*}
+$$
+
+This result is exact an should practically hold to within numerical precision. No time-
+or spatial-averaging is necessary.
+
+Note that each value of \\( J \\) contributes to the energy twice (i.e. once per field update)
+despite only causing the value of \\( E \\) to change once (same for \\( M \\) and \\( H \\)).
+
 
 Boundary conditions
 ===================

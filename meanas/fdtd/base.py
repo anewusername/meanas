@@ -73,9 +73,9 @@ def maxwell_h(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
 
     The full update should be
 
-        H -= (curl_forward(E[t]) - M) / mu
+        H -= (curl_forward(E[t]) + M) / mu
 
-    which requires an additional step of `H += M / mu` which is not performed
+    which requires an additional step of `H -= M / mu` which is not performed
     by the generated function; this step can be omitted if there is no magnetic
     current `M`.
 

@@ -288,9 +288,9 @@ If we discretize both space (m,n,p) and time (l), Maxwell's equations become
 
  $$ \\begin{align*}
   \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &= -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
-                                                                         + \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
-  \\hat{\\nabla} \\times \\hat{H}_{l,\\vec{r} + \\frac{1}{2}} &= \\hat{\\partial}_t \\tilde{D}_{l, \\vec{r}}
-                                                                   + \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
+                                                                         - \\hat{M}_{l, \\vec{r} + \\frac{1}{2}}  \\\\
+  \\hat{\\nabla} \\times \\hat{H}_{l-\\frac{1}{2},\\vec{r} + \\frac{1}{2}} &= \\hat{\\partial}_t \\tilde{D}_{l, \\vec{r}}
+                                                                             + \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
   \\tilde{\\nabla} \\cdot \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}} &= 0 \\\\
   \\hat{\\nabla} \\cdot \\tilde{D}_{l,\\vec{r}} &= \\rho_{l,\\vec{r}}
  \\end{align*} $$
@@ -311,9 +311,9 @@ and \\( \\epsilon \\) and \\( \\mu \\) are the dielectric permittivity and magne
 The above is Yee's algorithm, written in a form analogous to Maxwell's equations.
 The time derivatives can be expanded to form the update equations:
 
-    [code: Maxwell's equations]
-    H[i, j, k] -= (curl_forward(E[t])[i, j, k] - M[t, i, j, k]) /      mu[i, j, k]
-    E[i, j, k] += (curl_back(   H[t])[i, j, k] + J[t, i, j, k]) / epsilon[i, j, k]
+    [code: Maxwell's equations updates]
+    H[i, j, k] -= dt * (curl_forward(E)[i, j, k] + M[t, i, j, k]) /      mu[i, j, k]
+    E[i, j, k] += dt * (curl_back(   H)[i, j, k] + J[t, i, j, k]) / epsilon[i, j, k]
 
 Note that the E-field fore-vector and H-field back-vector are offset by a half-cell, resulting
 in distinct locations for all six E- and H-field components:
@@ -383,7 +383,7 @@ $$
   \\begin{align*}
   \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=
       -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
-                          + \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
+                          - \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
   \\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=
     -\\tilde{\\partial}_t \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}  \\\\
   \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
@@ -488,11 +488,16 @@ $$
   K_x^2 + K_y^2 + K_z^2 = \\Omega^2 \\mu \\epsilon = \\Omega^2 / c^2
 $$
 
+where \\( c = \\sqrt{\\mu \\epsilon} \\).
+
 Assuming real \\( (k_x, k_y, k_z), \\omega \\) will be real only if
 
 $$ c^2 \\Delta_t^2 = \\frac{\\Delta_t^2}{\\mu \\epsilon} < 1/(\\frac{1}{\\Delta_x^2} + \\frac{1}{\\Delta_y^2} + \\frac{1}{\\Delta_z^2}) $$
 
-If \\( \\Delta_x = \\Delta_y = \\Delta_z \\), this simplifies to \\( c \\Delta_t  < \\frac{\\Delta_x}{\\sqrt{3}} \\).
+If \\( \\Delta_x = \\Delta_y = \\Delta_z \\), this simplifies to \\( c \\Delta_t < \\Delta_x / \\sqrt{3} \\).
+This last form can be interpreted as enforcing causality; the distance that light
+travels in one timestep (i.e., \\( c \\Delta_t \\)) must be less than the diagonal
+of the smallest cell ( \\( \\Delta_x / \\sqrt{3} \\) when on a uniform cubic grid).
 
 
 Grid description
