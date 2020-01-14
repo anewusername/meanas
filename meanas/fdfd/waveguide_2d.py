@@ -74,7 +74,7 @@ $$
 \\end{align*}
 $$
 
-With a similar approach (but using \\( \\tilde{\\partial}_y \\) instead), we can get
+With a similar approach (but using \\( \\gamma \\tilde{\\partial}_y \\) instead), we can get
 
 $$
 \\begin{align*}
@@ -90,7 +90,7 @@ $$
 \\begin{align*}
 -\\imath \\omega \\mu_{xx} \\gamma H_x &=  \\gamma^2 E_y + \\tilde{\\partial}_y (
                                       \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
-                                    + \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
+                                    + \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
                                     ) \\\\
 -\\imath \\omega \\mu_{yy} \\gamma H_y &= -\\gamma^2 E_x - \\tilde{\\partial}_x (
                                       \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
@@ -175,26 +175,21 @@ def operator_e(omega: complex,
     for use with a field vector of the form `cat([E_x, E_y])`.
 
     More precisely, the operator is
-    $$ \\omega^2 \\mu_{yx} \\epsilon_{xy} +
-       \\mu_{yx} \\begin{bmatrix} -D_{by} \\\\
-                                   D_{bx} \\end{bmatrix} \\mu_z^{-1}
-                 \\begin{bmatrix} -D_{fy} & D_{fx} \\end{bmatrix} +
-      \\begin{bmatrix} D_{fx} \\\\
-                       D_{fy} \\end{bmatrix} \\epsilon_z^{-1}
-                 \\begin{bmatrix} D_{bx} & D_{by} \\end{bmatrix} \\epsilon_{xy} $$
 
-    where
-    \\( \\epsilon_{xy} = \\begin{bmatrix}
-                                 \\epsilon_x & 0 \\\\
-                                           0 & \\epsilon_y
-                                 \\end{bmatrix} \\),
-    \\( \\mu_{yx} = \\begin{bmatrix}
-                           \\mu_y & 0 \\\\
-                                0 & \\mu_x
-                           \\end{bmatrix} \\),
-    \\( D_{fx} \\) and \\( D_{bx} \\) are the forward and backward derivatives along x,
-    and each \\( \\epsilon_x, \\mu_y, \\) etc. is a diagonal matrix representing
+    $$
+    \\omega^2 \\begin{bmatrix} \\mu_{yy} \\epsilon_{xx} & 0 \\\\
+                                                       0 & \\mu_{xx} \\epsilon_{yy} \\end{bmatrix} +
+                 \\begin{bmatrix} -\\mu_{yy} \\hat{\\partial}_y \\\\
+                                   \\mu_{xx} \\hat{\\partial}_x \\end{bmatrix} \\mu_{zz}^{-1}
+                 \\begin{bmatrix} -\\tilde{\\partial}_y & \\tilde{\\partial}_x \\end{bmatrix} +
+      \\begin{bmatrix} \\tilde{\\partial}_x \\\\
+                       \\tilde{\\partial}_y \\end{bmatrix} \\epsilon_{zz}^{-1}
+                 \\begin{bmatrix} \\hat{\\partial}_x \\epsilon_{xx} & \\hat{\\partial}_y \\epsilon_{yy} \\end{bmatrix}
+    $$
 
+    \\( \\tilde{\\parital}_x} \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
+    and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
+    property distribution.
 
     This operator can be used to form an eigenvalue problem of the form
     `operator_e(...) @ [E_x, E_y] = wavenumber**2 * [E_x, E_y]`
@@ -246,26 +241,21 @@ def operator_h(omega: complex,
     for use with a field vector of the form `cat([H_x, H_y])`.
 
     More precisely, the operator is
-    $$ \\omega^2 \\epsilon_{yx} \\mu_{xy} +
-       \\epsilon_{yx} \\begin{bmatrix} -D_{fy} \\\\
-                                        D_{fx} \\end{bmatrix} \\epsilon_z^{-1}
-                 \\begin{bmatrix} -D_{by} & D_{bx} \\end{bmatrix} +
-      \\begin{bmatrix} D_{bx} \\\\
-                       D_{by} \\end{bmatrix} \\mu_z^{-1}
-                 \\begin{bmatrix} D_{fx} & D_{fy} \\end{bmatrix} \\mu_{xy} $$
 
-    where
-    \\( \\epsilon_{yx} = \\begin{bmatrix}
-                                 \\epsilon_y & 0 \\\\
-                                           0 & \\epsilon_x
-                                 \\end{bmatrix} \\),
-    \\( \\mu_{xy} = \\begin{bmatrix}
-                           \\mu_x & 0 \\\\
-                                0 & \\mu_y
-                           \\end{bmatrix} \\),
-    \\( D_{fx} \\) and \\( D_{bx} \\) are the forward and backward derivatives along x,
-    and each \\( \\epsilon_x, \\mu_y, \\) etc. is a diagonal matrix.
+    $$
+    \\omega^2 \\begin{bmatrix} \\epsilon_{yy} \\mu_{xx} & 0 \\\\
+                                                      0 & \\epsilon_{xx} \\mu_{yy} \\end{bmatrix} +
+                 \\begin{bmatrix} -\\epsilon_{yy} \\tilde{\\partial}_y \\\\
+                                   \\epsilon_{xx} \\tilde{\\partial}_x \\end{bmatrix} \\epsilon_{zz}^{-1}
+                 \\begin{bmatrix} -\\hat{\\partial}_y & \\hat{\\partial}_x \\end{bmatrix} +
+      \\begin{bmatrix} \\hat{\\partial}_x \\\\
+                       \\hat{\\partial}_y \\end{bmatrix} \\mu_{zz}^{-1}
+                 \\begin{bmatrix} \\tilde{\\partial}_x \\mu_{xx} & \\tilde{\\partial}_y \\mu_{yy} \\end{bmatrix}
+    $$
 
+    \\( \\tilde{\\parital}_x} \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
+    and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
+    property distribution.
 
     This operator can be used to form an eigenvalue problem of the form
     `operator_h(...) @ [H_x, H_y] = wavenumber**2 * [H_x, H_y]`
