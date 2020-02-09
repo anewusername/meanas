@@ -273,7 +273,7 @@ For example, consider the forward curl, at (m, n, p), of a back-vector field `g`
     [figure: z-component of curl]
                               :             |
         z y                   :    ^^       |
-        |/_x                  :....||.<.....|  (m, n+1, p+1/2)
+        |/_x                  :....||.<.....|  (m+1, n+1, p+1/2)
                               /    ||      /
                            | v     ||   | ^
                            |/           |/
