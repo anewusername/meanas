@@ -47,12 +47,12 @@ def e_full(omega: complex,
            ) -> sparse.spmatrix:
     """
     Wave operator
-     $$ \\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\omega^2 \\epsilon $$
+     $$ \\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\Omega^2 \\epsilon $$
 
         del x (1/mu * del x) - omega**2 * epsilon
 
      for use with the E-field, with wave equation
-     $$ (\\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\omega^2 \\epsilon) E = -\\imath \\omega J $$
+     $$ (\\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\Omega^2 \\epsilon) E = -\\imath \\omega J $$
 
         (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
 
