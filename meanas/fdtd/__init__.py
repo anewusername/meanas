@@ -137,6 +137,23 @@ Note that each value of \\( J \\) contributes to the energy twice (i.e. once per
 despite only causing the value of \\( E \\) to change once (same for \\( M \\) and \\( H \\)).
 
 
+Sources
+=============
+
+It is often useful to excite the simulation with an arbitrary broadband pulse and then
+extract the frequency-domain response by performing an on-the-fly Fourier transform
+of the time-domain fields.
+
+The Ricker wavelet (normalized second derivative of a Gaussian) is commonly used for the pulse
+shape. It can be written
+
+$$ f_r(t) = (1 - \\frac{1}{2} (\\omega (t - \\tau))^2) e^{-(\\frac{\\omega (t - \\tau)}{2})^2} $$
+
+with \\( \\tau > \\frac{2 * \\pi}{\\omega} \\) as a minimum delay to avoid a discontinuity at
+t=0 (assuming the source is off for t<0 this gives \\( \\sim 10^{-3} \\) error at t=0).
+
+
+
 Boundary conditions
 ===================
 # TODO notes about boundaries / PMLs
