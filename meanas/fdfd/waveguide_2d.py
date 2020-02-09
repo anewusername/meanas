@@ -187,7 +187,7 @@ def operator_e(omega: complex,
                  \\begin{bmatrix} \\hat{\\partial}_x \\epsilon_{xx} & \\hat{\\partial}_y \\epsilon_{yy} \\end{bmatrix}
     $$
 
-    \\( \\tilde{\\parital}_x} \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
+    \\( \\tilde{\\partial}_x \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
     and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
     property distribution.
 
@@ -253,7 +253,7 @@ def operator_h(omega: complex,
                  \\begin{bmatrix} \\tilde{\\partial}_x \\mu_{xx} & \\tilde{\\partial}_y \\mu_{yy} \\end{bmatrix}
     $$
 
-    \\( \\tilde{\\parital}_x} \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
+    \\( \\tilde{\\partial}_x \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
     and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
     property distribution.
 
