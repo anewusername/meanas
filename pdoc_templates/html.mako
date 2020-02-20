@@ -2,7 +2,10 @@
   import os
 
   import pdoc
-  from pdoc.html_helpers import extract_toc, glimpse, to_html as _to_html, format_git_link
+  from pdoc.html_helpers import extract_toc, glimpse, to_html as _to_html, format_git_link, _md, to_markdown
+
+  from markdown.inlinepatterns import InlineProcessor
+  from markdown.util import AtomicString, etree
 
 
   def link(d, name=None, fmt='{}'):
@@ -14,8 +17,33 @@
     return '<a title="{}" href="{}">{}</a>'.format(d.refname, url, name)
 
 
-  def to_html(text):
-    return _to_html(text, module=module, link=link, latex_math=latex_math)
+  # Altered latex delimeters (allow inline $...$, wrap in <eq></eq>)
+  class _MathPattern(InlineProcessor):
+      NAME = 'pdoc-math'
+      PATTERN = r'(?<!\S|\\)(?:\\\((.+?)\\\)|\\\[(.+?)\\\]|\$\$(.+?)\$\$|\$(\S.*?)\$)'
+      PRIORITY = 181  # Larger than that of 'escape' pattern
+
+      def handleMatch(self, m, data):
+          for value, is_block in zip(m.groups(), (False, True, True, False)):
+              if value:
+                  break
+          wrapper = etree.Element('eq')
+          wrapper.text = AtomicString(value)
+          return wrapper, m.start(0), m.end(0)
+
+  def to_html(text: str):
+      if not latex_math and _MathPattern.NAME in _md.inlinePatterns:
+          _md.inlinePatterns.deregister(_MathPattern.NAME)
+      elif latex_math and _MathPattern.NAME not in _md.inlinePatterns:
+          _md.inlinePatterns.register(_MathPattern(_MathPattern.PATTERN),
+                                      _MathPattern.NAME,
+                                      _MathPattern.PRIORITY)
+      md = to_markdown(text, docformat='numpy,google', module=module, link=link)
+      return _md.reset().convert(md)
+
+
+#  def to_html(text):
+#    return _to_html(text, module=module, link=link, latex_math=latex_math)
 %>
 
 <%def name="ident(name)"><span class="ident">${name}</span></%def>
@@ -375,10 +403,6 @@
     window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
     ga('create', '${google_analytics}', 'auto'); ga('send', 'pageview');
     </script><script async src='https://www.google-analytics.com/analytics.js'></script>
-  % endif
-
-  % if latex_math:
-    <script async src='https://mpxd.net/scripts/MathJax/MathJax.js?config=TeX-AMS_CHTML'></script>
   % endif
 
   <%include file="head.mako"/>

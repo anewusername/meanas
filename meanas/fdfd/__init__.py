@@ -14,7 +14,20 @@ Submodules:
 - `waveguide_3d`: Functions for transforming `waveguide_2d` results into 3D.
 
 
-===========
+================================================================
+
+From the "Frequency domain" section of `meanas.fdmath`, we have
+
+$$
+ \\begin{aligned}
+ \\tilde{E}_{l, \\vec{r}} &= \\tilde{E}_{\\vec{r}} e^{-\\imath \\omega l \\Delta_t} \\\\
+ \\tilde{J}_{l, \\vec{r}} &= \\tilde{J}_{\\vec{r}} e^{-\\imath \\omega (l - \\frac{1}{2}) \\Delta_t} \\\\
+ \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{\\vec{r}})
+    -\\Omega^2 \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{\\vec{r}} &= \\imath \\Omega \\tilde{J}_{\\vec{r}} \\\\
+ \\Omega &= 2 \\sin(\\omega \\Delta_t / 2) / \\Delta_t
+ \\end{aligned}
+$$
+
 
 # TODO FDFD?
 # TODO PML

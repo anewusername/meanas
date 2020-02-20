@@ -63,3 +63,6 @@ target/
 
 
 .*.sw[op]
+
+*.svg
+*.html

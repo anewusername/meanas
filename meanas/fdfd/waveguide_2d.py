@@ -12,82 +12,82 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 
 Consider Maxwell's equations in continuous space, in the frequency domain. Assuming
 a structure with some (x, y) cross-section extending uniformly into the z dimension,
-with a diagonal \\( \\epsilon \\) tensor, we have
+with a diagonal $\\epsilon$ tensor, we have
 
 $$
-\\begin{align*}
+\\begin{aligned}
 \\nabla \\times \\vec{E}(x, y, z) &= -\\imath \\omega \\mu \\vec{H} \\\\
 \\nabla \\times \\vec{H}(x, y, z) &=  \\imath \\omega \\epsilon \\vec{E} \\\\
 \\vec{E}(x,y,z) = (\\vec{E}_t(x, y) + E_z(x, y)\\vec{z}) e^{-\\gamma z} \\\\
 \\vec{H}(x,y,z) = (\\vec{H}_t(x, y) + H_z(x, y)\\vec{z}) e^{-\\gamma z} \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
 Expanding the first two equations into vector components, we get
 
 $$
-\\begin{align*}
+\\begin{aligned}
 -\\imath \\omega \\mu_{xx} H_x &= \\partial_y E_z - \\partial_z E_y \\\\
 -\\imath \\omega \\mu_{yy} H_y &= \\partial_z E_x - \\partial_x E_z \\\\
 -\\imath \\omega \\mu_{zz} H_z &= \\partial_x E_y - \\partial_y E_x \\\\
 \\imath \\omega \\epsilon_{xx} E_x &= \\partial_y H_z - \\partial_z H_y \\\\
 \\imath \\omega \\epsilon_{yy} E_y &= \\partial_z H_x - \\partial_x H_z \\\\
 \\imath \\omega \\epsilon_{zz} E_z &= \\partial_x H_y - \\partial_y H_x \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
-Substituting in our expressions for \\( \\vec{E}, \\vec{H} \\) and discretizing:
+Substituting in our expressions for $\\vec{E}$, $\\vec{H}$ and discretizing:
 
 $$
-\\begin{align*}
+\\begin{aligned}
 -\\imath \\omega \\mu_{xx} H_x &= \\tilde{\\partial}_y E_z + \\gamma E_y \\\\
 -\\imath \\omega \\mu_{yy} H_y &= -\\gamma E_x - \\tilde{\\partial}_x E_z \\\\
 -\\imath \\omega \\mu_{zz} H_z &= \\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x \\\\
 \\imath \\omega \\epsilon_{xx} E_x &= \\hat{\\partial}_y H_z + \\gamma H_y \\\\
 \\imath \\omega \\epsilon_{yy} E_y &= -\\gamma H_x - \\hat{\\partial}_x H_z \\\\
 \\imath \\omega \\epsilon_{zz} E_z &= \\hat{\\partial}_x H_y - \\hat{\\partial}_y H_x \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
 Rewrite the last three equations as
 $$
-\\begin{align*}
+\\begin{aligned}
 \\gamma H_y &=  \\imath \\omega \\epsilon_{xx} E_x - \\hat{\\partial}_y H_z \\\\
 \\gamma H_x &= -\\imath \\omega \\epsilon_{yy} E_y - \\hat{\\partial}_x H_z \\\\
 \\imath \\omega E_z &= \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x H_y - \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y H_x \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
-Now apply \\( \\gamma \\tilde{\\partial}_x \\) to the last equation,
-then substitute in for \\( \\gamma H_x \\) and \\( \\gamma H_y \\):
+Now apply $\\gamma \\tilde{\\partial}_x$ to the last equation,
+then substitute in for $\\gamma H_x$ and $\\gamma H_y$:
 
 $$
-\\begin{align*}
+\\begin{aligned}
 \\gamma \\tilde{\\partial}_x \\imath \\omega E_z &= \\gamma \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x H_y
                                                 - \\gamma \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y H_x \\\\
-        &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x ( \\imath \\omega \\epsilon{xx} E_x - \\hat{\\partial}_y H_z)
-         - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon{yy} E_y - \\hat{\\partial}_x H_z)  \\\\
-        &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x ( \\imath \\omega \\epsilon{xx} E_x)
-         - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon{yy} E_y)  \\\\
+        &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x ( \\imath \\omega \\epsilon_{xx} E_x - \\hat{\\partial}_y H_z)
+         - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon_{yy} E_y - \\hat{\\partial}_x H_z)  \\\\
+        &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x ( \\imath \\omega \\epsilon_{xx} E_x)
+         - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon_{yy} E_y)  \\\\
 \\gamma \\tilde{\\partial}_x E_z &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
                                     \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
-With a similar approach (but using \\( \\gamma \\tilde{\\partial}_y \\) instead), we can get
+With a similar approach (but using $\\gamma \\tilde{\\partial}_y$ instead), we can get
 
 $$
-\\begin{align*}
+\\begin{aligned}
 \\gamma \\tilde{\\partial}_y E_z &= \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
                                     \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
-We can combine this equation for \\( \\gamma \\tilde{\\partial}_y E_z \\) with
-the unused \\( \\imath \\omega \\mu_{xx} H_z \\) and \\( \\imath \\omega \\mu_{yy} H_y \\) equations to get
+We can combine this equation for $\\gamma \\tilde{\\partial}_y E_z$ with
+the unused $\\imath \\omega \\mu_{xx} H_z$ and $\\imath \\omega \\mu_{yy} H_y$ equations to get
 
 $$
-\\begin{align*}
+\\begin{aligned}
 -\\imath \\omega \\mu_{xx} \\gamma H_x &=  \\gamma^2 E_y + \\tilde{\\partial}_y (
                                       \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
                                     + \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
@@ -96,30 +96,30 @@ $$
                                       \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
                                     + \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
                                     )\\\\
-\\end{align*}
+\\end{aligned}
 $$
 
-However, based on our rewritten equation for \\( \\gamma H_x \\) and the so-far unused
-equation for \\( \\imath \\omega \\mu_{zz} H_z \\) we can also write
+However, based on our rewritten equation for $\\gamma H_x$ and the so-far unused
+equation for $\\imath \\omega \\mu_{zz} H_z$ we can also write
 
 $$
-\\begin{align*}
+\\begin{aligned}
 -\\imath \\omega \\mu_{xx} (\\gamma H_x) &= -\\imath \\omega \\mu_{xx} (-\\imath \\omega \\epsilon_{yy} E_y - \\hat{\\partial}_x H_z) \\\\
                                          &= -\\omega^2 \\mu_{xx} \\epsilon_{yy} E_y
                                             -\\imath \\omega \\mu_{xx} \\hat{\\partial}_x (
                                                 \\frac{1}{-\\imath \\omega \\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x)) \\\\
                                          &= -\\omega^2 \\mu_{xx} \\epsilon_{yy} E_y
                                             +\\mu_{xx} \\hat{\\partial}_x \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
 and, similarly,
 
 $$
-\\begin{align*}
+\\begin{aligned}
 -\\imath \\omega \\mu_{yy} (\\gamma H_y) &= -\\omega^2 \\mu_{yy} \\epsilon_{xx} E_x
                                             +\\mu_{yy} \\hat{\\partial}_y \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
-\\end{align*}
+\\end{aligned}
 $$
 
 Using these, we can construct the eigenvalue problem
@@ -137,9 +137,9 @@ $$ \\beta^2 \\begin{bmatrix} E_x \\\\
                      E_y \\end{bmatrix}
 $$
 
-An equivalent eigenvalue problem can be formed using the \\( H_x, H_y \\) fields, if those are more convenient.
+An equivalent eigenvalue problem can be formed using the $H_x$ and $H_y$ fields, if those are more convenient.
 
-Note that \\( E_z \\) was never discretized, so \\( \\gamma \\) and \\( \\beta \\) will need adjustment
+Note that $E_z$ was never discretized, so $\\gamma$ and $\\beta$ will need adjustment
 to account for numerical dispersion if the result is introduced into a space with a discretized z-axis.
 
 
@@ -187,8 +187,8 @@ def operator_e(omega: complex,
                  \\begin{bmatrix} \\hat{\\partial}_x \\epsilon_{xx} & \\hat{\\partial}_y \\epsilon_{yy} \\end{bmatrix}
     $$
 
-    \\( \\tilde{\\partial}_x \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
-    and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
+    $\\tilde{\\partial}_x$ and $\\hat{\\partial}_x$ are the forward and backward derivatives along x,
+    and each $\\epsilon_{xx}$, $\\mu_{yy}$, etc. is a diagonal matrix containing the vectorized material
     property distribution.
 
     This operator can be used to form an eigenvalue problem of the form
@@ -253,8 +253,8 @@ def operator_h(omega: complex,
                  \\begin{bmatrix} \\tilde{\\partial}_x \\mu_{xx} & \\tilde{\\partial}_y \\mu_{yy} \\end{bmatrix}
     $$
 
-    \\( \\tilde{\\partial}_x \\) and \\( \\hat{\\partial}_x \\) are the forward and backward derivatives along x,
-    and each \\( \\epsilon_{xx}, \\mu_{yy}, \\) etc. is a diagonal matrix containing the vectorized material
+    $\\tilde{\\partial}_x$ and $\\hat{\\partial}_x$ are the forward and backward derivatives along x,
+    and each $\\epsilon_{xx}$, $\\mu_{yy}$, etc. is a diagonal matrix containing the vectorized material
     property distribution.
 
     This operator can be used to form an eigenvalue problem of the form

@@ -63,7 +63,7 @@ def curl_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
 
     Returns:
         Function `f` for taking the discrete forward curl of a field,
-        `f(E)` -> curlE \\( = \\nabla_f \\times E \\)
+        `f(E)` -> curlE $= \\nabla_f \\times E$
     """
     Dx, Dy, Dz = deriv_forward(dx_e)
 
@@ -90,7 +90,7 @@ def curl_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
 
     Returns:
         Function `f` for taking the discrete backward curl of a field,
-        `f(H)` -> curlH \\( = \\nabla_b \\times H \\)
+        `f(H)` -> curlH $= \\nabla_b \\times H$
     """
     Dx, Dy, Dz = deriv_back(dx_h)
 

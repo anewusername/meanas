@@ -43,11 +43,11 @@ Scalar derivatives and cell shifts
 ----------------------------------
 
 Define the discrete forward derivative as
- $$ [\\tilde{\\partial}_x f ]_{m + \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m + 1} - f_m) $$
- where \\( f \\) is a function defined at discrete locations on the x-axis (labeled using \\( m \\)).
- The value at \\( m \\) occupies a length \\( \\Delta_{x, m} \\) along the x-axis. Note that \\( m \\)
+ $$ [\\tilde{\\partial}_x f]_{m + \\frac{1}{2}} = \\frac{1}{\\Delta_{x, m}} (f_{m + 1} - f_m) $$
+ where $f$ is a function defined at discrete locations on the x-axis (labeled using $m$).
+ The value at $m$ occupies a length $\\Delta_{x, m}$ along the x-axis. Note that $m$
  is an index along the x-axis, _not_ necessarily an x-coordinate, since each length
- \\( \\Delta_{x, m}, \\Delta_{x, m+1}, ...\\) is independently chosen.
+ $\\Delta_{x, m}, \\Delta_{x, m+1}, ...$ is independently chosen.
 
 If we treat `f` as a 1D array of values, with the `i`-th value `f[i]` taking up a length `dx[i]`
 along the x-axis, the forward derivative is
@@ -62,7 +62,7 @@ Likewise, discrete reverse derivative is
     deriv_back(f)[i] = (f[i] - f[i - 1]) / dx[i]
 
 The derivatives' values are shifted by a half-cell relative to the original function, and
-will have different cell widths if all the `dx[i]` ( \\( \\Delta_{x, m} \\) ) are not
+will have different cell widths if all the `dx[i]` ( $\\Delta_{x, m}$ ) are not
 identical:
 
     [figure: derivatives and cell sizes]
@@ -87,19 +87,20 @@ identical:
     Periodic boundaries are used here and elsewhere unless otherwise noted.
 
 In the above figure,
- `f0 =` \\(f_0\\), `f1 =` \\(f_1\\)
- `Df0 =` \\([\\tilde{\\partial}f]_{0 + \\frac{1}{2}}\\)
- `Df1 =` \\([\\tilde{\\partial}f]_{1 + \\frac{1}{2}}\\)
- `df0 =` \\([\\hat{\\partial}f]_{0 - \\frac{1}{2}}\\)
+ `f0 =` $f_0$, `f1 =` $f_1$
+ `Df0 =` $[\\tilde{\\partial}f]_{0 + \\frac{1}{2}}$
+ `Df1 =` $[\\tilde{\\partial}f]_{1 + \\frac{1}{2}}$
+ `df0 =` $[\\hat{\\partial}f]_{0 - \\frac{1}{2}}$
  etc.
 
-The fractional subscript \\( m + \\frac{1}{2} \\) is used to indicate values defined
- at shifted locations relative to the original \\( m \\), with corresponding lengths
+The fractional subscript $m + \\frac{1}{2}$ is used to indicate values defined
+ at shifted locations relative to the original $m$, with corresponding lengths
  $$ \\Delta_{x, m + \\frac{1}{2}} = \\frac{1}{2} * (\\Delta_{x, m} + \\Delta_{x, m + 1}) $$
-Just as \\( m \\) is not itself an x-coordinate, neither is \\( m + \\frac{1}{2} \\);
+
+Just as $m$ is not itself an x-coordinate, neither is $m + \\frac{1}{2}$;
 carefully note the positions of the various cells in the above figure vs their labels.
-If the positions labeled with \\( m \\) are considered the "base" or "original" grid,
-the positions labeled with \\( m + \\frac{1}{2} \\) are said to lie on a "dual" or
+If the positions labeled with $m$ are considered the "base" or "original" grid,
+the positions labeled with $m + \\frac{1}{2}$ are said to lie on a "dual" or
 "derived" grid.
 
 For the remainder of the `Discrete calculus` section, all figures will show
@@ -201,8 +202,8 @@ There are also two divergences,
 where `g = [gx, gy, gz]` is a fore- or back-vector field.
 
 Since we applied the forward divergence to the back-vector (and vice-versa), the resulting scalar value
-is defined at the back-vector's (fore-vectors) location \\( (m,n,p) \\) and not at the locations of its components
-\\( (m \\pm \\frac{1}{2},n,p) \\) etc.
+is defined at the back-vector's (fore-vector's) location $(m,n,p)$ and not at the locations of its components
+$(m \\pm \\frac{1}{2},n,p)$ etc.
 
     [figure: divergence]
                                     ^^
@@ -226,23 +227,23 @@ Curls
 
 The two curls are then
 
-  $$ \\begin{align*}
+  $$ \\begin{aligned}
      \\hat{h}_{m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}} &= \\\\
      [\\tilde{\\nabla} \\times \\tilde{g}]_{m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}} &=
         \\vec{x} (\\tilde{\\partial}_y g^z_{m,n,p + \\frac{1}{2}} - \\tilde{\\partial}_z g^y_{m,n + \\frac{1}{2},p}) \\\\
      &+ \\vec{y} (\\tilde{\\partial}_z g^x_{m + \\frac{1}{2},n,p} - \\tilde{\\partial}_x g^z_{m,n,p + \\frac{1}{2}}) \\\\
      &+ \\vec{z} (\\tilde{\\partial}_x g^y_{m,n + \\frac{1}{2},p} - \\tilde{\\partial}_y g^z_{m + \\frac{1}{2},n,p})
-     \\end{align*} $$
+     \\end{aligned} $$
 
  and
 
   $$ \\tilde{h}_{m - \\frac{1}{2}, n - \\frac{1}{2}, p - \\frac{1}{2}} =
      [\\hat{\\nabla} \\times \\hat{g}]_{m - \\frac{1}{2}, n - \\frac{1}{2}, p - \\frac{1}{2}} $$
 
-  where \\( \\hat{g} \\) and \\( \\tilde{g} \\) are located at \\((m,n,p)\\)
-  with components at  \\( (m \\pm \\frac{1}{2},n,p) \\) etc.,
-  while \\( \\hat{h} \\) and \\( \\tilde{h} \\) are located at \\((m \\pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\)
-  with components at \\((m, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})\\) etc.
+  where $\\hat{g}$ and $\\tilde{g}$ are located at $(m,n,p)$
+  with components at $(m \\pm \\frac{1}{2},n,p)$ etc.,
+  while $\\hat{h}$ and $\\tilde{h}$ are located at $(m \\pm \\frac{1}{2}, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})$
+  with components at $(m, n \\pm \\frac{1}{2}, p \\pm \\frac{1}{2})$ etc.
 
 
     [code: curls]
@@ -286,27 +287,27 @@ Maxwell's Equations
 
 If we discretize both space (m,n,p) and time (l), Maxwell's equations become
 
- $$ \\begin{align*}
+ $$ \\begin{aligned}
   \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &= -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
                                                                          - \\hat{M}_{l, \\vec{r} + \\frac{1}{2}}  \\\\
   \\hat{\\nabla} \\times \\hat{H}_{l-\\frac{1}{2},\\vec{r} + \\frac{1}{2}} &= \\hat{\\partial}_t \\tilde{D}_{l, \\vec{r}}
                                                                              + \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
   \\tilde{\\nabla} \\cdot \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}} &= 0 \\\\
   \\hat{\\nabla} \\cdot \\tilde{D}_{l,\\vec{r}} &= \\rho_{l,\\vec{r}}
- \\end{align*} $$
+ \\end{aligned} $$
 
  with
 
- $$ \\begin{align*}
-  \\hat{B}_\\vec{r} &= \\mu_{\\vec{r} + \\frac{1}{2}} \\cdot \\hat{H}_{\\vec{r} + \\frac{1}{2}} \\\\
-  \\tilde{D}_\\vec{r} &= \\epsilon_\\vec{r} \\cdot \\tilde{E}_\\vec{r}
- \\end{align*} $$
+ $$ \\begin{aligned}
+  \\hat{B}_{\\vec{r}} &= \\mu_{\\vec{r} + \\frac{1}{2}} \\cdot \\hat{H}_{\\vec{r} + \\frac{1}{2}} \\\\
+  \\tilde{D}_{\\vec{r}} &= \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{\\vec{r}}
+ \\end{aligned} $$
 
-where the spatial subscripts are abbreviated as \\( \\vec{r} = (m, n, p) \\) and
-\\( \\vec{r} + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2}) \\),
-\\( \\tilde{E} \\) and \\( \\hat{H} \\) are the electric and magnetic fields,
-\\( \\tilde{J} \\) and \\( \\hat{M} \\) are the electric and magnetic current distributions,
-and \\( \\epsilon \\) and \\( \\mu \\) are the dielectric permittivity and magnetic permeability.
+where the spatial subscripts are abbreviated as $\\vec{r} = (m, n, p)$ and
+$\\vec{r} + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2}, p + \\frac{1}{2})$,
+$\\tilde{E}$ and $\\hat{H}$ are the electric and magnetic fields,
+$\\tilde{J}$ and $\\hat{M}$ are the electric and magnetic current distributions,
+and $\\epsilon$ and $\\mu$ are the dielectric permittivity and magnetic permeability.
 
 The above is Yee's algorithm, written in a form analogous to Maxwell's equations.
 The time derivatives can be expanded to form the update equations:
@@ -375,12 +376,12 @@ and combining them with charge continuity,
 Wave equation
 -------------
 
-Taking the backward curl of the \\( \\tilde{\\nabla} \\times \\tilde{E} \\) equation and
-replacing the resulting \\( \\hat{\\nabla} \\times \\hat{H} \\) term using its respective equation,
-and setting \\( \\hat{M} \\) to zero, we can form the discrete wave equation:
+Taking the backward curl of the $\\tilde{\\nabla} \\times \\tilde{E}$ equation and
+replacing the resulting $\\hat{\\nabla} \\times \\hat{H}$ term using its respective equation,
+and setting $\\hat{M}$ to zero, we can form the discrete wave equation:
 
 $$
-  \\begin{align*}
+  \\begin{aligned}
   \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}} &=
       -\\tilde{\\partial}_t \\hat{B}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}
                           - \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}  \\\\
@@ -391,11 +392,11 @@ $$
   \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
     -\\tilde{\\partial}_t \\hat{\\nabla} \\times \\hat{H}_{l-\\frac{1}{2}, \\vec{r} + \\frac{1}{2}}  \\\\
   \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}}) &=
-    -\\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\tilde{E}_{l, \\vec{r}} + \\hat{\\partial}_t \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
+    -\\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_{\\vec{r}} \\tilde{E}_{l, \\vec{r}} + \\hat{\\partial}_t \\tilde{J}_{l-\\frac{1}{2},\\vec{r}} \\\\
   \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{l,\\vec{r}})
-            + \\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_\\vec{r} \\cdot \\tilde{E}_{l, \\vec{r}}
+            + \\tilde{\\partial}_t \\hat{\\partial}_t \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{l, \\vec{r}}
             &= \\tilde{\\partial}_t \\tilde{J}_{l - \\frac{1}{2}, \\vec{r}}
-  \\end{align*}
+  \\end{aligned}
 $$
 
 
@@ -405,27 +406,27 @@ Frequency domain
 We can substitute in a time-harmonic fields
 
 $$
- \\begin{align*}
- \\tilde{E}_\\vec{r} &= \\tilde{E}_\\vec{r} e^{-\\imath \\omega l \\Delta_t} \\\\
- \\tilde{J}_\\vec{r} &= \\tilde{J}_\\vec{r} e^{-\\imath \\omega (l - \\frac{1}{2}) \\Delta_t}
- \\end{align*}
+ \\begin{aligned}
+ \\tilde{E}_{l, \\vec{r}} &= \\tilde{E}_{\\vec{r}} e^{-\\imath \\omega l \\Delta_t} \\\\
+ \\tilde{J}_{l, \\vec{r}} &= \\tilde{J}_{\\vec{r}} e^{-\\imath \\omega (l - \\frac{1}{2}) \\Delta_t}
+ \\end{aligned}
 $$
 
 resulting in
 
 $$
- \\begin{align*}
+ \\begin{aligned}
  \\tilde{\\partial}_t &\\Rightarrow (e^{ \\imath \\omega \\Delta_t} - 1) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_t} \\sin(\\omega \\Delta_t / 2) e^{-\\imath \\omega \\Delta_t / 2} = -\\imath \\Omega e^{-\\imath \\omega \\Delta_t / 2}\\\\
    \\hat{\\partial}_t &\\Rightarrow (1 - e^{-\\imath \\omega \\Delta_t}) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_t} \\sin(\\omega \\Delta_t / 2) e^{ \\imath \\omega \\Delta_t / 2} = -\\imath \\Omega e^{ \\imath \\omega \\Delta_t / 2}\\\\
  \\Omega &= 2 \\sin(\\omega \\Delta_t / 2) / \\Delta_t
- \\end{align*}
+ \\end{aligned}
 $$
 
 This gives the frequency-domain wave equation,
 
 $$
- \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r})
-    -\\Omega^2 \\epsilon_\\vec{r} \\cdot \\tilde{E}_\\vec{r} = \\imath \\Omega \\tilde{J}_\\vec{r}
+ \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{\\vec{r}})
+    -\\Omega^2 \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{\\vec{r}} = \\imath \\Omega \\tilde{J}_{\\vec{r}}
 $$
 
 
@@ -435,69 +436,69 @@ Plane waves and Dispersion relation
 With uniform material distribution and no sources
 
 $$
- \\begin{align*}
+ \\begin{aligned}
  \\mu_{\\vec{r} + \\frac{1}{2}} &= \\mu \\\\
- \\epsilon_\\vec{r} &= \\epsilon \\\\
- \\tilde{J}_\\vec{r} &= 0 \\\\
- \\end{align*}
+ \\epsilon_{\\vec{r}} &= \\epsilon \\\\
+ \\tilde{J}_{\\vec{r}} &= 0 \\\\
+ \\end{aligned}
 $$
 
 the frequency domain wave equation simplifies to
 
-$$ \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r} - \\Omega^2 \\epsilon \\mu \\tilde{E}_\\vec{r} = 0 $$
+$$ \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_{\\vec{r}} - \\Omega^2 \\epsilon \\mu \\tilde{E}_{\\vec{r}} = 0 $$
 
-Since \\( \\hat{\\nabla} \\cdot \\tilde{E}_\\vec{r} = 0 \\), we can simplify
+Since $\\hat{\\nabla} \\cdot \\tilde{E}_{\\vec{r}} = 0$, we can simplify
 
 $$
- \\begin{align*}
- \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_\\vec{r}
-   &= \\tilde{\\nabla}(\\hat{\\nabla} \\cdot \\tilde{E}_\\vec{r}) - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_\\vec{r} \\\\
-   &= - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_\\vec{r} \\\\
-   &= - \\tilde{\\nabla}^2 \\tilde{E}_\\vec{r}
- \\end{align*}
+ \\begin{aligned}
+ \\hat{\\nabla} \\times \\tilde{\\nabla} \\times \\tilde{E}_{\\vec{r}}
+   &= \\tilde{\\nabla}(\\hat{\\nabla} \\cdot \\tilde{E}_{\\vec{r}}) - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_{\\vec{r}} \\\\
+   &= - \\hat{\\nabla} \\cdot \\tilde{\\nabla} \\tilde{E}_{\\vec{r}} \\\\
+   &= - \\tilde{\\nabla}^2 \\tilde{E}_{\\vec{r}}
+ \\end{aligned}
 $$
 
 and we get
 
-$$  \\tilde{\\nabla}^2 \\tilde{E}_\\vec{r} + \\Omega^2 \\epsilon \\mu \\tilde{E}_\\vec{r} = 0 $$
+$$  \\tilde{\\nabla}^2 \\tilde{E}_{\\vec{r}} + \\Omega^2 \\epsilon \\mu \\tilde{E}_{\\vec{r}} = 0 $$
 
 We can convert this to three scalar-wave equations of the form
 
-$$ (\\tilde{\\nabla}^2 + K^2) \\phi_\\vec{r} = 0 $$
+$$ (\\tilde{\\nabla}^2 + K^2) \\phi_{\\vec{r}} = 0 $$
 
-with \\( K^2 = \\Omega^2 \\mu \\epsilon \\). Now we let
+with $K^2 = \\Omega^2 \\mu \\epsilon$. Now we let
 
-$$  \\phi_\\vec{r} = A e^{\\imath (k_x m \\Delta_x + k_y n \\Delta_y + k_z p \\Delta_z)}  $$
+$$  \\phi_{\\vec{r}} = A e^{\\imath (k_x m \\Delta_x + k_y n \\Delta_y + k_z p \\Delta_z)}  $$
 
 resulting in
 
 $$
- \\begin{align*}
+ \\begin{aligned}
  \\tilde{\\partial}_x &\\Rightarrow (e^{ \\imath k_x \\Delta_x} - 1) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_x} \\sin(k_x \\Delta_x / 2) e^{ \\imath k_x \\Delta_x / 2} = \\imath K_x e^{ \\imath k_x \\Delta_x / 2}\\\\
    \\hat{\\partial}_x &\\Rightarrow (1 - e^{-\\imath k_x \\Delta_x}) / \\Delta_t = \\frac{-2 \\imath}{\\Delta_x} \\sin(k_x \\Delta_x / 2) e^{-\\imath k_x \\Delta_x / 2} = \\imath K_x e^{-\\imath k_x \\Delta_x / 2}\\\\
  K_x &= 2 \\sin(k_x \\Delta_x / 2) / \\Delta_x \\\\
- \\end{align*}
+ \\end{aligned}
 $$
 
-with similar expressions for the y and z dimnsions (and \\( K_y, K_z \\)).
+with similar expressions for the y and z dimnsions (and $K_y, K_z$).
 
 This implies
 
 $$
-  \\tilde{\\nabla}^2 = -(K_x^2 + K_y^2 + K_z^2) \\phi_\\vec{r} \\\\
+  \\tilde{\\nabla}^2 = -(K_x^2 + K_y^2 + K_z^2) \\phi_{\\vec{r}} \\\\
   K_x^2 + K_y^2 + K_z^2 = \\Omega^2 \\mu \\epsilon = \\Omega^2 / c^2
 $$
 
-where \\( c = \\sqrt{\\mu \\epsilon} \\).
+where $c = \\sqrt{\\mu \\epsilon}$.
 
-Assuming real \\( (k_x, k_y, k_z), \\omega \\) will be real only if
+Assuming real $(k_x, k_y, k_z), \\omega$ will be real only if
 
 $$ c^2 \\Delta_t^2 = \\frac{\\Delta_t^2}{\\mu \\epsilon} < 1/(\\frac{1}{\\Delta_x^2} + \\frac{1}{\\Delta_y^2} + \\frac{1}{\\Delta_z^2}) $$
 
-If \\( \\Delta_x = \\Delta_y = \\Delta_z \\), this simplifies to \\( c \\Delta_t < \\Delta_x / \\sqrt{3} \\).
+If $\\Delta_x = \\Delta_y = \\Delta_z$, this simplifies to $c \\Delta_t < \\Delta_x / \\sqrt{3}$.
 This last form can be interpreted as enforcing causality; the distance that light
-travels in one timestep (i.e., \\( c \\Delta_t \\)) must be less than the diagonal
-of the smallest cell ( \\( \\Delta_x / \\sqrt{3} \\) when on a uniform cubic grid).
+travels in one timestep (i.e., $c \\Delta_t$) must be less than the diagonal
+of the smallest cell ( $\\Delta_x / \\sqrt{3}$ when on a uniform cubic grid).
 
 
 Grid description
@@ -513,9 +514,9 @@ To get a better sense of how this works, let's start by drawing a grid with unif
 to make the illustration simpler; we need at least two cells in the x dimension to
 demonstrate how nonuniform `dx` affects the various components.
 
-Place the E fore-vectors at integer indices \\( r = (m, n, p) \\) and the H back-vectors
-at fractional indices \\( r + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2},
-p + \\frac{1}{2}) \\). Remember that these are indices and not coordinates; they can
+Place the E fore-vectors at integer indices $r = (m, n, p)$ and the H back-vectors
+at fractional indices $r + \\frac{1}{2} = (m + \\frac{1}{2}, n + \\frac{1}{2},
+p + \\frac{1}{2})$. Remember that these are indices and not coordinates; they can
 correspond to arbitrary (monotonically increasing) coordinates depending on the cell widths.
 
 Draw lines to denote the planes on which the H components and back-vectors are defined.
