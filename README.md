@@ -40,8 +40,7 @@ those included in [MAGMA](http://icl.cs.utk.edu/magma/index.html). Your
 solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
 
-- [WIP Source repository](https://mpxd.net/code/jan/fdfd_tools/src/branch/wip)
-- *TODO* [Source repository](https://mpxd.net/code/jan/meanas)
+- [Source repository](https://mpxd.net/code/jan/meanas)
 - PyPI *TBD*
 
 
@@ -81,9 +80,6 @@ virtualenv -p python3.7 venv
 In-place development install:
 ```bash
 # Download using git
-git clone --branch wip https://mpxd.net/code/jan/fdfd_tools.git meanas/
-
-# NOTE: In the future this will become
 #git clone https://mpxd.net/code/jan/meanas.git
 
 # If you are using a virtualenv, activate it
