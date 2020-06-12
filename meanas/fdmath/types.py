@@ -2,7 +2,7 @@
 Types shared across multiple submodules
 """
 import numpy
-from typing import List, Callable
+from typing import Sequence, Callable, MutableSequence
 
 
 # Field types
@@ -25,7 +25,7 @@ class vfdfield_t(numpy.ndarray):
     pass
 
 
-dx_lists_t = List[List[numpy.ndarray]]
+dx_lists_t = Sequence[Sequence[numpy.ndarray]]
 '''
  'dxes' datastructure which contains grid cell width information in the following format:
 
@@ -34,6 +34,11 @@ dx_lists_t = List[List[numpy.ndarray]]
 
    where `dx_e[0]` is the x-width of the `x=0` cells, as used when calculating dE/dx,
    and `dy_h[0]` is the y-width of the `y=0` cells, as used when calculating dH/dy, etc.
+'''
+
+dx_lists_mut = MutableSequence[MutableSequence[numpy.ndarray]]
+'''
+ Mutable version of `dx_lists_t`
 '''
 
 

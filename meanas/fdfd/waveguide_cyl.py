@@ -8,7 +8,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 """
 # TODO update module docs
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
@@ -85,7 +85,7 @@ def solve_mode(mode_number: int,
                dxes: dx_lists_t,
                epsilon: vfdfield_t,
                r0: float,
-               ) -> Dict[str, complex or fdfield_t]:
+               ) -> Dict[str, Union[complex, fdfield_t]]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode

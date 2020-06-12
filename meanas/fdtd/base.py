@@ -3,7 +3,7 @@ Basic FDTD field updates
 
 
 """
-from typing import List, Callable, Tuple, Dict
+from typing import List, Callable, Dict, Union
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
@@ -47,7 +47,7 @@ def maxwell_e(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
     else:
         curl_h_fun = curl_back()
 
-    def me_fun(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t):
+    def me_fun(e: fdfield_t, h: fdfield_t, epsilon: Union[fdfield_t, float]) -> fdfield_t:
         """
         Update the E-field.
 
@@ -100,7 +100,7 @@ def maxwell_h(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
     else:
         curl_e_fun = curl_forward()
 
-    def mh_fun(e: fdfield_t, h: fdfield_t, mu: fdfield_t = None):
+    def mh_fun(e: fdfield_t, h: fdfield_t, mu: Union[fdfield_t, float, None] = None) -> fdfield_t:
         """
         Update the H-field.
 

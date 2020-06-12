@@ -4,16 +4,20 @@ and a 1D array representation of that field `[f_x0, f_x1, f_x2,... f_y0,... f_z0
 Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
-from typing import List
+from typing import Optional, TypeVar, overload, Union, List
 import numpy
 
 from .types import fdfield_t, vfdfield_t
 
+@overload
+def vec(f: None) -> None:
+    pass
 
-__author__ = 'Jan Petykiewicz'
+@overload
+def vec(f: Union[fdfield_t, List[numpy.ndarray]]) -> vfdfield_t:
+    pass
 
-
-def vec(f: fdfield_t) -> vfdfield_t:
+def vec(f: Optional[Union[fdfield_t, List[numpy.ndarray]]]) -> Optional[vfdfield_t]:
     """
     Create a 1D ndarray from a 3D vector field which spans a 1-3D region.
 
@@ -31,7 +35,15 @@ def vec(f: fdfield_t) -> vfdfield_t:
     return numpy.ravel(f, order='C')
 
 
+@overload
+def unvec(v: None, shape: numpy.ndarray) -> None:
+    pass
+
+@overload
 def unvec(v: vfdfield_t, shape: numpy.ndarray) -> fdfield_t:
+    pass
+
+def unvec(v: Optional[vfdfield_t], shape: numpy.ndarray) -> Optional[fdfield_t]:
     """
     Perform the inverse of vec(): take a 1D ndarray and output a 3D field
      of form `[f_x, f_y, f_z]` where each of `f_*` is a len(shape)-dimensional

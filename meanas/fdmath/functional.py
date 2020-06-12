@@ -3,13 +3,14 @@ Math functions for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import List, Callable, Tuple, Dict
+from typing import Sequence, Tuple, Dict, Optional
 import numpy
 
 from .types import fdfield_t, fdfield_updater_t
 
 
-def deriv_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
+def deriv_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None
+                  ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -21,17 +22,18 @@ def deriv_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
         List of functions for taking forward derivatives along each axis.
     """
     if dx_e:
-        derivs = [lambda f: (numpy.roll(f, -1, axis=0) - f) / dx_e[0][:, None, None],
+        derivs = (lambda f: (numpy.roll(f, -1, axis=0) - f) / dx_e[0][:, None, None],
                   lambda f: (numpy.roll(f, -1, axis=1) - f) / dx_e[1][None, :, None],
-                  lambda f: (numpy.roll(f, -1, axis=2) - f) / dx_e[2][None, None, :]]
+                  lambda f: (numpy.roll(f, -1, axis=2) - f) / dx_e[2][None, None, :])
     else:
-        derivs = [lambda f: numpy.roll(f, -1, axis=0) - f,
+        derivs = (lambda f: numpy.roll(f, -1, axis=0) - f,
                   lambda f: numpy.roll(f, -1, axis=1) - f,
-                  lambda f: numpy.roll(f, -1, axis=2) - f]
+                  lambda f: numpy.roll(f, -1, axis=2) - f)
     return derivs
 
 
-def deriv_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
+def deriv_back(dx_h: Optional[Sequence[numpy.ndarray]] = None
+               ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -43,17 +45,17 @@ def deriv_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
         List of functions for taking forward derivatives along each axis.
     """
     if dx_h:
-        derivs = [lambda f: (f - numpy.roll(f, 1, axis=0)) / dx_h[0][:, None, None],
+        derivs = (lambda f: (f - numpy.roll(f, 1, axis=0)) / dx_h[0][:, None, None],
                   lambda f: (f - numpy.roll(f, 1, axis=1)) / dx_h[1][None, :, None],
-                  lambda f: (f - numpy.roll(f, 1, axis=2)) / dx_h[2][None, None, :]]
+                  lambda f: (f - numpy.roll(f, 1, axis=2)) / dx_h[2][None, None, :])
     else:
-        derivs = [lambda f: f - numpy.roll(f, 1, axis=0),
+        derivs = (lambda f: f - numpy.roll(f, 1, axis=0),
                   lambda f: f - numpy.roll(f, 1, axis=1),
-                  lambda f: f - numpy.roll(f, 1, axis=2)]
+                  lambda f: f - numpy.roll(f, 1, axis=2))
     return derivs
 
 
-def curl_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
+def curl_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater_t:
     """
     Curl operator for use with the E field.
 
@@ -80,7 +82,7 @@ def curl_forward(dx_e: List[numpy.ndarray] = None) -> fdfield_updater_t:
     return ce_fun
 
 
-def curl_back(dx_h: List[numpy.ndarray] = None) -> fdfield_updater_t:
+def curl_back(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater_t:
     """
     Create a function which takes the backward curl of a field.
 

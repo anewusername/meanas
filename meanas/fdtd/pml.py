@@ -7,7 +7,7 @@ PML implementations
 """
 # TODO retest pmls!
 
-from typing import List, Callable, Tuple, Dict
+from typing import List, Callable, Tuple, Dict, Any
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
@@ -59,9 +59,9 @@ def cpml(direction: int,
     else:
         raise Exception('Bad polarity!')
 
-    expand_slice = [None] * 3
-    expand_slice[direction] = slice(None)
-    expand_slice = tuple(expand_slice)
+    expand_slice_l: List[Any] = [None] * 3
+    expand_slice_l[direction] = slice(None)
+    expand_slice = tuple(expand_slice_l)
 
     def par(x):
         scaling = (x / thickness) ** m

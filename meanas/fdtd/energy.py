@@ -1,5 +1,5 @@
 # pylint: disable=unsupported-assignment-operation
-from typing import List, Callable, Tuple, Dict
+from typing import Callable, Tuple, Dict, Optional, Union
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
@@ -8,7 +8,7 @@ from ..fdmath.functional import deriv_back, deriv_forward
 
 def poynting(e: fdfield_t,
              h: fdfield_t,
-             dxes: dx_lists_t = None,
+             dxes: Optional[dx_lists_t] = None,
              ) -> fdfield_t:
     """
     Calculate the poynting vector
@@ -30,16 +30,19 @@ def poynting(e: fdfield_t,
     return s
 
 
-def poynting_divergence(s: fdfield_t = None,
+def poynting_divergence(s: Optional[fdfield_t] = None,
                         *,
-                        e: fdfield_t = None,
-                        h: fdfield_t = None,
-                        dxes: dx_lists_t = None,
+                        e: Optional[fdfield_t] = None,
+                        h: Optional[fdfield_t] = None,
+                        dxes: Optional[dx_lists_t] = None,
                         ) -> fdfield_t:
     """
     Calculate the divergence of the poynting vector
     """
     if s is None:
+        assert(e is not None)
+        assert(h is not None)
+        assert(dxes is not None)
         s = poynting(e, h, dxes=dxes)
 
     Dx, Dy, Dz = deriv_back()
@@ -50,9 +53,9 @@ def poynting_divergence(s: fdfield_t = None,
 def energy_hstep(e0: fdfield_t,
                  h1: fdfield_t,
                  e2: fdfield_t,
-                 epsilon: fdfield_t = None,
-                 mu: fdfield_t = None,
-                 dxes: dx_lists_t = None,
+                 epsilon: Optional[fdfield_t] = None,
+                 mu: Optional[fdfield_t] = None,
+                 dxes: Optional[dx_lists_t] = None,
                  ) -> fdfield_t:
     u = dxmul(e0 * e2, h1 * h1, epsilon, mu, dxes)
     return u
@@ -61,9 +64,9 @@ def energy_hstep(e0: fdfield_t,
 def energy_estep(h0: fdfield_t,
                  e1: fdfield_t,
                  h2: fdfield_t,
-                 epsilon: fdfield_t = None,
-                 mu: fdfield_t = None,
-                 dxes: dx_lists_t = None,
+                 epsilon: Optional[fdfield_t] = None,
+                 mu: Optional[fdfield_t] = None,
+                 dxes: Optional[dx_lists_t] = None,
                  ) -> fdfield_t:
     u = dxmul(e1 * e1, h0 * h2, epsilon, mu, dxes)
     return u
@@ -74,9 +77,9 @@ def delta_energy_h2e(dt: float,
                      h1: fdfield_t,
                      e2: fdfield_t,
                      h3: fdfield_t,
-                     epsilon: fdfield_t = None,
-                     mu: fdfield_t = None,
-                     dxes: dx_lists_t = None,
+                     epsilon: Optional[fdfield_t] = None,
+                     mu: Optional[fdfield_t] = None,
+                     dxes: Optional[dx_lists_t] = None,
                      ) -> fdfield_t:
     """
     This is just from (e2 * e2 + h3 * h1) - (h1 * h1 + e0 * e2)
@@ -92,9 +95,9 @@ def delta_energy_e2h(dt: float,
                      e1: fdfield_t,
                      h2: fdfield_t,
                      e3: fdfield_t,
-                     epsilon: fdfield_t = None,
-                     mu: fdfield_t = None,
-                     dxes: dx_lists_t = None,
+                     epsilon: Optional[fdfield_t] = None,
+                     mu: Optional[fdfield_t] = None,
+                     dxes: Optional[dx_lists_t] = None,
                      ) -> fdfield_t:
     """
     This is just from (h2 * h2 + e3 * e1) - (e1 * e1 + h0 * h2)
@@ -105,7 +108,10 @@ def delta_energy_e2h(dt: float,
     return du
 
 
-def delta_energy_j(j0: fdfield_t, e1: fdfield_t, dxes: dx_lists_t = None) -> fdfield_t:
+def delta_energy_j(j0: fdfield_t,
+                   e1: fdfield_t,
+                   dxes: Optional[dx_lists_t] = None,
+                   ) -> fdfield_t:
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
@@ -118,9 +124,9 @@ def delta_energy_j(j0: fdfield_t, e1: fdfield_t, dxes: dx_lists_t = None) -> fdf
 
 def dxmul(ee: fdfield_t,
           hh: fdfield_t,
-          epsilon: fdfield_t = None,
-          mu: fdfield_t = None,
-          dxes: dx_lists_t = None
+          epsilon: Optional[Union[fdfield_t, float]] = None,
+          mu: Optional[Union[fdfield_t, float]] = None,
+          dxes: Optional[dx_lists_t] = None
           ) -> fdfield_t:
     if epsilon is None:
         epsilon = 1

@@ -4,7 +4,7 @@ Boundary conditions
 #TODO conducting boundary documentation
 """
 
-from typing import List, Callable, Tuple, Dict
+from typing import Callable, Tuple, Dict, Any, List
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
@@ -20,8 +20,8 @@ def conducting_boundary(direction: int,
     u, v = dirs
 
     if polarity < 0:
-        boundary_slice = [slice(None)] * 3
-        shifted1_slice = [slice(None)] * 3
+        boundary_slice = [slice(None)] * 3      # type: List[Any]
+        shifted1_slice = [slice(None)] * 3      # type: List[Any]
         boundary_slice[direction] = 0
         shifted1_slice[direction] = 1
 
@@ -42,7 +42,7 @@ def conducting_boundary(direction: int,
     if polarity > 0:
         boundary_slice = [slice(None)] * 3
         shifted1_slice = [slice(None)] * 3
-        shifted2_slice = [slice(None)] * 3
+        shifted2_slice = [slice(None)] * 3      # type: List[Any]
         boundary_slice[direction] = -1
         shifted1_slice[direction] = -2
         shifted2_slice[direction] = -3

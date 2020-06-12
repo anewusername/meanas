@@ -1,7 +1,7 @@
 """
 Solvers for eigenvalue / eigenvector problems
 """
-from typing import Tuple, List
+from typing import Tuple, Callable, Optional, Union
 import numpy
 from numpy.linalg import norm
 from scipy import sparse
@@ -9,7 +9,7 @@ import scipy.sparse.linalg as spalg
 
 
 def power_iteration(operator: sparse.spmatrix,
-                    guess_vector: numpy.ndarray = None,
+                    guess_vector: Optional[numpy.ndarray] = None,
                     iterations: int = 20,
                     ) -> Tuple[complex, numpy.ndarray]:
     """
@@ -36,11 +36,11 @@ def power_iteration(operator: sparse.spmatrix,
     return lm_eigval, v
 
 
-def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperator,
+def rayleigh_quotient_iteration(operator: Union[sparse.spmatrix, spalg.LinearOperator],
                                 guess_vector: numpy.ndarray,
                                 iterations: int = 40,
                                 tolerance: float = 1e-13,
-                                solver = None,
+                                solver: Optional[Callable[..., numpy.ndarray]] = None,
                                 ) -> Tuple[complex, numpy.ndarray]:
     """
     Use Rayleigh quotient iteration to refine an eigenvector guess.
@@ -83,7 +83,7 @@ def rayleigh_quotient_iteration(operator: sparse.spmatrix or spalg.LinearOperato
     return eigval, v
 
 
-def signed_eigensolve(operator: sparse.spmatrix or spalg.LinearOperator,
+def signed_eigensolve(operator: Union[sparse.spmatrix, spalg.LinearOperator],
                       how_many: int,
                       negative: bool = False,
                       ) -> Tuple[numpy.ndarray, numpy.ndarray]:

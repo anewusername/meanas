@@ -3,14 +3,14 @@ Matrix operators for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import List, Callable, Tuple, Dict
+from typing import Sequence, List, Callable, Tuple, Dict
 import numpy
 import scipy.sparse as sparse
 
 from .types import fdfield_t, vfdfield_t
 
 
-def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
+def rotation(axis: int, shape: Sequence[int], shift_distance: int=1) -> sparse.spmatrix:
     """
     Utility operator for performing a circular shift along a specified axis by a
      specified number of elements.
@@ -46,7 +46,7 @@ def rotation(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmat
     return d
 
 
-def shift_with_mirror(axis: int, shape: List[int], shift_distance: int=1) -> sparse.spmatrix:
+def shift_with_mirror(axis: int, shape: Sequence[int], shift_distance: int=1) -> sparse.spmatrix:
     """
     Utility operator for performing an n-element shift along a specified axis, with mirror
     boundary conditions applied to the cells beyond the receding edge.
@@ -87,7 +87,7 @@ def shift_with_mirror(axis: int, shape: List[int], shift_distance: int=1) -> spa
     return d
 
 
-def deriv_forward(dx_e: List[numpy.ndarray]) -> List[sparse.spmatrix]:
+def deriv_forward(dx_e: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -112,7 +112,7 @@ def deriv_forward(dx_e: List[numpy.ndarray]) -> List[sparse.spmatrix]:
     return Ds
 
 
-def deriv_back(dx_h: List[numpy.ndarray]) -> List[sparse.spmatrix]:
+def deriv_back(dx_h: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -137,7 +137,7 @@ def deriv_back(dx_h: List[numpy.ndarray]) -> List[sparse.spmatrix]:
     return Ds
 
 
-def cross(B: List[sparse.spmatrix]) -> sparse.spmatrix:
+def cross(B: Sequence[sparse.spmatrix]) -> sparse.spmatrix:
     """
     Cross product operator
 
@@ -171,7 +171,7 @@ def vec_cross(b: vfdfield_t) -> sparse.spmatrix:
     return cross(B)
 
 
-def avg_forward(axis: int, shape: List[int]) -> sparse.spmatrix:
+def avg_forward(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
     """
     Forward average operator `(x4 = (x4 + x5) / 2)`
 
@@ -189,7 +189,7 @@ def avg_forward(axis: int, shape: List[int]) -> sparse.spmatrix:
     return 0.5 * (sparse.eye(n) + rotation(axis, shape))
 
 
-def avg_back(axis: int, shape: List[int]) -> sparse.spmatrix:
+def avg_back(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
     """
     Backward average operator `(x4 = (x4 + x3) / 2)`
 
@@ -203,7 +203,7 @@ def avg_back(axis: int, shape: List[int]) -> sparse.spmatrix:
     return avg_forward(axis, shape).T
 
 
-def curl_forward(dx_e: List[numpy.ndarray]) -> sparse.spmatrix:
+def curl_forward(dx_e: Sequence[numpy.ndarray]) -> sparse.spmatrix:
     """
     Curl operator for use with the E field.
 
@@ -217,7 +217,7 @@ def curl_forward(dx_e: List[numpy.ndarray]) -> sparse.spmatrix:
     return cross(deriv_forward(dx_e))
 
 
-def curl_back(dx_h: List[numpy.ndarray]) -> sparse.spmatrix:
+def curl_back(dx_h: Sequence[numpy.ndarray]) -> sparse.spmatrix:
     """
     Curl operator for use with the H field.
 

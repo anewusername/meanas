@@ -4,7 +4,7 @@ Tools for working with waveguide modes in 3D domains.
 This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Sequence, Union
 import numpy
 import scipy.sparse as sparse
 
@@ -17,10 +17,10 @@ def solve_mode(mode_number: int,
                dxes: dx_lists_t,
                axis: int,
                polarity: int,
-               slices: List[slice],
+               slices: Sequence[slice],
                epsilon: fdfield_t,
-               mu: fdfield_t = None,
-               ) -> Dict[str, complex or numpy.ndarray]:
+               mu: Optional[fdfield_t] = None,
+               ) -> Dict[str, Union[complex, numpy.ndarray]]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
      solve for an eigenmode propagating through that slice.
@@ -104,9 +104,9 @@ def compute_source(E: fdfield_t,
                    dxes: dx_lists_t,
                    axis: int,
                    polarity: int,
-                   slices: List[slice],
+                   slices: Sequence[slice],
                    epsilon: fdfield_t,
-                   mu: fdfield_t = None,
+                   mu: Optional[fdfield_t] = None,
                    ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution
@@ -148,7 +148,7 @@ def compute_overlap_e(E: fdfield_t,
                       dxes: dx_lists_t,
                       axis: int,
                       polarity: int,
-                      slices: List[slice],
+                      slices: Sequence[slice],
                       ) -> fdfield_t:                 # TODO DOCS
     """
     Given an eigenmode obtained by `solve_mode`, calculates an overlap_e for the
@@ -177,9 +177,9 @@ def compute_overlap_e(E: fdfield_t,
 
     start, stop = sorted((slices[axis].start, slices[axis].start - 2 * polarity))
 
-    slices2 = list(slices)
-    slices2[axis] = slice(start, stop)
-    slices2 = (slice(None), *slices2)
+    slices2_l = list(slices)
+    slices2_l[axis] = slice(start, stop)
+    slices2 = (slice(None), *slices2_l)
 
     Etgt = numpy.zeros_like(Ee)
     Etgt[slices2] = Ee[slices2]
@@ -193,7 +193,7 @@ def expand_e(E: fdfield_t,
              dxes: dx_lists_t,
              axis: int,
              polarity: int,
-             slices: List[slice],
+             slices: Sequence[slice],
              ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, expands the E-field from the 2D
@@ -226,9 +226,9 @@ def expand_e(E: fdfield_t,
     # Expand our slice to the entire grid using the phase factors
     E_expanded = numpy.zeros_like(E)
 
-    slices_exp = list(slices)
-    slices_exp[axis] = slice(E.shape[axis + 1])
-    slices_exp = (slice(None), *slices_exp)
+    slices_exp_l = list(slices)
+    slices_exp_l[axis] = slice(E.shape[axis + 1])
+    slices_exp = (slice(None), *slices_exp_l)
 
     slices_in = (slice(None), *slices)
 

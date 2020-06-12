@@ -146,7 +146,7 @@ to account for numerical dispersion if the result is introduced into a space wit
 """
 # TODO update module docs
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import numpy
 from numpy.linalg import norm
 import scipy.sparse as sparse
@@ -163,7 +163,7 @@ __author__ = 'Jan Petykiewicz'
 def operator_e(omega: complex,
                dxes: dx_lists_t,
                epsilon: vfdfield_t,
-               mu: vfdfield_t = None,
+               mu: Optional[vfdfield_t] = None,
                ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
@@ -229,7 +229,7 @@ def operator_e(omega: complex,
 def operator_h(omega: complex,
                dxes: dx_lists_t,
                epsilon: vfdfield_t,
-               mu: vfdfield_t = None,
+               mu: Optional[vfdfield_t] = None,
                ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
@@ -298,7 +298,7 @@ def normalized_fields_e(e_xy: numpy.ndarray,
                         omega: complex,
                         dxes: dx_lists_t,
                         epsilon: vfdfield_t,
-                        mu: vfdfield_t = None,
+                        mu: Optional[vfdfield_t] = None,
                         prop_phase: float = 0,
                         ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
@@ -332,7 +332,7 @@ def normalized_fields_h(h_xy: numpy.ndarray,
                         omega: complex,
                         dxes: dx_lists_t,
                         epsilon: vfdfield_t,
-                        mu: vfdfield_t = None,
+                        mu: Optional[vfdfield_t] = None,
                         prop_phase: float = 0,
                         ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
@@ -366,7 +366,7 @@ def _normalized_fields(e: numpy.ndarray,
                        omega: complex,
                        dxes: dx_lists_t,
                        epsilon: vfdfield_t,
-                       mu: vfdfield_t = None,
+                       mu: Optional[vfdfield_t] = None,
                        prop_phase: float = 0,
                        ) -> Tuple[vfdfield_t, vfdfield_t]:
     # TODO documentation
@@ -405,7 +405,7 @@ def exy2h(wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
           epsilon: vfdfield_t,
-          mu: vfdfield_t = None
+          mu: Optional[vfdfield_t] = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
@@ -430,7 +430,7 @@ def hxy2e(wavenumber: complex,
           omega: complex,
           dxes: dx_lists_t,
           epsilon: vfdfield_t,
-          mu: vfdfield_t = None
+          mu: Optional[vfdfield_t] = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
@@ -453,7 +453,7 @@ def hxy2e(wavenumber: complex,
 
 def hxy2h(wavenumber: complex,
           dxes: dx_lists_t,
-          mu: vfdfield_t = None
+          mu: Optional[vfdfield_t] = None
           ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
@@ -520,7 +520,7 @@ def exy2e(wavenumber: complex,
 def e2h(wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
-        mu: vfdfield_t = None
+        mu: Optional[vfdfield_t] = None
         ) -> sparse.spmatrix:
     """
     Returns an operator which, when applied to a vectorized E eigenfield, produces
@@ -676,7 +676,7 @@ def solve_modes(mode_numbers: List[int],
                 epsilon: vfdfield_t,
                 mu: vfdfield_t = None,
                 mode_margin: int = 2,
-                ) -> Tuple[List[vfdfield_t], List[complex]]:
+                ) -> Tuple[numpy.ndarray, List[complex]]:
     """
     Given a 2D region, attempts to solve for the eigenmode with the specified mode numbers.
 
@@ -691,7 +691,8 @@ def solve_modes(mode_numbers: List[int],
             ability to find the correct mode. Default 2.
 
     Returns:
-        (e_xys, wavenumbers)
+        e_xys: list of vfdfield_t specifying fields
+        wavenumbers: list of wavenumbers
     """
 
     '''
@@ -733,5 +734,6 @@ def solve_mode(mode_number: int,
     Returns:
         (e_xy, wavenumber)
     """
-    e_xys, wavenumbers = solve_modes(mode_numbers=[mode_number], *args, **kwargs)
+    kwargs['mode_numbers'] = [mode_number]
+    e_xys, wavenumbers = solve_modes(*args, **kwargs)
     return e_xys[:, 0], wavenumbers[0]

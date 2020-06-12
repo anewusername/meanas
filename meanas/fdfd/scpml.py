@@ -2,10 +2,10 @@
 Functions for creating stretched coordinate perfectly matched layer (PML) absorbers.
 """
 
-from typing import List, Callable
+from typing import Sequence, Union, Callable, Optional
 import numpy
 
-from ..fdmath import dx_lists_t
+from ..fdmath import dx_lists_t, dx_lists_mut
 
 
 __author__ = 'Jan Petykiewicz'
@@ -37,12 +37,12 @@ def prepare_s_function(ln_R: float = -16,
     return s_factor
 
 
-def uniform_grid_scpml(shape: numpy.ndarray or List[int],
-                       thicknesses: numpy.ndarray or List[int],
+def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
+                       thicknesses: Union[numpy.ndarray, Sequence[int]],
                        omega: float,
                        epsilon_effective: float = 1.0,
-                       s_function: s_function_t = None,
-                       ) -> dx_lists_t:
+                       s_function: Optional[s_function_t] = None,
+                       ) -> dx_lists_mut:
     """
     Create dx arrays for a uniform grid with a cell width of 1 and a pml.
 
@@ -63,7 +63,7 @@ def uniform_grid_scpml(shape: numpy.ndarray or List[int],
                     Default uses `prepare_s_function()` with no parameters.
 
     Returns:
-        Complex cell widths (dx_lists_t) as discussed in `meanas.fdmath.types`.
+        Complex cell widths (dx_lists_mut) as discussed in `meanas.fdmath.types`.
     """
     if s_function is None:
         s_function = prepare_s_function()
@@ -90,13 +90,13 @@ def uniform_grid_scpml(shape: numpy.ndarray or List[int],
     return [dx_a, dx_b]
 
 
-def stretch_with_scpml(dxes: dx_lists_t,
+def stretch_with_scpml(dxes: dx_lists_mut,
                        axis: int,
                        polarity: int,
                        omega: float,
                        epsilon_effective: float = 1.0,
                        thickness: int = 10,
-                       s_function: s_function_t = None,
+                       s_function: Optional[s_function_t] = None,
                        ) -> dx_lists_t:
     """
         Stretch dxes to contain a stretched-coordinate PML (SCPML) in one direction along one axis.
@@ -113,7 +113,7 @@ def stretch_with_scpml(dxes: dx_lists_t,
                         of pml parameters. Default uses `prepare_s_function()` with no parameters.
 
         Returns:
-            Complex cell widths (dx_lists_t) as discussed in `meanas.fdmath.types`.
+            Complex cell widths (dx_lists_mut) as discussed in `meanas.fdmath.types`.
             Multiple calls to this function may be necessary if multiple absorpbing boundaries are needed.
     """
     if s_function is None:

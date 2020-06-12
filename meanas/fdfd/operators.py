@@ -27,7 +27,7 @@ The following operators are included:
 - Cross product matrices
 """
 
-from typing import List, Tuple
+from typing import Tuple, Optional
 import numpy
 import scipy.sparse as sparse
 
@@ -41,9 +41,9 @@ __author__ = 'Jan Petykiewicz'
 def e_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: vfdfield_t,
-           mu: vfdfield_t = None,
-           pec: vfdfield_t = None,
-           pmc: vfdfield_t = None,
+           mu: Optional[vfdfield_t] = None,
+           pec: Optional[vfdfield_t] = None,
+           pmc: Optional[vfdfield_t] = None,
            ) -> sparse.spmatrix:
     """
     Wave operator
@@ -125,9 +125,9 @@ def e_full_preconditioners(dxes: dx_lists_t
 def h_full(omega: complex,
            dxes: dx_lists_t,
            epsilon: vfdfield_t,
-           mu: vfdfield_t = None,
-           pec: vfdfield_t = None,
-           pmc: vfdfield_t = None,
+           mu: Optional[vfdfield_t] = None,
+           pec: Optional[vfdfield_t] = None,
+           pmc: Optional[vfdfield_t] = None,
            ) -> sparse.spmatrix:
     """
     Wave operator
@@ -181,9 +181,9 @@ def h_full(omega: complex,
 def eh_full(omega: complex,
             dxes: dx_lists_t,
             epsilon: vfdfield_t,
-            mu: vfdfield_t = None,
-            pec: vfdfield_t = None,
-            pmc: vfdfield_t = None
+            mu: Optional[vfdfield_t] = None,
+            pec: Optional[vfdfield_t] = None,
+            pmc: Optional[vfdfield_t] = None
             ) -> sparse.spmatrix:
     """
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
@@ -249,8 +249,8 @@ def eh_full(omega: complex,
 
 def e2h(omega: complex,
         dxes: dx_lists_t,
-        mu: vfdfield_t = None,
-        pmc: vfdfield_t = None,
+        mu: Optional[vfdfield_t] = None,
+        pmc: Optional[vfdfield_t] = None,
         ) -> sparse.spmatrix:
     """
     Utility operator for converting the E field into the H field.
@@ -280,7 +280,7 @@ def e2h(omega: complex,
 
 def m2j(omega: complex,
         dxes: dx_lists_t,
-        mu: vfdfield_t = None
+        mu: Optional[vfdfield_t] = None
         ) -> sparse.spmatrix:
     """
     Operator for converting a magnetic current M into an electric current J.
@@ -362,7 +362,7 @@ def e_tfsf_source(TF_region: vfdfield_t,
                   omega: complex,
                   dxes: dx_lists_t,
                   epsilon: vfdfield_t,
-                  mu: vfdfield_t = None,
+                  mu: Optional[vfdfield_t] = None,
                   ) -> sparse.spmatrix:
     """
     Operator that turns a desired E-field distribution into a
@@ -392,7 +392,7 @@ def e_boundary_source(mask: vfdfield_t,
                       omega: complex,
                       dxes: dx_lists_t,
                       epsilon: vfdfield_t,
-                      mu: vfdfield_t = None,
+                      mu: Optional[vfdfield_t] = None,
                       periodic_mask_edges: bool = False,
                       ) -> sparse.spmatrix:
     """
