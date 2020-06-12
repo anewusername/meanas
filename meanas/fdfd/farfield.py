@@ -188,6 +188,11 @@ def far_to_nearfield(E_far: fdfield_t,
     sin_th[numpy.logical_and(kx == 0, ky == 0)] = 0
     cos_th[numpy.logical_and(kx == 0, ky == 0)] = 1
 
+    theta = numpy.arctan2(ky, kx)
+    phi = numpy.arccos(cos_phi)
+    theta[numpy.logical_and(kx == 0, ky == 0)] = 0
+    phi[numpy.logical_and(kx == 0, ky == 0)] = 0
+
     # Zero fields beyond valid (phi, theta)
     invalid_ind = kxy2 >= k * k
     theta[invalid_ind] = 0
