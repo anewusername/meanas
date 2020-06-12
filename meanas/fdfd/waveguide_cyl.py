@@ -14,11 +14,8 @@ from numpy.linalg import norm
 import scipy.sparse as sparse
 
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
+from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
-from . import operators
-
-
-__author__ = 'Jan Petykiewicz'
 
 
 def cylindrical_operator(omega: complex,
@@ -50,8 +47,8 @@ def cylindrical_operator(omega: complex,
         Sparse matrix representation of the operator
     """
 
-    Dfx, Dfy = operators.deriv_forward(dxes[0])
-    Dbx, Dby = operators.deriv_back(dxes[1])
+    Dfx, Dfy = deriv_forward(dxes[0])
+    Dbx, Dby = deriv_back(dxes[1])
 
     rx = r0 + numpy.cumsum(dxes[0][0])
     ry = r0 + dxes[0][0]/2.0 + numpy.cumsum(dxes[1][0])
@@ -109,7 +106,7 @@ def solve_mode(mode_number: int,
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
 
-    A_r = waveguide.cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
+    A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
     eigvals, eigvecs = signed_eigensolve(A_r, mode_number + 3)
     e_xy = eigvecs[:, -(mode_number+1)]
 
@@ -117,7 +114,7 @@ def solve_mode(mode_number: int,
     Now solve for the eigenvector of the full operator, using the real operator's
      eigenvector as an initial guess for Rayleigh quotient iteration.
     '''
-    A = waveguide.cylindrical_operator(omega, dxes, epsilon, r0)
+    A = cylindrical_operator(omega, dxes, epsilon, r0)
     eigval, e_xy = rayleigh_quotient_iteration(A, e_xy)
 
     # Calculate the wave-vector (force the real part to be positive)

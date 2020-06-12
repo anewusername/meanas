@@ -154,7 +154,6 @@ import scipy.sparse as sparse
 from ..fdmath.operators import deriv_forward, deriv_back, curl_forward, curl_back, cross
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
-from . import operators
 
 
 __author__ = 'Jan Petykiewicz'
@@ -275,8 +274,8 @@ def operator_h(omega: complex,
     if numpy.any(numpy.equal(mu, None)):
         mu = numpy.ones_like(epsilon)
 
-    Dfx, Dfy = operators.deriv_forward(dxes[0])
-    Dbx, Dby = operators.deriv_back(dxes[1])
+    Dfx, Dfy = deriv_forward(dxes[0])
+    Dbx, Dby = deriv_back(dxes[1])
 
     eps_parts = numpy.split(epsilon, 3)
     eps_yx = sparse.diags(numpy.hstack((eps_parts[1], eps_parts[0])))
