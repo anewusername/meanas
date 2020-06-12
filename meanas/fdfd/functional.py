@@ -180,6 +180,7 @@ def e_tfsf_source(TF_region: fdfield_t,
     def op(e):
         neg_iwj = A(TF_region * e) - TF_region * A(e)
         return neg_iwj / (-1j * omega)
+    return op
 
 
 def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[fdfield_t, fdfield_t], fdfield_t]:
