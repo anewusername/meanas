@@ -60,6 +60,7 @@ target/
 
 
 .idea/
+.mypy_cache/
 
 
 .*.sw[op]
