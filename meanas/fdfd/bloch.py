@@ -278,7 +278,7 @@ def hmn_2_exyz(k0: numpy.ndarray,
                  m * hin_n) * k_mag
 
         # divide by epsilon
-        return [ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)]
+        return numpy.array([ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)])         #TODO avoid copy
 
     return operator
 
