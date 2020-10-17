@@ -1,9 +1,8 @@
-# pylint: disable=unsupported-assignment-operation
-from typing import Callable, Tuple, Dict, Optional, Union
-import numpy
+from typing import Optional, Union
+import numpy        # type: ignore
 
-from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
-from ..fdmath.functional import deriv_back, deriv_forward
+from ..fdmath import dx_lists_t, fdfield_t
+from ..fdmath.functional import deriv_back
 
 
 def poynting(e: fdfield_t,
@@ -115,10 +114,10 @@ def delta_energy_j(j0: fdfield_t,
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
-    du = ((j0 * e1).sum(axis=0) *
-          dxes[0][0][:, None, None] *
-          dxes[0][1][None, :, None] *
-          dxes[0][2][None, None, :])
+    du = ((j0 * e1).sum(axis=0)
+          * dxes[0][0][:, None, None]
+          * dxes[0][1][None, :, None]
+          * dxes[0][2][None, None, :])
     return du
 
 
@@ -135,12 +134,12 @@ def dxmul(ee: fdfield_t,
     if dxes is None:
         dxes = tuple(tuple(numpy.ones(1) for _ in range(3)) for _ in range(2))
 
-    result = ((ee * epsilon).sum(axis=0) *
-              dxes[0][0][:, None, None] *
-              dxes[0][1][None, :, None] *
-              dxes[0][2][None, None, :] +
-              (hh * mu).sum(axis=0) *
-              dxes[1][0][:, None, None] *
-              dxes[1][1][None, :, None] *
-              dxes[1][2][None, None, :])
+    result = ((ee * epsilon).sum(axis=0)
+              * dxes[0][0][:, None, None]
+              * dxes[0][1][None, :, None]
+              * dxes[0][2][None, None, :]
+              + (hh * mu).sum(axis=0)
+              * dxes[1][0][:, None, None]
+              * dxes[1][1][None, :, None]
+              * dxes[1][2][None, None, :])
     return result

@@ -2,10 +2,10 @@
 Solvers for eigenvalue / eigenvector problems
 """
 from typing import Tuple, Callable, Optional, Union
-import numpy
-from numpy.linalg import norm
-from scipy import sparse
-import scipy.sparse.linalg as spalg
+import numpy                          # type: ignore
+from numpy.linalg import norm         # type: ignore
+from scipy import sparse              # type: ignore
+import scipy.sparse.linalg as spalg   # type: ignore
 
 
 def power_iteration(operator: sparse.spmatrix,
@@ -30,7 +30,8 @@ def power_iteration(operator: sparse.spmatrix,
 
     for _ in range(iterations):
         v = operator @ v
-        v /= norm(v)
+        v /= numpy.abs(v).sum()     # faster than true norm
+    v /= norm(v)
 
     lm_eigval = v.conj() @ (operator @ v)
     return lm_eigval, v
@@ -59,16 +60,21 @@ def rayleigh_quotient_iteration(operator: Union[sparse.spmatrix, spalg.LinearOpe
         (eigenvalues, eigenvectors)
     """
     try:
-        _test = operator - sparse.eye(operator.shape[0])
-        shift = lambda eigval: eigval * sparse.eye(operator.shape[0])
+        (operator - sparse.eye(operator.shape[0]))
+
+        def shift(eigval: float) -> sparse:
+            return eigval * sparse.eye(operator.shape[0])
+
         if solver is None:
             solver = spalg.spsolve
     except TypeError:
-        shift = lambda eigval: spalg.LinearOperator(shape=operator.shape,
-                                                    dtype=operator.dtype,
-                                                    matvec=lambda v: eigval * v)
+        def shift(eigval: float) -> spalg.LinearOperator:
+            return spalg.LinearOperator(shape=operator.shape,
+                                        dtype=operator.dtype,
+                                        matvec=lambda v: eigval * v)
         if solver is None:
-            solver = lambda A, b: spalg.bicgstab(A, b)[0]
+            def solver(A, b):
+                return spalg.bicgstab(A, b)[0]
 
     v = numpy.squeeze(guess_vector)
     v /= norm(v)

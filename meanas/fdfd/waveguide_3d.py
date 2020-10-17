@@ -4,12 +4,11 @@ Tools for working with waveguide modes in 3D domains.
 This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
-from typing import Dict, List, Tuple, Optional, Sequence, Union
-import numpy
-import scipy.sparse as sparse
+from typing import Dict, Optional, Sequence, Union, Any
+import numpy                    # type: ignore
 
-from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, fdfield_t
-from . import operators, waveguide_2d, functional
+from ..fdmath import vec, unvec, dx_lists_t, fdfield_t
+from . import operators, waveguide_2d
 
 
 def solve_mode(mode_number: int,
@@ -53,10 +52,10 @@ def solve_mode(mode_number: int,
 
     # Find dx in propagation direction
     dxab_forward = numpy.array([dx[order[2]][slices[order[2]]] for dx in dxes])
-    dx_prop = 0.5 * sum(dxab_forward)[0]
+    dx_prop = 0.5 * dxab_forward.sum()
 
     # Reduce to 2D and solve the 2D problem
-    args_2d = {
+    args_2d: Dict[str, Any] = {
         'omega': omega,
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
         'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
@@ -68,15 +67,15 @@ def solve_mode(mode_number: int,
     Apply corrections and expand to 3D
     '''
     # Correct wavenumber to account for numerical dispersion.
-    wavenumber = 2/dx_prop * numpy.arcsin(wavenumber_2d * dx_prop/2)
+    wavenumber = 2 / dx_prop * numpy.arcsin(wavenumber_2d * dx_prop / 2)
 
     shape = [d.size for d in args_2d['dxes'][0]]
-    ve, vh = waveguide_2d.normalized_fields_e(e_xy, wavenumber=wavenumber_2d, **args_2d, prop_phase=dx_prop * wavenumber)
+    ve, vh = waveguide_2d.normalized_fields_e(e_xy, wavenumber=wavenumber_2d, prop_phase=dx_prop * wavenumber, **args_2d)
     e = unvec(ve, shape)
     h = unvec(vh, shape)
 
     # Adjust for propagation direction
-    h *= polarity
+    h *= polarity           # type: ignore          # mypy issue with numpy
 
     # Apply phase shift to H-field
     h[:2] *= numpy.exp(-1j * polarity * 0.5 * wavenumber * dx_prop)

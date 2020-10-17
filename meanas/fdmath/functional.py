@@ -3,8 +3,8 @@ Math functions for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, Tuple, Dict, Optional
-import numpy
+from typing import Sequence, Tuple, Optional
+import numpy            # type: ignore
 
 from .types import fdfield_t, fdfield_updater_t
 

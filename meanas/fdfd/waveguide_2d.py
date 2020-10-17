@@ -147,12 +147,12 @@ to account for numerical dispersion if the result is introduced into a space wit
 # TODO update module docs
 
 from typing import List, Tuple, Optional
-import numpy
-from numpy.linalg import norm
-import scipy.sparse as sparse
+import numpy                        # type: ignore
+from numpy.linalg import norm       # type: ignore
+import scipy.sparse as sparse       # type: ignore
 
-from ..fdmath.operators import deriv_forward, deriv_back, curl_forward, curl_back, cross
-from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
+from ..fdmath.operators import deriv_forward, deriv_back, cross
+from ..fdmath import unvec, dx_lists_t, vfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
@@ -390,7 +390,9 @@ def _normalized_fields(e: numpy.ndarray,
 
     # Try to break symmetry to assign a consistent sign [experimental TODO]
     E_weighted = unvec(e * energy * numpy.exp(1j * norm_angle), shape)
-    sign = numpy.sign(E_weighted[:, :max(shape[0]//2, 1), :max(shape[1]//2, 1)].real.sum())
+    sign = numpy.sign(E_weighted[:,
+                                 :max(shape[0] // 2, 1),
+                                 :max(shape[1] // 2, 1)].real.sum())
 
     norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 
@@ -536,7 +538,7 @@ def e2h(wavenumber: complex,
     """
     op = curl_e(wavenumber, dxes) / (-1j * omega)
     if not numpy.any(numpy.equal(mu, None)):
-        op = sparse.diags(1 / mu) @ op
+        op = sparse.diags(1 / mu) @ op          # type: ignore   # checked that mu is not None
     return op
 
 
@@ -663,7 +665,7 @@ def e_err(e: vfdfield_t,
     if numpy.any(numpy.equal(mu, None)):
         op = ch @ ce @ e - omega ** 2 * (epsilon * e)
     else:
-        mu_inv = sparse.diags(1 / mu)
+        mu_inv = sparse.diags(1 / mu)          # type: ignore   # checked that mu is not None
         op = ch @ mu_inv @ ce @ e - omega ** 2 * (epsilon * e)
 
     return norm(op) / norm(e)

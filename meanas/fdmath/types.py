@@ -1,8 +1,8 @@
 """
 Types shared across multiple submodules
 """
-import numpy
 from typing import Sequence, Callable, MutableSequence
+import numpy            # type: ignore
 
 
 # Field types

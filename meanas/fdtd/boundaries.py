@@ -4,10 +4,9 @@ Boundary conditions
 #TODO conducting boundary documentation
 """
 
-from typing import Callable, Tuple, Dict, Any, List
-import numpy
+from typing import Tuple, Any, List
 
-from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
+from ..fdmath import fdfield_t, fdfield_updater_t
 
 
 def conducting_boundary(direction: int,

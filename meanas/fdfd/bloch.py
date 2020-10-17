@@ -82,13 +82,13 @@ This module contains functions for generating and solving the
 
 from typing import Tuple, Callable
 import logging
-import numpy
-from numpy import pi, real, trace
-from numpy.fft import fftfreq
-import scipy
-import scipy.optimize
-from scipy.linalg import norm
-import scipy.sparse.linalg as spalg
+import numpy                            # type: ignore
+from numpy import pi, real, trace       # type: ignore
+from numpy.fft import fftfreq           # type: ignore
+import scipy                            # type: ignore
+import scipy.optimize                   # type: ignore
+from scipy.linalg import norm           # type: ignore
+import scipy.sparse.linalg as spalg     # type: ignore
 
 from ..fdmath import fdfield_t
 
@@ -96,8 +96,8 @@ logger = logging.getLogger(__name__)
 
 
 try:
-    import pyfftw.interfaces.numpy_fft
-    import pyfftw.interfaces
+    import pyfftw.interfaces.numpy_fft  # type: ignore
+    import pyfftw.interfaces            # type: ignore
     import multiprocessing
     logger.info('Using pyfftw')
 
@@ -116,7 +116,7 @@ try:
         return pyfftw.interfaces.numpy_fft.ifftn(*args, **kwargs, **fftw_args)
 
 except ImportError:
-    from numpy.fft import fftn, ifftn
+    from numpy.fft import fftn, ifftn       # type: ignore
     logger.info('Using numpy fft')
 
 
@@ -139,7 +139,7 @@ def generate_kmn(k0: numpy.ndarray,
     """
     k0 = numpy.array(k0)
 
-    Gi_grids = numpy.meshgrid(*(fftfreq(n, 1/n) for n in shape[:3]), indexing='ij')
+    Gi_grids = numpy.meshgrid(*(fftfreq(n, 1 / n) for n in shape[:3]), indexing='ij')
     Gi = numpy.stack(Gi_grids, axis=3)
 
     k_G = k0[None, None, None, :] - Gi
@@ -216,8 +216,8 @@ def maxwell_operator(k0: numpy.ndarray,
         #{d,e,h}_xyz fields are complex 3-fields in (1/x, 1/y, 1/z) basis
 
         # cross product and transform into xyz basis
-        d_xyz = (n * hin_m -
-                 m * hin_n) * k_mag
+        d_xyz = (n * hin_m
+               - m * hin_n) * k_mag
 
         # divide by epsilon
         e_xyz = fftn(ifftn(d_xyz, axes=range(3)) / epsilon, axes=range(3))
@@ -230,8 +230,8 @@ def maxwell_operator(k0: numpy.ndarray,
             h_m, h_n = b_m, b_n
         else:
             # transform from mn to xyz
-            b_xyz = (m * b_m[:, :, :, None] +
-                     n * b_n[:, :, :, None])
+            b_xyz = (m * b_m[:, :, :, None]
+                   + n * b_n[:, :, :, None])
 
             # divide by mu
             h_xyz = fftn(ifftn(b_xyz, axes=range(3)) / mu, axes=range(3))
@@ -274,11 +274,11 @@ def hmn_2_exyz(k0: numpy.ndarray,
 
     def operator(h: numpy.ndarray) -> fdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
-        d_xyz = (n * hin_m -
-                 m * hin_n) * k_mag
+        d_xyz = (n * hin_m
+               - m * hin_n) * k_mag
 
         # divide by epsilon
-        return numpy.array([ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)])         #TODO avoid copy
+        return numpy.array([ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)])         # TODO avoid copy
 
     return operator
 
@@ -311,8 +311,8 @@ def hmn_2_hxyz(k0: numpy.ndarray,
 
     def operator(h: numpy.ndarray):
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
-        h_xyz = (m * hin_m +
-                 n * hin_n)
+        h_xyz = (m * hin_m
+               + n * hin_n)
         return [ifftn(hi) for hi in numpy.rollaxis(h_xyz, 3)]
 
     return operator
@@ -371,8 +371,8 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
             b_m, b_n = hin_m, hin_n
         else:
             # transform from mn to xyz
-            h_xyz = (m * hin_m[:, :, :, None] +
-                     n * hin_n[:, :, :, None])
+            h_xyz = (m * hin_m[:, :, :, None]
+                   + n * hin_n[:, :, :, None])
 
             # multiply by mu
             b_xyz = fftn(ifftn(h_xyz, axes=range(3)) * mu, axes=range(3))
@@ -382,8 +382,8 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
             b_n = numpy.sum(b_xyz * n, axis=3)
 
         # cross product and transform into xyz basis
-        e_xyz = (n * b_m -
-                 m * b_n) / k_mag
+        e_xyz = (n * b_m
+               - m * b_n) / k_mag
 
         # multiply by epsilon
         d_xyz = fftn(ifftn(e_xyz, axes=range(3)) * epsilon, axes=range(3))
@@ -553,6 +553,7 @@ def eigsolve(num_modes: int,
         symZtAD = _symmetrize(Z.conj().T @ AD)
 
         Qi_memo = [None, None]
+
         def Qi_func(theta):
             nonlocal Qi_memo
             if Qi_memo[0] == theta:
@@ -560,7 +561,7 @@ def eigsolve(num_modes: int,
 
             c = numpy.cos(theta)
             s = numpy.sin(theta)
-            Q = c*c * ZtZ + s*s * DtD + 2*s*c * symZtD
+            Q = c * c * ZtZ + s * s * DtD + 2 * s * c * symZtD
             try:
                 Qi = numpy.linalg.inv(Q)
             except numpy.linalg.LinAlgError:
@@ -568,10 +569,10 @@ def eigsolve(num_modes: int,
                 # if c or s small, taylor expand
                 if c < 1e-4 * s and c != 0:
                     DtDi = numpy.linalg.inv(DtD)
-                    Qi = DtDi / (s*s) - 2*c/(s*s*s) * (DtDi @ (DtDi @ symZtD).conj().T)
+                    Qi = DtDi / (s * s) - 2 * c / (s * s * s) * (DtDi @ (DtDi @ symZtD).conj().T)
                 elif s < 1e-4 * c and s != 0:
                     ZtZi = numpy.linalg.inv(ZtZ)
-                    Qi = ZtZi / (c*c) - 2*s/(c*c*c) * (ZtZi @ (ZtZi @ symZtD).conj().T)
+                    Qi = ZtZi / (c * c) - 2 * s / (c * c * c) * (ZtZi @ (ZtZi @ symZtD).conj().T)
                 else:
                     raise Exception('Inexplicable singularity in trace_func')
             Qi_memo[0] = theta
@@ -582,7 +583,7 @@ def eigsolve(num_modes: int,
             c = numpy.cos(theta)
             s = numpy.sin(theta)
             Qi = Qi_func(theta)
-            R = c*c * ZtAZ + s*s * DtAD + 2*s*c * symZtAD
+            R = c * c * ZtAZ + s * s * DtAD + 2 * s * c * symZtAD
             trace = _rtrace_AtB(R, Qi)
             return numpy.abs(trace)
 
@@ -646,14 +647,15 @@ def eigsolve(num_modes: int,
         v = eigvecs[:, i]
         n = eigvals[i]
         v /= norm(v)
-        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v )
+        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v)
         f = numpy.sqrt(-numpy.real(n))
         df = numpy.sqrt(-numpy.real(n + eigness))
-        neff_err = kmag * (1/df - 1/f)
+        neff_err = kmag * (1 / df - 1 / f)
         logger.info('eigness {}: {}\n neff_err: {}'.format(i, eigness, neff_err))
 
     order = numpy.argsort(numpy.abs(eigvals))
     return eigvals[order], eigvecs.T[order]
+
 
 '''
 def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_tol=1e-14, x_min=0, linmin_func):

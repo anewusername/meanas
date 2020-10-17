@@ -2,12 +2,12 @@
 Solvers and solver interface for FDFD problems.
 """
 
-from typing import List, Callable, Dict, Any
+from typing import Callable, Dict, Any
 import logging
 
-import numpy
-from numpy.linalg import norm
-import scipy.sparse.linalg
+import numpy                        # type: ignore
+from numpy.linalg import norm       # type: ignore
+import scipy.sparse.linalg          # type: ignore
 
 from ..fdmath import dx_lists_t, vfdfield_t
 from . import operators
@@ -35,13 +35,13 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     '''
     Report on our progress
     '''
-    iter = 0
+    ii = 0
 
     def log_residual(xk):
-        nonlocal iter
-        iter += 1
-        if iter % 100 == 0:
-            logger.info('Solver residual at iteration {} : {}'.format(iter, norm(A @ xk - b)))
+        nonlocal ii
+        ii += 1
+        if ii % 100 == 0:
+            logger.info('Solver residual at iteration {} : {}'.format(ii, norm(A @ xk - b)))
 
     if 'callback' in kwargs:
         def augmented_callback(xk):

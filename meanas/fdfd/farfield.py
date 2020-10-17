@@ -2,9 +2,9 @@
 Functions for performing near-to-farfield transformation (and the reverse).
 """
 from typing import Dict, List, Any
-import numpy
-from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
-from numpy import pi
+import numpy            # type: ignore
+from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift     # type: ignore
+from numpy import pi    # type: ignore
 
 from ..fdmath import fdfield_t
 
@@ -60,7 +60,7 @@ def near_to_farfield(E_near: fdfield_t,
     if padded_size is None:
         padded_size = (2**numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
-        padded_size = (padded_size, padded_size)
+        padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
 
     En_fft = [fftshift(fft2(fftshift(Eni), s=padded_size)) for Eni in E_near]
     Hn_fft = [fftshift(fft2(fftshift(Hni), s=padded_size)) for Hni in H_near]
@@ -109,8 +109,8 @@ def near_to_farfield(E_near: fdfield_t,
     outputs = {
         'E': E_far,
         'H': H_far,
-        'dkx': kx[1]-kx[0],
-        'dky': ky[1]-ky[0],
+        'dkx': kx[1] - kx[0],
+        'dky': ky[1] - ky[0],
         'kx': kx,
         'ky': ky,
         'theta': theta,
@@ -118,7 +118,6 @@ def near_to_farfield(E_near: fdfield_t,
     }
 
     return outputs
-
 
 
 def far_to_nearfield(E_far: fdfield_t,
@@ -166,14 +165,13 @@ def far_to_nearfield(E_far: fdfield_t,
         raise Exception('All fields must be the same shape!')
 
     if padded_size is None:
-        padded_size = (2**numpy.ceil(numpy.log2(s))).astype(int)
+        padded_size = (2 ** numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
-        padded_size = (padded_size, padded_size)
-
+        padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
 
     k = 2 * pi
-    kxs = fftshift(fftfreq(s[0], 1/(s[0] * dkx)))
-    kys = fftshift(fftfreq(s[0], 1/(s[1] * dky)))
+    kxs = fftshift(fftfreq(s[0], 1 / (s[0] * dkx)))
+    kys = fftshift(fftfreq(s[0], 1 / (s[1] * dky)))
 
     kx, ky = numpy.meshgrid(kxs, kys, indexing='ij')
     kxy2 = kx * kx + ky * ky
@@ -201,18 +199,17 @@ def far_to_nearfield(E_far: fdfield_t,
         E_far[i][invalid_ind] = 0
         H_far[i][invalid_ind] = 0
 
-
     # Normalized vector potentials N, L
     L = [0.5 * E_far[1],
         -0.5 * E_far[0]]
     N = [L[1],
         -L[0]]
 
-    En_fft = [-( L[0] * sin_th + L[1] * cos_phi * cos_th)/cos_phi,
-              -(-L[0] * cos_th + L[1] * cos_phi * sin_th)/cos_phi]
+    En_fft = [-( L[0] * sin_th + L[1] * cos_phi * cos_th) / cos_phi,
+              -(-L[0] * cos_th + L[1] * cos_phi * sin_th) / cos_phi]
 
-    Hn_fft = [( N[0] * sin_th + N[1] * cos_phi * cos_th)/cos_phi,
-              (-N[0] * cos_th + N[1] * cos_phi * sin_th)/cos_phi]
+    Hn_fft = [( N[0] * sin_th + N[1] * cos_phi * cos_th) / cos_phi,
+              (-N[0] * cos_th + N[1] * cos_phi * sin_th) / cos_phi]
 
     for i in range(2):
         En_fft[i][cos_phi == 0] = 0

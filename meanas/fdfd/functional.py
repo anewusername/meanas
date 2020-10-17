@@ -5,8 +5,8 @@ Functional versions of many FDFD operators. These can be useful for performing
 The functions generated here expect `fdfield_t` inputs with shape (3, X, Y, Z),
 e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
 """
-from typing import List, Callable, Tuple
-import numpy
+from typing import Callable, Tuple
+import numpy        # type: ignore
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back

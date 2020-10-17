@@ -1,9 +1,8 @@
-# pylint: disable=redefined-outer-name, no-member
 from typing import List, Tuple
 import dataclasses
-import pytest
-import numpy
-from numpy.testing import assert_allclose, assert_array_equal
+import pytest       # type: ignore
+import numpy        # type: ignore
+#from numpy.testing import assert_allclose, assert_array_equal       # type: ignore
 
 from .. import fdtd
 from .utils import assert_close, assert_fields_close, PRNG
@@ -29,7 +28,7 @@ def test_initial_energy(sim):
     e0 = sim.es[0]
     h0 = sim.hs[0]
     h1 = sim.hs[1]
-    mask = (j0 != 0)
+
     dV = numpy.prod(numpy.meshgrid(*sim.dxes[0], indexing='ij'), axis=0)
     u0 = (j0 * j0.conj() / sim.epsilon * dV).sum(axis=0)
     args = {'dxes': sim.dxes,
@@ -53,10 +52,10 @@ def test_energy_conservation(sim):
             'epsilon': sim.epsilon}
 
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
-        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii-1], dxes=sim.dxes)
-        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii],   dxes=sim.dxes)  # pylint: disable=bad-whitespace
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii - 1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],     e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
+        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii - 1], dxes=sim.dxes)
+        delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii],     dxes=sim.dxes)
 
         u += delta_j_A.sum()
         assert_close(u_hstep.sum(), u)
@@ -70,8 +69,8 @@ def test_poynting_divergence(sim):
 
     u_eprev = None
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii - 1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],     e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
         delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii], dxes=sim.dxes)
 
         du_half_h2e = u_estep - u_hstep - delta_j_B
@@ -83,10 +82,10 @@ def test_poynting_divergence(sim):
             continue
 
         # previous half-step
-        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii-1], dxes=sim.dxes)
+        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii - 1], dxes=sim.dxes)
 
         du_half_e2h = u_hstep - u_eprev - delta_j_A
-        div_s_e2h = sim.dt * fdtd.poynting_divergence(e=sim.es[ii-1], h=sim.hs[ii], dxes=sim.dxes)
+        div_s_e2h = sim.dt * fdtd.poynting_divergence(e=sim.es[ii - 1], h=sim.hs[ii], dxes=sim.dxes)
         assert_fields_close(du_half_e2h, -div_s_e2h)
         u_eprev = u_estep
 
@@ -105,8 +104,8 @@ def test_poynting_planes(sim):
 
     u_eprev = None
     for ii in range(1, 8):
-        u_hstep = fdtd.energy_hstep(e0=sim.es[ii-1], h1=sim.hs[ii], e2=sim.es[ii],     **args)  # pylint: disable=bad-whitespace
-        u_estep = fdtd.energy_estep(h0=sim.hs[ii],   e1=sim.es[ii], h2=sim.hs[ii + 1], **args)  # pylint: disable=bad-whitespace
+        u_hstep = fdtd.energy_hstep(e0=sim.es[ii - 1], h1=sim.hs[ii], e2=sim.es[ii],     **args)
+        u_estep = fdtd.energy_estep(h0=sim.hs[ii],     e1=sim.es[ii], h2=sim.hs[ii + 1], **args)
         delta_j_B = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii], dxes=sim.dxes)
         du_half_h2e = u_estep - u_hstep - delta_j_B
 
@@ -121,7 +120,7 @@ def test_poynting_planes(sim):
             u_eprev = u_estep
             continue
 
-        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii-1], dxes=sim.dxes)
+        delta_j_A = fdtd.delta_energy_j(j0=sim.js[ii], e1=sim.es[ii - 1], dxes=sim.dxes)
         du_half_e2h = u_hstep - u_eprev - delta_j_A
 
         s_e2h = -fdtd.poynting(e=sim.es[ii - 1], h=sim.hs[ii], dxes=sim.dxes) * sim.dt
@@ -158,7 +157,7 @@ class TDResult:
     js: List[numpy.ndarray] = dataclasses.field(default_factory=list)
 
 
-@pytest.fixture(params=[(0, 4, 8),]) #(0,)])
+@pytest.fixture(params=[(0, 4, 8)])  # (0,)
 def j_steps(request):
     yield request.param
 
@@ -167,7 +166,7 @@ def j_steps(request):
 def j_distribution(request, shape, j_mag):
     j = numpy.zeros(shape)
     if request.param == 'center':
-        j[:, shape[1]//2, shape[2]//2, shape[3]//2] = j_mag
+        j[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = j_mag
     elif request.param == '000':
         j[:, 0, 0, 0] = j_mag
     elif request.param == 'random':

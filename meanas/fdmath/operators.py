@@ -3,14 +3,14 @@ Matrix operators for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, List, Callable, Tuple, Dict
-import numpy
-import scipy.sparse as sparse
+from typing import Sequence, List
+import numpy                    # type: ignore
+import scipy.sparse as sparse   # type: ignore
 
-from .types import fdfield_t, vfdfield_t
+from .types import vfdfield_t
 
 
-def rotation(axis: int, shape: Sequence[int], shift_distance: int=1) -> sparse.spmatrix:
+def rotation(axis: int, shape: Sequence[int], shift_distance: int = 1) -> sparse.spmatrix:
     """
     Utility operator for performing a circular shift along a specified axis by a
      specified number of elements.
@@ -46,7 +46,7 @@ def rotation(axis: int, shape: Sequence[int], shift_distance: int=1) -> sparse.s
     return d
 
 
-def shift_with_mirror(axis: int, shape: Sequence[int], shift_distance: int=1) -> sparse.spmatrix:
+def shift_with_mirror(axis: int, shape: Sequence[int], shift_distance: int = 1) -> sparse.spmatrix:
     """
     Utility operator for performing an n-element shift along a specified axis, with mirror
     boundary conditions applied to the cells beyond the receding edge.

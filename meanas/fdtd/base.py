@@ -3,8 +3,7 @@ Basic FDTD field updates
 
 
 """
-from typing import List, Callable, Dict, Union
-import numpy
+from typing import Union
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
@@ -59,7 +58,7 @@ def maxwell_e(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
         Returns:
             E-field at time t=1
         """
-        e += dt * curl_h_fun(h) / epsilon
+        e += dt * curl_h_fun(h) / epsilon           # type: ignore          # mypy gets confused around ndarray ops
         return e
 
     return me_fun
@@ -113,9 +112,9 @@ def maxwell_h(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
             H-field at time t=1.5
         """
         if mu is not None:
-            h -= dt * curl_e_fun(e) / mu
+            h -= dt * curl_e_fun(e) / mu           # type: ignore          # mypy gets confused around ndarray ops
         else:
-            h -= dt * curl_e_fun(e)
+            h -= dt * curl_e_fun(e)                # type: ignore          # mypy gets confused around ndarray ops
 
         return h
 

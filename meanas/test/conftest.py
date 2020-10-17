@@ -1,18 +1,18 @@
-from typing import List, Tuple
-import numpy
-import pytest
+"""
+
+Test fixtures
+
+"""
+import numpy        # type: ignore
+import pytest       # type: ignore
 
 from .utils import PRNG
-
-#####################################
-#      Test fixtures
-#####################################
 
 @pytest.fixture(scope='module',
                 params=[(5, 5, 1),
                         (5, 1, 5),
                         (5, 5, 5),
-                        #(7, 7, 7),
+                        # (7, 7, 7),
                        ])
 def shape(request):
     yield (3, *request.param)
@@ -41,7 +41,7 @@ def epsilon(request, shape, epsilon_bg, epsilon_fg):
 
     epsilon = numpy.full(shape, epsilon_bg, dtype=float)
     if request.param == 'center':
-        epsilon[:, shape[1]//2, shape[2]//2, shape[3]//2] = epsilon_fg
+        epsilon[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = epsilon_fg
     elif request.param == '000':
         epsilon[:, 0, 0, 0] = epsilon_fg
     elif request.param == 'random':
@@ -52,7 +52,7 @@ def epsilon(request, shape, epsilon_bg, epsilon_fg):
     yield epsilon
 
 
-@pytest.fixture(scope='module', params=[1.0])#, 1.5])
+@pytest.fixture(scope='module', params=[1.0])  # 1.5
 def j_mag(request):
     yield request.param
 
@@ -70,7 +70,7 @@ def dxes(request, shape, dx):
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
         for eh in (0, 1):
             for ax in (0, 1, 2):
-               dxes[eh][ax][dxes[eh][ax].size // 2] *= 1.1
+                dxes[eh][ax][dxes[eh][ax].size // 2] *= 1.1
     elif request.param == 'random':
         dxe = [PRNG.uniform(low=1.0 * dx, high=1.1 * dx, size=s) for s in shape[1:]]
         dxh = [(d + numpy.roll(d, -1)) / 2 for d in dxe]

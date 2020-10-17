@@ -1,13 +1,12 @@
-# pylint: disable=redefined-outer-name
 from typing import List, Tuple
 import dataclasses
-import pytest
-import numpy
+import pytest       # type: ignore
+import numpy        # type: ignore
 #from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd
 from ..fdmath import vec, unvec
-from .utils import assert_close, assert_fields_close
+from .utils import assert_close  # , assert_fields_close
 
 
 def test_residual(sim):
@@ -53,7 +52,7 @@ def test_poynting_planes(sim):
 #####################################
 # Also see conftest.py
 
-@pytest.fixture(params=[1/1500])
+@pytest.fixture(params=[1 / 1500])
 def omega(request):
     yield request.param
 
@@ -74,11 +73,11 @@ def pmc(request):
 #    yield (3, *request.param)
 
 
-@pytest.fixture(params=['diag'])        #'center'
+@pytest.fixture(params=['diag'])        # 'center'
 def j_distribution(request, shape, j_mag):
     j = numpy.zeros(shape, dtype=complex)
     center_mask = numpy.zeros(shape, dtype=bool)
-    center_mask[:, shape[1]//2, shape[2]//2, shape[3]//2] = True
+    center_mask[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = True
 
     if request.param == 'center':
         j[center_mask] = j_mag
@@ -102,6 +101,9 @@ class FDResult:
 
 @pytest.fixture()
 def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
+    """
+    Build simulation from parts
+    """
 #    is3d = (numpy.array(shape) == 1).sum() == 0
 #    if is3d:
 #        pytest.skip('Skipping dt != 0.3 because test is 3D (for speed)')

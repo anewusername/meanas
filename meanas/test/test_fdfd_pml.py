@@ -1,20 +1,15 @@
 #####################################
-# pylint: disable=redefined-outer-name
-from typing import List, Tuple
-import dataclasses
-import pytest
-import numpy
-from numpy.testing import assert_allclose, assert_array_equal
+import pytest       # type: ignore
+import numpy        # type: ignore
+from numpy.testing import assert_allclose   # type: ignore
 
 from .. import fdfd
 from ..fdmath import vec, unvec
-from .utils import assert_close, assert_fields_close
+#from .utils import assert_close, assert_fields_close
 from .test_fdfd import FDResult
 
 
 def test_pml(sim, src_polarity):
-    dim = numpy.where(numpy.array(sim.shape[1:]) > 1)[0][0]    # Propagation axis
-
     e_sqr = numpy.squeeze((sim.e.conj() * sim.e).sum(axis=0))
 
 #    from matplotlib import pyplot
@@ -43,10 +38,10 @@ def test_pml(sim, src_polarity):
 
 
 #      Test fixtures
-#####################################
+# ####################################
 # Also see conftest.py
 
-@pytest.fixture(params=[1/1500])
+@pytest.fixture(params=[1 / 1500])
 def omega(request):
     yield request.param
 
@@ -59,7 +54,6 @@ def pec(request):
 @pytest.fixture(params=[None])
 def pmc(request):
     yield request.param
-
 
 
 @pytest.fixture(params=[(30, 1, 1),
@@ -82,15 +76,14 @@ def j_distribution(request, shape, epsilon, dxes, omega, src_polarity):
     other_dims = [0, 1, 2]
     other_dims.remove(dim)
 
-    dx_prop = (dxes[0][dim][shape[dim + 1] // 2] +
-               dxes[1][dim][shape[dim + 1] // 2]) / 2       #TODO is this right for nonuniform dxes?
+    dx_prop = (dxes[0][dim][shape[dim + 1] // 2]
+             + dxes[1][dim][shape[dim + 1] // 2]) / 2       # TODO is this right for nonuniform dxes?
 
     # Mask only contains components orthogonal to propagation direction
     center_mask = numpy.zeros(shape, dtype=bool)
-    center_mask[other_dims, shape[1]//2, shape[2]//2, shape[3]//2] = True
+    center_mask[other_dims, shape[1] // 2, shape[2] // 2, shape[3] // 2] = True
     if (epsilon[center_mask] != epsilon[center_mask][0]).any():
         center_mask[other_dims[1]] = False          # If epsilon is not isotropic, pick only one dimension
-
 
     wavenumber = omega * numpy.sqrt(epsilon[center_mask].mean())
     wavenumber_corrected = 2 / dx_prop * numpy.arcsin(wavenumber * dx_prop / 2)

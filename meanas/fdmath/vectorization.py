@@ -4,10 +4,11 @@ and a 1D array representation of that field `[f_x0, f_x1, f_x2,... f_y0,... f_z0
 Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
-from typing import Optional, TypeVar, overload, Union, List
-import numpy
+from typing import Optional, overload, Union, List
+import numpy                # type: ignore
 
 from .types import fdfield_t, vfdfield_t
+
 
 @overload
 def vec(f: None) -> None:
@@ -60,5 +61,5 @@ def unvec(v: Optional[vfdfield_t], shape: numpy.ndarray) -> Optional[fdfield_t]:
     """
     if numpy.any(numpy.equal(v, None)):
         return None
-    return v.reshape((3, *shape), order='C')
+    return v.reshape((3, *shape), order='C')            # type: ignore  # already check v is not None
 

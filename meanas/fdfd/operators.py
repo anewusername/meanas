@@ -28,8 +28,8 @@ The following operators are included:
 """
 
 from typing import Tuple, Optional
-import numpy
-import scipy.sparse as sparse
+import numpy                        # type: ignore
+import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath import vec, dx_lists_t, vfdfield_t
 from ..fdmath.operators import shift_with_mirror, rotation, curl_forward, curl_back
@@ -90,7 +90,7 @@ def e_full(omega: complex,
     if numpy.any(numpy.equal(mu, None)):
         m_div = sparse.eye(epsilon.size)
     else:
-        m_div = sparse.diags(1 / mu)
+        m_div = sparse.diags(1 / mu)                # type: ignore  # checked mu is not None
 
     op = pe @ (ch @ pm @ m_div @ ce - omega**2 * e) @ pe
     return op
@@ -270,7 +270,7 @@ def e2h(omega: complex,
     op = curl_forward(dxes[0]) / (-1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
-        op = sparse.diags(1 / mu) @ op
+        op = sparse.diags(1 / mu) @ op              # type: ignore  # checked mu is not None
 
     if not numpy.any(numpy.equal(pmc, None)):
         op = sparse.diags(numpy.where(pmc, 0, 1)) @ op
@@ -297,7 +297,7 @@ def m2j(omega: complex,
     op = curl_back(dxes[1]) / (1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
-        op = op @ sparse.diags(1 / mu)
+        op = op @ sparse.diags(1 / mu)            # type: ignore  # checked mu is not None
 
     return op
 
@@ -319,14 +319,13 @@ def poynting_e_cross(e: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     fx, fy, fz = [rotation(i, shape, 1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
-    dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
     Ex, Ey, Ez = [ei * da for ei, da in zip(numpy.split(e, 3), dxag)]
 
     block_diags = [[ None,     fx @ -Ez, fx @  Ey],
                    [ fy @  Ez, None,     fy @ -Ex],
                    [ fz @ -Ey, fz @  Ex, None]]
     block_matrix = sparse.bmat([[sparse.diags(x) if x is not None else None for x in row]
-                                 for row in block_diags])
+                                for row in block_diags])
     P = block_matrix @ sparse.diags(numpy.concatenate(dxag))
     return P
 
@@ -351,10 +350,10 @@ def poynting_h_cross(h: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     Hx, Hy, Hz = [sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg)]
 
     P = (sparse.bmat(
-          [[ None,    -Hz @ fx,   Hy @ fx],
-           [ Hz @ fy,  None,     -Hx @ fy],
-           [-Hy @ fz,  Hx @ fz,   None]])
-          @ sparse.diags(numpy.concatenate(dxag)))
+        [[ None,    -Hz @ fx,   Hy @ fx],
+         [ Hz @ fy,  None,     -Hx @ fy],
+         [-Hy @ fz,  Hx @ fz,   None]])
+         @ sparse.diags(numpy.concatenate(dxag)))
     return P
 
 
@@ -418,15 +417,17 @@ def e_boundary_source(mask: vfdfield_t,
     jmask = numpy.zeros_like(mask, dtype=bool)
 
     if periodic_mask_edges:
-        shift = lambda axis, polarity: rotation(axis=axis, shape=shape, shift_distance=polarity)
+        def shift(axis, polarity):
+            return rotation(axis=axis, shape=shape, shift_distance=polarity)
     else:
-        shift = lambda axis, polarity: shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
+        def shift(axis, polarity):
+            return shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
 
     for axis in (0, 1, 2):
         if shape[axis] == 1:
             continue
         for polarity in (-1, +1):
-            r = shift(axis, polarity) - sparse.eye(numpy.prod(shape)) # shifted minus original
+            r = shift(axis, polarity) - sparse.eye(numpy.prod(shape))  # shifted minus original
             r3 = sparse.block_diag((r, r, r))
             jmask = numpy.logical_or(jmask, numpy.abs(r3 @ mask))
 

@@ -3,7 +3,7 @@ Functions for creating stretched coordinate perfectly matched layer (PML) absorb
 """
 
 from typing import Sequence, Union, Callable, Optional
-import numpy
+import numpy            # type: ignore
 
 from ..fdmath import dx_lists_t, dx_lists_mut
 
@@ -69,7 +69,7 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
         s_function = prepare_s_function()
 
     # Normalized distance to nearest boundary
-    def l(u, n, t):
+    def ll(u, n, t):
         return ((t - u).clip(0) + (u - (n - t)).clip(0)) / t
 
     dx_a = [numpy.array(numpy.inf)] * 3
@@ -82,8 +82,8 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
         s = shape[k]
         if th > 0:
             sr = numpy.arange(s)
-            dx_a[k] = 1 + 1j * s_function(l(sr, s, th)) / s_correction
-            dx_b[k] = 1 + 1j * s_function(l(sr+0.5, s, th)) / s_correction
+            dx_a[k] = 1 + 1j * s_function(ll(sr,       s, th)) / s_correction
+            dx_b[k] = 1 + 1j * s_function(ll(sr + 0.5, s, th)) / s_correction
         else:
             dx_a[k] = numpy.ones((s,))
             dx_b[k] = numpy.ones((s,))

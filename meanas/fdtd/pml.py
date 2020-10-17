@@ -8,9 +8,9 @@ PML implementations
 # TODO retest pmls!
 
 from typing import List, Callable, Tuple, Dict, Any
-import numpy
+import numpy            # type: ignore
 
-from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
+from ..fdmath import fdfield_t
 
 
 __author__ = 'Jan Petykiewicz'
@@ -48,8 +48,8 @@ def cpml(direction: int,
     transverse = numpy.delete(range(3), direction)
     u, v = transverse
 
-    xe = numpy.arange(1, thickness+1, dtype=float)
-    xh = numpy.arange(1, thickness+1, dtype=float)
+    xe = numpy.arange(1, thickness + 1, dtype=float)
+    xh = numpy.arange(1, thickness + 1, dtype=float)
     if polarity > 0:
         xe -= 0.5
     elif polarity < 0:
@@ -76,14 +76,14 @@ def cpml(direction: int,
     p0e, p1e, p2e = par(xe)
     p0h, p1h, p2h = par(xh)
 
-    region = [slice(None)] * 3
+    region_list = [slice(None)] * 3
     if polarity < 0:
-        region[direction] = slice(None, thickness)
+        region_list[direction] = slice(None, thickness)
     elif polarity > 0:
-        region[direction] = slice(-thickness, None)
+        region_list[direction] = slice(-thickness, None)
     else:
         raise Exception('Bad polarity!')
-    region = tuple(region)
+    region = tuple(region_list)
 
     se = 1 if direction == 1 else -1
 

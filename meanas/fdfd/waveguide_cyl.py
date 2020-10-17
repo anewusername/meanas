@@ -8,10 +8,9 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 """
 # TODO update module docs
 
-from typing import List, Tuple, Dict, Union
-import numpy
-from numpy.linalg import norm
-import scipy.sparse as sparse
+from typing import Dict, Union
+import numpy                        # type: ignore
+import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
@@ -51,9 +50,9 @@ def cylindrical_operator(omega: complex,
     Dbx, Dby = deriv_back(dxes[1])
 
     rx = r0 + numpy.cumsum(dxes[0][0])
-    ry = r0 + dxes[0][0]/2.0 + numpy.cumsum(dxes[1][0])
-    tx = rx/r0
-    ty = ry/r0
+    ry = r0 + dxes[0][0] / 2.0 + numpy.cumsum(dxes[1][0])
+    tx = rx / r0
+    ty = ry / r0
 
     Tx = sparse.diags(vec(tx[:, None].repeat(dxes[0][1].size, axis=1)))
     Ty = sparse.diags(vec(ty[:, None].repeat(dxes[1][1].size, axis=1)))
@@ -108,7 +107,7 @@ def solve_mode(mode_number: int,
 
     A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
     eigvals, eigvecs = signed_eigensolve(A_r, mode_number + 3)
-    e_xy = eigvecs[:, -(mode_number+1)]
+    e_xy = eigvecs[:, -(mode_number + 1)]
 
     '''
     Now solve for the eigenvector of the full operator, using the real operator's
@@ -128,8 +127,8 @@ def solve_mode(mode_number: int,
     fields = {
         'wavenumber': wavenumber,
         'E': unvec(e_xy, shape),
-#        'E': unvec(e, shape),
-#        'H': unvec(h, shape),
+        # 'E': unvec(e, shape),
+        # 'H': unvec(h, shape),
     }
 
     return fields
