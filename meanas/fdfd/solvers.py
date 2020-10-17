@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _scipy_qmr(A: scipy.sparse.csr_matrix,
                b: numpy.ndarray,
-               **kwargs
+               **kwargs: Any,
                ) -> numpy.ndarray:
     """
     Wrapper for scipy.sparse.linalg.qmr
@@ -37,14 +37,14 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     '''
     ii = 0
 
-    def log_residual(xk):
+    def log_residual(xk: numpy.ndarray) -> None:
         nonlocal ii
         ii += 1
         if ii % 100 == 0:
             logger.info('Solver residual at iteration {} : {}'.format(ii, norm(A @ xk - b)))
 
     if 'callback' in kwargs:
-        def augmented_callback(xk):
+        def augmented_callback(xk: numpy.ndarray) -> None:
             log_residual(xk)
             kwargs['callback'](xk)
 

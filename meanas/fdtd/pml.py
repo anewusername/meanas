@@ -63,7 +63,7 @@ def cpml(direction: int,
     expand_slice_l[direction] = slice(None)
     expand_slice = tuple(expand_slice_l)
 
-    def par(x):
+    def par(x: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
         scaling = (x / thickness) ** m
         sigma = scaling * sigma_max
         kappa = 1 + scaling * (kappa_max - 1)

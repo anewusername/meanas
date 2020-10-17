@@ -1,15 +1,15 @@
-#####################################
+from typing import Optional, Tuple, Iterable, List
 import pytest       # type: ignore
 import numpy        # type: ignore
 from numpy.testing import assert_allclose   # type: ignore
 
 from .. import fdfd
-from ..fdmath import vec, unvec
+from ..fdmath import vec, unvec, dx_lists_mut
 #from .utils import assert_close, assert_fields_close
 from .test_fdfd import FDResult
 
 
-def test_pml(sim, src_polarity):
+def test_pml(sim: FDResult, src_polarity: int) -> None:
     e_sqr = numpy.squeeze((sim.e.conj() * sim.e).sum(axis=0))
 
 #    from matplotlib import pyplot
@@ -42,34 +42,40 @@ def test_pml(sim, src_polarity):
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request):
+def omega(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request):
+def pec(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request):
+def pmc(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[(30, 1, 1),
                         (1, 30, 1),
                         (1, 1, 30)])
-def shape(request):
+def shape(request: pytest.FixtureRequest) -> Iterable[Tuple[int, ...]]:
     yield (3, *request.param)
 
 
 @pytest.fixture(params=[+1, -1])
-def src_polarity(request):
+def src_polarity(request: pytest.FixtureRequest) -> Iterable[int]:
     yield request.param
 
 
 @pytest.fixture()
-def j_distribution(request, shape, epsilon, dxes, omega, src_polarity):
+def j_distribution(request: pytest.FixtureRequest,
+                   shape: Tuple[int, ...],
+                   epsilon: numpy.ndarray,
+                   dxes: dx_lists_mut,
+                   omega: float,
+                   src_polarity: int,
+                   ) -> Iterable[numpy.ndarray]:
     j = numpy.zeros(shape, dtype=complex)
 
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -101,13 +107,22 @@ def j_distribution(request, shape, epsilon, dxes, omega, src_polarity):
 
 
 @pytest.fixture()
-def epsilon(request, shape, epsilon_bg, epsilon_fg):
+def epsilon(request: pytest.FixtureRequest,
+            shape: Tuple[int, ...],
+            epsilon_bg: float,
+            epsilon_fg: float,
+            ) -> Iterable[numpy.ndarray]:
     epsilon = numpy.full(shape, epsilon_fg, dtype=float)
     yield epsilon
 
 
 @pytest.fixture(params=['uniform'])
-def dxes(request, shape, dx, omega, epsilon_fg):
+def dxes(request: pytest.FixtureRequest,
+         shape: Tuple[int, ...],
+         dx: float,
+         omega: float,
+         epsilon_fg: float,
+         ) -> Iterable[List[List[numpy.ndarray]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -120,7 +135,15 @@ def dxes(request, shape, dx, omega, epsilon_fg):
 
 
 @pytest.fixture()
-def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
+def sim(request: pytest.FixtureRequest,
+        shape: Tuple[int, ...],
+        epsilon: numpy.ndarray,
+        dxes: dx_lists_mut,
+        j_distribution: numpy.ndarray,
+        omega: float,
+        pec: Optional[numpy.ndarray],
+        pmc: Optional[numpy.ndarray],
+        ) -> FDResult:
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)
     e_vec = fdfd.solvers.generic(J=j_vec, omega=omega, dxes=dxes, epsilon=eps_vec,
@@ -129,7 +152,7 @@ def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
 
     sim = FDResult(
         shape=shape,
-        dxes=dxes,
+        dxes=[list(d) for d in dxes],
         epsilon=epsilon,
         j=j_distribution,
         e=e,

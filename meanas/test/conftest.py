@@ -3,6 +3,7 @@
 Test fixtures
 
 """
+from typing import Tuple, Iterable, List
 import numpy        # type: ignore
 import pytest       # type: ignore
 
@@ -14,22 +15,26 @@ from .utils import PRNG
                         (5, 5, 5),
                         # (7, 7, 7),
                        ])
-def shape(request):
+def shape(request: pytest.FixtureRequest) -> Iterable[Tuple[int, ...]]:
     yield (3, *request.param)
 
 
 @pytest.fixture(scope='module', params=[1.0, 1.5])
-def epsilon_bg(request):
+def epsilon_bg(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(scope='module', params=[1.0, 2.5])
-def epsilon_fg(request):
+def epsilon_fg(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(scope='module', params=['center', '000', 'random'])
-def epsilon(request, shape, epsilon_bg, epsilon_fg):
+def epsilon(request: pytest.FixtureRequest,
+            shape: Tuple[int, ...],
+            epsilon_bg: float,
+            epsilon_fg: float,
+            ) -> Iterable[numpy.ndarray]:
     is3d = (numpy.array(shape) == 1).sum() == 0
     if is3d:
         if request.param == '000':
@@ -53,17 +58,20 @@ def epsilon(request, shape, epsilon_bg, epsilon_fg):
 
 
 @pytest.fixture(scope='module', params=[1.0])  # 1.5
-def j_mag(request):
+def j_mag(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(scope='module', params=[1.0, 1.5])
-def dx(request):
+def dx(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(scope='module', params=['uniform', 'centerbig'])
-def dxes(request, shape, dx):
+def dxes(request: pytest.FixtureRequest,
+         shape: Tuple[int, ...],
+         dx: float,
+         ) -> Iterable[List[List[numpy.ndarray]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     elif request.param == 'centerbig':

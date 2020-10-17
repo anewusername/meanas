@@ -5,6 +5,9 @@ from ..fdmath import dx_lists_t, fdfield_t
 from ..fdmath.functional import deriv_back
 
 
+# TODO documentation
+
+
 def poynting(e: fdfield_t,
              h: fdfield_t,
              dxes: Optional[dx_lists_t] = None,

@@ -80,7 +80,7 @@ This module contains functions for generating and solving the
 
 '''
 
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Any, List, Optional, cast
 import logging
 import numpy                            # type: ignore
 from numpy import pi, real, trace       # type: ignore
@@ -109,10 +109,10 @@ try:
         'planner_effort': 'FFTW_EXHAUSTIVE',
         }
 
-    def fftn(*args, **kwargs):
+    def fftn(*args: Any, **kwargs: Any) -> numpy.ndarray:
         return pyfftw.interfaces.numpy_fft.fftn(*args, **kwargs, **fftw_args)
 
-    def ifftn(*args, **kwargs):
+    def ifftn(*args: Any, **kwargs: Any) -> numpy.ndarray:
         return pyfftw.interfaces.numpy_fft.ifftn(*args, **kwargs, **fftw_args)
 
 except ImportError:
@@ -199,7 +199,7 @@ def maxwell_operator(k0: numpy.ndarray,
     if mu is not None:
         mu = numpy.stack(mu, 3)
 
-    def operator(h: numpy.ndarray):
+    def operator(h: numpy.ndarray) -> numpy.ndarray:
         """
         Maxwell operator for Bloch eigenmode simulation.
 
@@ -309,11 +309,11 @@ def hmn_2_hxyz(k0: numpy.ndarray,
     shape = epsilon[0].shape + (1,)
     _k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: numpy.ndarray):
+    def operator(h: numpy.ndarray) -> fdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m
                + n * hin_n)
-        return [ifftn(hi) for hi in numpy.rollaxis(h_xyz, 3)]
+        return numpy.array([ifftn(hi) for hi in numpy.rollaxis(h_xyz, 3)])
 
     return operator
 
@@ -351,7 +351,7 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
     if mu is not None:
         mu = numpy.stack(mu, 3)
 
-    def operator(h: numpy.ndarray):
+    def operator(h: numpy.ndarray) -> numpy.ndarray:
         """
         Approximate inverse Maxwell operator for Bloch eigenmode simulation.
 
@@ -429,7 +429,7 @@ def find_k(frequency: float,
 
     direction = numpy.array(direction) / norm(direction)
 
-    def get_f(k0_mag: float, band: int = 0):
+    def get_f(k0_mag: float, band: int = 0) -> numpy.ndarray:
         k0 = direction * k0_mag
         n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
@@ -552,12 +552,12 @@ def eigsolve(num_modes: int,
         symZtD = _symmetrize(Z.conj().T @ D)
         symZtAD = _symmetrize(Z.conj().T @ AD)
 
-        Qi_memo = [None, None]
+        Qi_memo: List[Optional[float]] = [None, None]
 
-        def Qi_func(theta):
+        def Qi_func(theta: float) -> float:
             nonlocal Qi_memo
             if Qi_memo[0] == theta:
-                return Qi_memo[1]
+                return cast(float, Qi_memo[1])
 
             c = numpy.cos(theta)
             s = numpy.sin(theta)
@@ -579,7 +579,7 @@ def eigsolve(num_modes: int,
             Qi_memo[1] = Qi
             return Qi
 
-        def trace_func(theta):
+        def trace_func(theta: float) -> float:
             c = numpy.cos(theta)
             s = numpy.sin(theta)
             Qi = Qi_func(theta)
@@ -685,9 +685,9 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
         return x, fx, dfx
 '''
 
-def _rtrace_AtB(A, B):
+def _rtrace_AtB(A: numpy.ndarray, B: numpy.ndarray) -> numpy.ndarray:
     return real(numpy.sum(A.conj() * B))
 
-def _symmetrize(A):
+def _symmetrize(A: numpy.ndarray) -> numpy.ndarray:
     return (A + A.conj().T) * 0.5
 

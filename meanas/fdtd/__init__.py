@@ -130,7 +130,7 @@ $$
  \\end{aligned}
 $$
 
-This result is exact an should practically hold to within numerical precision. No time-
+This result is exact and should practically hold to within numerical precision. No time-
 or spatial-averaging is necessary.
 
 Note that each value of $J$ contributes to the energy twice (i.e. once per field update)

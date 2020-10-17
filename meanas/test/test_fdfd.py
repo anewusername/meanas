@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Iterable, Optional
 import dataclasses
 import pytest       # type: ignore
 import numpy        # type: ignore
@@ -9,14 +9,14 @@ from ..fdmath import vec, unvec
 from .utils import assert_close  # , assert_fields_close
 
 
-def test_residual(sim):
+def test_residual(sim: 'FDResult') -> None:
     A = fdfd.operators.e_full(sim.omega, sim.dxes, vec(sim.epsilon)).tocsr()
     b = -1j * sim.omega * vec(sim.j)
     residual = A @ vec(sim.e) - b
     assert numpy.linalg.norm(residual) < 1e-10
 
 
-def test_poynting_planes(sim):
+def test_poynting_planes(sim: 'FDResult') -> None:
     mask = (sim.j != 0).any(axis=0)
     if mask.sum() != 2:
         pytest.skip(f'test_poynting_planes will only test 2-point sources, got {mask.sum()}')
@@ -53,17 +53,17 @@ def test_poynting_planes(sim):
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request):
+def omega(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request):
+def pec(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request):
+def pmc(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
@@ -74,7 +74,10 @@ def pmc(request):
 
 
 @pytest.fixture(params=['diag'])        # 'center'
-def j_distribution(request, shape, j_mag):
+def j_distribution(request: pytest.FixtureRequest,
+                   shape: Tuple[int, ...],
+                   j_mag: float,
+                   ) -> Iterable[numpy.ndarray]:
     j = numpy.zeros(shape, dtype=complex)
     center_mask = numpy.zeros(shape, dtype=bool)
     center_mask[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = True
@@ -89,7 +92,7 @@ def j_distribution(request, shape, j_mag):
 
 @dataclasses.dataclass()
 class FDResult:
-    shape: Tuple[int]
+    shape: Tuple[int, ...]
     dxes: List[List[numpy.ndarray]]
     epsilon: numpy.ndarray
     omega: complex
@@ -100,7 +103,15 @@ class FDResult:
 
 
 @pytest.fixture()
-def sim(request, shape, epsilon, dxes, j_distribution, omega, pec, pmc):
+def sim(request: pytest.FixtureRequest,
+        shape: Tuple[int, ...],
+        epsilon: numpy.ndarray,
+        dxes: List[List[numpy.ndarray]],
+        j_distribution: numpy.ndarray,
+        omega: float,
+        pec: Optional[numpy.ndarray],
+        pmc: Optional[numpy.ndarray],
+        ) -> FDResult:
     """
     Build simulation from parts
     """

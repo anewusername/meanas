@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 import dataclasses
 import pytest       # type: ignore
 import numpy        # type: ignore
@@ -8,7 +8,7 @@ from .. import fdtd
 from .utils import assert_close, assert_fields_close, PRNG
 
 
-def test_initial_fields(sim):
+def test_initial_fields(sim: 'TDResult') -> None:
     # Make sure initial fields didn't change
     e0 = sim.es[0]
     h0 = sim.hs[0]
@@ -20,7 +20,7 @@ def test_initial_fields(sim):
     assert not h0.any()
 
 
-def test_initial_energy(sim):
+def test_initial_energy(sim: 'TDResult') -> None:
     """
     Assumes fields start at 0 before J0 is added
     """
@@ -41,7 +41,7 @@ def test_initial_energy(sim):
     assert_fields_close(e0_dot_j0, u0)
 
 
-def test_energy_conservation(sim):
+def test_energy_conservation(sim: 'TDResult') -> None:
     """
     Assumes fields start at 0 before J0 is added
     """
@@ -63,7 +63,7 @@ def test_energy_conservation(sim):
         assert_close(u_estep.sum(), u)
 
 
-def test_poynting_divergence(sim):
+def test_poynting_divergence(sim: 'TDResult') -> None:
     args = {'dxes': sim.dxes,
             'epsilon': sim.epsilon}
 
@@ -90,7 +90,7 @@ def test_poynting_divergence(sim):
         u_eprev = u_estep
 
 
-def test_poynting_planes(sim):
+def test_poynting_planes(sim: 'TDResult') -> None:
     mask = (sim.js[0] != 0).any(axis=0)
     if mask.sum() > 1:
         pytest.skip('test_poynting_planes can only test single point sources, got {}'.format(mask.sum()))
@@ -140,30 +140,33 @@ def test_poynting_planes(sim):
 
 
 @pytest.fixture(params=[0.3])
-def dt(request):
+def dt(request: pytest.FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @dataclasses.dataclass()
 class TDResult:
-    shape: Tuple[int]
+    shape: Tuple[int, ...]
     dt: float
     dxes: List[List[numpy.ndarray]]
     epsilon: numpy.ndarray
     j_distribution: numpy.ndarray
-    j_steps: Tuple[int]
+    j_steps: Tuple[int, ...]
     es: List[numpy.ndarray] = dataclasses.field(default_factory=list)
     hs: List[numpy.ndarray] = dataclasses.field(default_factory=list)
     js: List[numpy.ndarray] = dataclasses.field(default_factory=list)
 
 
 @pytest.fixture(params=[(0, 4, 8)])  # (0,)
-def j_steps(request):
+def j_steps(request: pytest.fixtureRequest) -> Iterable[Tuple[int, ...]]:
     yield request.param
 
 
 @pytest.fixture(params=['center', 'random'])
-def j_distribution(request, shape, j_mag):
+def j_distribution(request: pytest.FixtureRequest,
+                   shape: Tuple[int, ...],
+                   j_mag: float,
+                   ) -> Iterable[numpy.ndarray]:
     j = numpy.zeros(shape)
     if request.param == 'center':
         j[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = j_mag
@@ -175,7 +178,14 @@ def j_distribution(request, shape, j_mag):
 
 
 @pytest.fixture()
-def sim(request, shape, epsilon, dxes, dt, j_distribution, j_steps):
+def sim(request: pytest.FixtureRequest,
+        shape: Tuple[int, ...],
+        epsilon: numpy.ndarray,
+        dxes: List[List[numpy.ndarray]],
+        dt: float,
+        j_distribution: numpy.ndarray,
+        j_steps: Tuple[int, ...],
+        ) -> TDResult:
     is3d = (numpy.array(shape) == 1).sum() == 0
     if is3d:
         if dt != 0.3:

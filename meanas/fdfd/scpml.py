@@ -2,10 +2,8 @@
 Functions for creating stretched coordinate perfectly matched layer (PML) absorbers.
 """
 
-from typing import Sequence, Union, Callable, Optional
+from typing import Sequence, Union, Callable, Optional, List
 import numpy            # type: ignore
-
-from ..fdmath import dx_lists_t, dx_lists_mut
 
 
 __author__ = 'Jan Petykiewicz'
@@ -42,7 +40,7 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
                        omega: float,
                        epsilon_effective: float = 1.0,
                        s_function: Optional[s_function_t] = None,
-                       ) -> dx_lists_mut:
+                       ) -> List[List[numpy.ndarray]]:
     """
     Create dx arrays for a uniform grid with a cell width of 1 and a pml.
 
@@ -69,7 +67,7 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
         s_function = prepare_s_function()
 
     # Normalized distance to nearest boundary
-    def ll(u, n, t):
+    def ll(u: numpy.ndarray, n: numpy.ndarray, t: numpy.ndarray) -> numpy.ndarray:
         return ((t - u).clip(0) + (u - (n - t)).clip(0)) / t
 
     dx_a = [numpy.array(numpy.inf)] * 3
@@ -90,14 +88,14 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
     return [dx_a, dx_b]
 
 
-def stretch_with_scpml(dxes: dx_lists_mut,
+def stretch_with_scpml(dxes: List[List[numpy.ndarray]],
                        axis: int,
                        polarity: int,
                        omega: float,
                        epsilon_effective: float = 1.0,
                        thickness: int = 10,
                        s_function: Optional[s_function_t] = None,
-                       ) -> dx_lists_t:
+                       ) -> List[List[numpy.ndarray]]:
     """
         Stretch dxes to contain a stretched-coordinate PML (SCPML) in one direction along one axis.
 
@@ -134,7 +132,7 @@ def stretch_with_scpml(dxes: dx_lists_mut,
         bound = pos[thickness]
         d = bound - pos[0]
 
-        def l_d(x):
+        def l_d(x: numpy.ndarray) -> numpy.ndarray:
             return (bound - x) / (bound - pos[0])
 
         slc = slice(thickness)
@@ -144,7 +142,7 @@ def stretch_with_scpml(dxes: dx_lists_mut,
         bound = pos[-thickness - 1]
         d = pos[-1] - bound
 
-        def l_d(x):
+        def l_d(x: numpy.ndarray) -> numpy.ndarray:
             return (x - bound) / (pos[-1] - bound)
 
         if thickness == 0:

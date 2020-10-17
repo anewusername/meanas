@@ -416,12 +416,13 @@ def e_boundary_source(mask: vfdfield_t,
     shape = [len(dxe) for dxe in dxes[0]]
     jmask = numpy.zeros_like(mask, dtype=bool)
 
-    if periodic_mask_edges:
-        def shift(axis, polarity):
-            return rotation(axis=axis, shape=shape, shift_distance=polarity)
-    else:
-        def shift(axis, polarity):
-            return shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
+    def shift_rot(axis: int, polarity: int) -> sparse.spmatrix:
+        return rotation(axis=axis, shape=shape, shift_distance=polarity)
+
+    def shift_mir(axis: int, polarity: int) -> sparse.spmatrix:
+        return shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
+
+    shift = shift_rot if periodic_mask_edges else shift_mir
 
     for axis in (0, 1, 2):
         if shape[axis] == 1:

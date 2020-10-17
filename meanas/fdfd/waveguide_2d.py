@@ -146,7 +146,7 @@ to account for numerical dispersion if the result is introduced into a space wit
 """
 # TODO update module docs
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 import numpy                        # type: ignore
 from numpy.linalg import norm       # type: ignore
 import scipy.sparse as sparse       # type: ignore
@@ -721,8 +721,8 @@ def solve_modes(mode_numbers: List[int],
 
 
 def solve_mode(mode_number: int,
-               *args,
-               **kwargs
+               *args: Any,
+               **kwargs: Any,
                ) -> Tuple[vfdfield_t, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.

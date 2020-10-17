@@ -73,8 +73,9 @@ def rayleigh_quotient_iteration(operator: Union[sparse.spmatrix, spalg.LinearOpe
                                         dtype=operator.dtype,
                                         matvec=lambda v: eigval * v)
         if solver is None:
-            def solver(A, b):
+            def solver(A: spalg.LinearOperator, b: numpy.ndarray) -> numpy.ndarray:
                 return spalg.bicgstab(A, b)[0]
+    assert(solver is not None)
 
     v = numpy.squeeze(guess_vector)
     v /= norm(v)

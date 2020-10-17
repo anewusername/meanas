@@ -36,13 +36,13 @@ def e_full(omega: complex,
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e):
+    def op_1(e: fdfield_t) -> fdfield_t:
         curls = ch(ce(e))
-        return curls - omega ** 2 * epsilon * e
+        return curls - omega ** 2 * epsilon * e         # type: ignore      # issues with numpy/mypy
 
-    def op_mu(e):
+    def op_mu(e: fdfield_t) -> fdfield_t:
         curls = ch(mu * ce(e))
-        return curls - omega ** 2 * epsilon * e
+        return curls - omega ** 2 * epsilon * e         # type: ignore      # issues with numpy/mypy
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -72,13 +72,13 @@ def eh_full(omega: complex,
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e, h):
+    def op_1(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * h)
+                ce(e) + 1j * omega * h)                 # type: ignore    # issues with numpy/mypy
 
-    def op_mu(e, h):
+    def op_mu(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * mu * h)
+                ce(e) + 1j * omega * mu * h)            # type: ignore    # issues with numpy/mypy
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -105,11 +105,11 @@ def e2h(omega: complex,
     """
     ce = curl_forward(dxes[0])
 
-    def e2h_1_1(e):
-        return ce(e) / (-1j * omega)
+    def e2h_1_1(e: fdfield_t) -> fdfield_t:
+        return ce(e) / (-1j * omega)            # type: ignore    # issues with numpy/mypy
 
-    def e2h_mu(e):
-        return ce(e) / (-1j * omega * mu)
+    def e2h_mu(e: fdfield_t) -> fdfield_t:
+        return ce(e) / (-1j * omega * mu)       # type: ignore    # issues with numpy/mypy
 
     if numpy.any(numpy.equal(mu, None)):
         return e2h_1_1
@@ -137,13 +137,13 @@ def m2j(omega: complex,
     """
     ch = curl_back(dxes[1])
 
-    def m2j_mu(m):
+    def m2j_mu(m: fdfield_t) -> fdfield_t:
         J = ch(m / mu) / (-1j * omega)
-        return J
+        return J                          # type: ignore    # issues with numpy/mypy
 
-    def m2j_1(m):
+    def m2j_1(m: fdfield_t) -> fdfield_t:
         J = ch(m) / (-1j * omega)
-        return J
+        return J                          # type: ignore    # issues with numpy/mypy
 
     if numpy.any(numpy.equal(mu, None)):
         return m2j_1
@@ -177,7 +177,7 @@ def e_tfsf_source(TF_region: fdfield_t,
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
 
-    def op(e):
+    def op(e: fdfield_t) -> fdfield_t:
         neg_iwj = A(TF_region * e) - TF_region * A(e)
         return neg_iwj / (-1j * omega)
     return op
@@ -205,7 +205,7 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[fdfield_t, fdfield_t], fdf
     Returns:
         Function `f` that returns E x H as required for the poynting vector.
     """
-    def exh(e: fdfield_t, h: fdfield_t):
+    def exh(e: fdfield_t, h: fdfield_t) -> fdfield_t:
         s = numpy.empty_like(e)
         ex = e[0] * dxes[0][0][:, None, None]
         ey = e[1] * dxes[0][1][None, :, None]

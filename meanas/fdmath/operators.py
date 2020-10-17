@@ -67,7 +67,7 @@ def shift_with_mirror(axis: int, shape: Sequence[int], shift_distance: int = 1) 
         raise Exception('Shift ({}) is too large for axis {} of size {}'.format(
                         shift_distance, axis, shape[axis]))
 
-    def mirrored_range(n, s):
+    def mirrored_range(n: int, s: int) -> numpy.ndarray:
         v = numpy.arange(n) + s
         v = numpy.where(v >= n, 2 * n - v - 1, v)
         v = numpy.where(v < 0, - 1 - v, v)
@@ -103,7 +103,7 @@ def deriv_forward(dx_e: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
 
     dx_e_expanded = numpy.meshgrid(*dx_e, indexing='ij')
 
-    def deriv(axis):
+    def deriv(axis: int) -> sparse.spmatrix:
         return rotation(axis, shape, 1) - sparse.eye(n)
 
     Ds = [sparse.diags(+1 / dx.ravel(order='C')) @ deriv(a)
@@ -128,7 +128,7 @@ def deriv_back(dx_h: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
 
     dx_h_expanded = numpy.meshgrid(*dx_h, indexing='ij')
 
-    def deriv(axis):
+    def deriv(axis: int) -> sparse.spmatrix:
         return rotation(axis, shape, -1) - sparse.eye(n)
 
     Ds = [sparse.diags(-1 / dx.ravel(order='C')) @ deriv(a)
