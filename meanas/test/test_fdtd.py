@@ -6,6 +6,7 @@ import numpy        # type: ignore
 
 from .. import fdtd
 from .utils import assert_close, assert_fields_close, PRNG
+from .conftest import FixtureRequest
 
 
 def test_initial_fields(sim: 'TDResult') -> None:
@@ -140,7 +141,7 @@ def test_poynting_planes(sim: 'TDResult') -> None:
 
 
 @pytest.fixture(params=[0.3])
-def dt(request: pytest.FixtureRequest) -> Iterable[float]:
+def dt(request: FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
@@ -158,12 +159,12 @@ class TDResult:
 
 
 @pytest.fixture(params=[(0, 4, 8)])  # (0,)
-def j_steps(request: pytest.fixtureRequest) -> Iterable[Tuple[int, ...]]:
+def j_steps(request: FixtureRequest) -> Iterable[Tuple[int, ...]]:
     yield request.param
 
 
 @pytest.fixture(params=['center', 'random'])
-def j_distribution(request: pytest.FixtureRequest,
+def j_distribution(request: FixtureRequest,
                    shape: Tuple[int, ...],
                    j_mag: float,
                    ) -> Iterable[numpy.ndarray]:
@@ -178,7 +179,7 @@ def j_distribution(request: pytest.FixtureRequest,
 
 
 @pytest.fixture()
-def sim(request: pytest.FixtureRequest,
+def sim(request: FixtureRequest,
         shape: Tuple[int, ...],
         epsilon: numpy.ndarray,
         dxes: List[List[numpy.ndarray]],

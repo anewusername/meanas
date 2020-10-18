@@ -7,6 +7,7 @@ from .. import fdfd
 from ..fdmath import vec, unvec, dx_lists_mut
 #from .utils import assert_close, assert_fields_close
 from .test_fdfd import FDResult
+from .conftest import FixtureRequest
 
 
 def test_pml(sim: FDResult, src_polarity: int) -> None:
@@ -42,34 +43,34 @@ def test_pml(sim: FDResult, src_polarity: int) -> None:
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request: pytest.FixtureRequest) -> Iterable[float]:
+def omega(request: FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pec(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pmc(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[(30, 1, 1),
                         (1, 30, 1),
                         (1, 1, 30)])
-def shape(request: pytest.FixtureRequest) -> Iterable[Tuple[int, ...]]:
+def shape(request: FixtureRequest) -> Iterable[Tuple[int, ...]]:
     yield (3, *request.param)
 
 
 @pytest.fixture(params=[+1, -1])
-def src_polarity(request: pytest.FixtureRequest) -> Iterable[int]:
+def src_polarity(request: FixtureRequest) -> Iterable[int]:
     yield request.param
 
 
 @pytest.fixture()
-def j_distribution(request: pytest.FixtureRequest,
+def j_distribution(request: FixtureRequest,
                    shape: Tuple[int, ...],
                    epsilon: numpy.ndarray,
                    dxes: dx_lists_mut,
@@ -107,7 +108,7 @@ def j_distribution(request: pytest.FixtureRequest,
 
 
 @pytest.fixture()
-def epsilon(request: pytest.FixtureRequest,
+def epsilon(request: FixtureRequest,
             shape: Tuple[int, ...],
             epsilon_bg: float,
             epsilon_fg: float,
@@ -117,7 +118,7 @@ def epsilon(request: pytest.FixtureRequest,
 
 
 @pytest.fixture(params=['uniform'])
-def dxes(request: pytest.FixtureRequest,
+def dxes(request: FixtureRequest,
          shape: Tuple[int, ...],
          dx: float,
          omega: float,
@@ -135,7 +136,7 @@ def dxes(request: pytest.FixtureRequest,
 
 
 @pytest.fixture()
-def sim(request: pytest.FixtureRequest,
+def sim(request: FixtureRequest,
         shape: Tuple[int, ...],
         epsilon: numpy.ndarray,
         dxes: dx_lists_mut,

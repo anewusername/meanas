@@ -7,6 +7,7 @@ import numpy        # type: ignore
 from .. import fdfd
 from ..fdmath import vec, unvec
 from .utils import assert_close  # , assert_fields_close
+from .conftest import FixtureRequest
 
 
 def test_residual(sim: 'FDResult') -> None:
@@ -53,17 +54,17 @@ def test_poynting_planes(sim: 'FDResult') -> None:
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request: pytest.FixtureRequest) -> Iterable[float]:
+def omega(request: FixtureRequest) -> Iterable[float]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pec(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pmc(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
     yield request.param
 
 
@@ -74,7 +75,7 @@ def pmc(request: pytest.FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
 
 
 @pytest.fixture(params=['diag'])        # 'center'
-def j_distribution(request: pytest.FixtureRequest,
+def j_distribution(request: FixtureRequest,
                    shape: Tuple[int, ...],
                    j_mag: float,
                    ) -> Iterable[numpy.ndarray]:
@@ -103,7 +104,7 @@ class FDResult:
 
 
 @pytest.fixture()
-def sim(request: pytest.FixtureRequest,
+def sim(request: FixtureRequest,
         shape: Tuple[int, ...],
         epsilon: numpy.ndarray,
         dxes: List[List[numpy.ndarray]],

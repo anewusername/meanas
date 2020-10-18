@@ -1,7 +1,9 @@
 from typing import Any
 import numpy        # type: ignore
 
+
 PRNG = numpy.random.RandomState(12345)
+
 
 def assert_fields_close(x: numpy.ndarray,
                         y: numpy.ndarray,
