@@ -19,7 +19,7 @@ setup(name='meanas',
       url='https://mpxd.net/code/jan/meanas',
       packages=find_packages(),
       package_data={
-          'meanas': []
+          'meanas': ['py.typed']
       },
       install_requires=[
             'numpy',
