@@ -2,11 +2,12 @@
 
 from setuptools import setup, find_packages
 
+
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-with open('meanas/VERSION', 'r') as f:
-    version = f.read().strip()
+with open('meanas/VERSION.py', 'rt') as f:
+    version = f.readlines()[2].strip()
 
 setup(name='meanas',
       version=version,
@@ -18,7 +19,7 @@ setup(name='meanas',
       url='https://mpxd.net/code/jan/meanas',
       packages=find_packages(),
       package_data={
-          'meanas': ['VERSION']
+          'meanas': []
       },
       install_requires=[
             'numpy',
