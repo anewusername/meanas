@@ -32,7 +32,7 @@ import numpy                        # type: ignore
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath import vec, dx_lists_t, vfdfield_t
-from ..fdmath.operators import shift_with_mirror, rotation, curl_forward, curl_back
+from ..fdmath.operators import shift_with_mirror, shift_circ, curl_forward, curl_back
 
 
 __author__ = 'Jan Petykiewicz'
@@ -316,7 +316,7 @@ def poynting_e_cross(e: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [rotation(i, shape, 1) for i in range(3)]
+    fx, fy, fz = [shift_circ(i, shape, 1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     Ex, Ey, Ez = [ei * da for ei, da in zip(numpy.split(e, 3), dxag)]
@@ -343,7 +343,7 @@ def poynting_h_cross(h: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [rotation(i, shape, 1) for i in range(3)]
+    fx, fy, fz = [shift_circ(i, shape, 1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
@@ -417,7 +417,7 @@ def e_boundary_source(mask: vfdfield_t,
     jmask = numpy.zeros_like(mask, dtype=bool)
 
     def shift_rot(axis: int, polarity: int) -> sparse.spmatrix:
-        return rotation(axis=axis, shape=shape, shift_distance=polarity)
+        return shift_circ(axis=axis, shape=shape, shift_distance=polarity)
 
     def shift_mir(axis: int, polarity: int) -> sparse.spmatrix:
         return shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)

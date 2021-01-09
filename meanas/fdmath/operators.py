@@ -10,7 +10,7 @@ import scipy.sparse as sparse   # type: ignore
 from .types import vfdfield_t
 
 
-def rotation(axis: int, shape: Sequence[int], shift_distance: int = 1) -> sparse.spmatrix:
+def shift_circ(axis: int, shape: Sequence[int], shift_distance: int = 1) -> sparse.spmatrix:
     """
     Utility operator for performing a circular shift along a specified axis by a
      specified number of elements.
@@ -104,7 +104,7 @@ def deriv_forward(dx_e: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
     dx_e_expanded = numpy.meshgrid(*dx_e, indexing='ij')
 
     def deriv(axis: int) -> sparse.spmatrix:
-        return rotation(axis, shape, 1) - sparse.eye(n)
+        return shift_circ(axis, shape, 1) - sparse.eye(n)
 
     Ds = [sparse.diags(+1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_e_expanded)]
@@ -129,7 +129,7 @@ def deriv_back(dx_h: Sequence[numpy.ndarray]) -> List[sparse.spmatrix]:
     dx_h_expanded = numpy.meshgrid(*dx_h, indexing='ij')
 
     def deriv(axis: int) -> sparse.spmatrix:
-        return rotation(axis, shape, -1) - sparse.eye(n)
+        return shift_circ(axis, shape, -1) - sparse.eye(n)
 
     Ds = [sparse.diags(-1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_h_expanded)]
@@ -186,7 +186,7 @@ def avg_forward(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
         raise Exception('Invalid shape: {}'.format(shape))
 
     n = numpy.prod(shape)
-    return 0.5 * (sparse.eye(n) + rotation(axis, shape))
+    return 0.5 * (sparse.eye(n) + shift_circ(axis, shape))
 
 
 def avg_back(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
