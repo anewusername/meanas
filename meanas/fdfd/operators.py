@@ -3,7 +3,7 @@ Sparse matrix operators for use with electromagnetic wave equations.
 
 These functions return sparse-matrix (`scipy.sparse.spmatrix`) representations of
  a variety of operators, intended for use with E and H fields vectorized using the
- `meanas.vec()` and `meanas.unvec()` functions.
+ `meanas.fdmath.vectorization.vec()` and `meanas.fdmath.vectorization.unvec()` functions.
 
 E- and H-field values are defined on a Yee cell; `epsilon` values should be calculated for
  cells centered at each E component (`mu` at each H component).
