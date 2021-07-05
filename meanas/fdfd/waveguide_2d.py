@@ -69,8 +69,8 @@ $$
          - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon_{yy} E_y - \\hat{\\partial}_x H_z)  \\\\
         &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x ( \\imath \\omega \\epsilon_{xx} E_x)
          - \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (-\\imath \\omega \\epsilon_{yy} E_y)  \\\\
-\\gamma \\tilde{\\partial}_x E_z &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
-                                    \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
+\\gamma \\tilde{\\partial}_x E_z &= \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+                                  + \\tilde{\\partial}_x \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
 \\end{aligned}
 $$
 
@@ -78,23 +78,32 @@ With a similar approach (but using $\\gamma \\tilde{\\partial}_y$ instead), we c
 
 $$
 \\begin{aligned}
-\\gamma \\tilde{\\partial}_y E_z &= \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
-                                    \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
+\\gamma \\tilde{\\partial}_y E_z &= \\tilde{\\partial}_y \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+                                  + \\tilde{\\partial}_y \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y) \\\\
 \\end{aligned}
 $$
 
 We can combine this equation for $\\gamma \\tilde{\\partial}_y E_z$ with
-the unused $\\imath \\omega \\mu_{xx} H_z$ and $\\imath \\omega \\mu_{yy} H_y$ equations to get
+the unused $\\imath \\omega \\mu_{xx} H_x$ and $\\imath \\omega \\mu_{yy} H_y$ equations to get
 
 $$
 \\begin{aligned}
+-\\imath \\omega \\mu_{xx} \\gamma H_x &=  \\gamma^2 E_y + \\gamma \\tilde{\\partial}_y E_z \\\\
 -\\imath \\omega \\mu_{xx} \\gamma H_x &=  \\gamma^2 E_y + \\tilde{\\partial}_y (
-                                      \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
-                                    + \\tilde{\\partial}_x \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
-                                    ) \\\\
+                                      \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+                                    + \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
+                                    )\\\\
+\\end{aligned}
+$$
+
+and
+
+$$
+\\begin{aligned}
+-\\imath \\omega \\mu_{yy} \\gamma H_y &= -\\gamma^2 E_x - \\gamma \\tilde{\\partial}_x E_z \\\\
 -\\imath \\omega \\mu_{yy} \\gamma H_y &= -\\gamma^2 E_x - \\tilde{\\partial}_x (
-                                      \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
-                                    + \\tilde{\\partial}_y \\frac{1}{\\epsilon_zz} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
+                                      \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+                                    + \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
                                     )\\\\
 \\end{aligned}
 $$
@@ -106,10 +115,10 @@ $$
 \\begin{aligned}
 -\\imath \\omega \\mu_{xx} (\\gamma H_x) &= -\\imath \\omega \\mu_{xx} (-\\imath \\omega \\epsilon_{yy} E_y - \\hat{\\partial}_x H_z) \\\\
                                          &= -\\omega^2 \\mu_{xx} \\epsilon_{yy} E_y
-                                            -\\imath \\omega \\mu_{xx} \\hat{\\partial}_x (
+                                            +\\imath \\omega \\mu_{xx} \\hat{\\partial}_x (
                                                 \\frac{1}{-\\imath \\omega \\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x)) \\\\
                                          &= -\\omega^2 \\mu_{xx} \\epsilon_{yy} E_y
-                                            +\\mu_{xx} \\hat{\\partial}_x \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
+                                            -\\mu_{xx} \\hat{\\partial}_x \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
 \\end{aligned}
 $$
 
@@ -117,12 +126,30 @@ and, similarly,
 
 $$
 \\begin{aligned}
--\\imath \\omega \\mu_{yy} (\\gamma H_y) &= -\\omega^2 \\mu_{yy} \\epsilon_{xx} E_x
-                                            +\\mu_{yy} \\hat{\\partial}_y \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
+-\\imath \\omega \\mu_{yy} (\\gamma H_y) &= \\omega^2 \\mu_{yy} \\epsilon_{xx} E_x
+                                           +\\mu_{yy} \\hat{\\partial}_y \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
+\\end{aligned}
+$$
+
+By combining both pairs of expressions, we get
+
+$$
+\\begin{aligned}
+-\\gamma^2 E_x - \\tilde{\\partial}_x (
+    \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+  + \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
+    ) &= \\omega^2 \\mu_{yy} \\epsilon_{xx} E_x
+        +\\mu_{yy} \\hat{\\partial}_y \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
+\\gamma^2 E_y + \\tilde{\\partial}_y (
+    \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_x (\\epsilon_{xx} E_x)
+  + \\frac{1}{\\epsilon_{zz}} \\hat{\\partial}_y (\\epsilon_{yy} E_y)
+    ) &= -\\omega^2 \\mu_{xx} \\epsilon_{yy} E_y
+         -\\mu_{xx} \\hat{\\partial}_x \\frac{1}{\\mu_{zz}} (\\tilde{\\partial}_x E_y - \\tilde{\\partial}_y E_x) \\\\
 \\end{aligned}
 $$
 
 Using these, we can construct the eigenvalue problem
+
 $$ \\beta^2 \\begin{bmatrix} E_x \\\\
                              E_y \\end{bmatrix} =
     (\\omega^2 \\begin{bmatrix} \\mu_{yy} \\epsilon_{xx} & 0 \\\\
@@ -136,6 +163,10 @@ $$ \\beta^2 \\begin{bmatrix} E_x \\\\
     \\begin{bmatrix} E_x \\\\
                      E_y \\end{bmatrix}
 $$
+
+where $\\gamma = \\imath\\beta$. In the literature, $\\beta$ is usually used to denote
+the lossless/real part of the propagation constant, but in `meanas` it is allowed to
+be complex.
 
 An equivalent eigenvalue problem can be formed using the $H_x$ and $H_y$ fields, if those are more convenient.
 
