@@ -2,7 +2,7 @@ import importlib
 import numpy
 from numpy.linalg import norm
 
-from meanas import vec, unvec
+from meanas.fdmath import vec, unvec
 from meanas.fdfd import waveguide_mode, functional, scpml
 from meanas.fdfd.solvers import generic as generic_solver
 
