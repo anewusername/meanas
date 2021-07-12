@@ -70,9 +70,11 @@ def cylindrical_operator(omega: complex,
     b1 = Dby @ Ty @ Dfx
 
     diag = sparse.block_diag
-    op = (omega**2 * diag((Tx, Ty)) + pa) @ diag((a0, a1)) + \
-        - (sparse.bmat(((None, Ty), (Tx, None))) + omega**-2 * pb) @ diag((b0, b1))
 
+    omega2 = omega * omega
+
+    op = (omega2 * diag((Tx, Ty)) + pa) @ diag((a0, a1)) + \
+        - (sparse.bmat(((None, Ty), (Tx, None))) + pb / omega2) @ diag((b0, b1))
     return op
 
 
