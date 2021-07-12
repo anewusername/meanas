@@ -603,7 +603,7 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
 
-    Return:
+    Returns:
         Sparse matrix representation of the operator.
     """
     n = 1
@@ -623,7 +623,7 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
 
-    Return:
+    Returns:
         Sparse matrix representation of the operator.
     """
     n = 1

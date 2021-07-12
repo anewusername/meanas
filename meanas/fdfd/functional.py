@@ -29,7 +29,7 @@ def e_full(omega: complex,
         epsilon: Dielectric constant
         mu: Magnetic permeability (default 1 everywhere)
 
-    Return:
+    Returns:
         Function `f` implementing the wave operator
         `f(E)` -> `-i * omega * J`
     """
@@ -99,7 +99,7 @@ def e2h(omega: complex,
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         mu: Magnetic permeability (default 1 everywhere)
 
-    Return:
+    Returns:
         Function `f` for converting `E` to `H`,
         `f(E)` -> `H`
     """
