@@ -150,8 +150,9 @@ $$
 
 Using these, we can construct the eigenvalue problem
 
-$$ \\beta^2 \\begin{bmatrix} E_x \\\\
-                             E_y \\end{bmatrix} =
+$$
+\\beta^2 \\begin{bmatrix} E_x \\\\
+                          E_y \\end{bmatrix} =
     (\\omega^2 \\begin{bmatrix} \\mu_{yy} \\epsilon_{xx} & 0 \\\\
                                                        0 & \\mu_{xx} \\epsilon_{yy} \\end{bmatrix} +
                  \\begin{bmatrix} -\\mu_{yy} \\hat{\\partial}_y \\\\
