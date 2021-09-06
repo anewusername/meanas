@@ -3,7 +3,8 @@ Math functions for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, Tuple, Optional
+from typing import Sequence, Tuple, Optional, Callable
+
 import numpy            # type: ignore
 
 from .types import fdfield_t, fdfield_updater_t
@@ -109,3 +110,23 @@ def curl_back(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater
     return ch_fun
 
 
+def curl_forward_parts(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> Callable:
+    Dx, Dy, Dz = deriv_forward(dx_e)
+
+    def mkparts_fwd(e: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
+        return ((-Dz(e[1]),  Dy(e[2])),
+                ( Dz(e[0]), -Dx(e[2])),
+                (-Dy(e[0]),  Dx(e[1])))
+
+    return mkparts_fwd
+
+
+def curl_back_parts(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> Callable:
+    Dx, Dy, Dz = deriv_back(dx_e)
+
+    def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
+        return ((-Dz(h[1]),  Dy(h[2])),
+                ( Dz(h[0]), -Dx(h[2])),
+                (-Dy(h[0]),  Dx(h[1])))
+
+    return mkparts_back

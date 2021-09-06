@@ -7,31 +7,31 @@ PML implementations
 """
 # TODO retest pmls!
 
-from typing import List, Callable, Tuple, Dict, Any
+from typing import List, Callable, Tuple, Dict, Sequence, Any, Optional
 import numpy            # type: ignore
 
-from ..fdmath import fdfield_t
+from ..fdmath import fdfield_t, dx_lists_t
+from ..fdmath.functional import deriv_forward, deriv_back
 
 
 __author__ = 'Jan Petykiewicz'
 
 
-def cpml(direction: int,
-         polarity: int,
-         dt: float,
-         epsilon: fdfield_t,
-         thickness: int = 8,
-         ln_R_per_layer: float = -1.6,
-         epsilon_eff: float = 1,
-         mu_eff: float = 1,
-         m: float = 3.5,
-         ma: float = 1,
-         cfs_alpha: float = 0,
-         dtype: numpy.dtype = numpy.float32,
-         ) -> Tuple[Callable, Callable, Dict[str, fdfield_t]]:
+def cpml_params(
+        axis: int,
+        polarity: int,
+        dt: float,
+        thickness: int = 8,
+        ln_R_per_layer: float = -1.6,
+        epsilon_eff: float = 1,
+        mu_eff: float = 1,
+        m: float = 3.5,
+        ma: float = 1,
+        cfs_alpha: float = 0,
+        ) -> Dict[str, Any]:
 
-    if direction not in range(3):
-        raise Exception('Invalid direction: {}'.format(direction))
+    if axis not in range(3):
+        raise Exception('Invalid axis: {}'.format(axis))
 
     if polarity not in (-1, 1):
         raise Exception('Invalid polarity: {}'.format(polarity))
@@ -45,10 +45,8 @@ def cpml(direction: int,
     sigma_max = -ln_R_per_layer / 2 * (m + 1)
     kappa_max = numpy.sqrt(epsilon_eff * mu_eff)
     alpha_max = cfs_alpha
-    transverse = numpy.delete(range(3), direction)
-    u, v = transverse
 
-    xe = numpy.arange(1, thickness + 1, dtype=float)
+    xe = numpy.arange(1, thickness + 1, dtype=float)        # TODO: pass in dtype?
     xh = numpy.arange(1, thickness + 1, dtype=float)
     if polarity > 0:
         xe -= 0.5
@@ -59,8 +57,8 @@ def cpml(direction: int,
     else:
         raise Exception('Bad polarity!')
 
-    expand_slice_l: List[Any] = [None] * 3
-    expand_slice_l[direction] = slice(None)
+    expand_slice_l: List[Any] = [None, None, None]
+    expand_slice_l[axis] = slice(None)
     expand_slice = tuple(expand_slice_l)
 
     def par(x: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
@@ -76,52 +74,145 @@ def cpml(direction: int,
     p0e, p1e, p2e = par(xe)
     p0h, p1h, p2h = par(xh)
 
-    region_list = [slice(None)] * 3
+    region_list = [slice(None), slice(None), slice(None)]
     if polarity < 0:
-        region_list[direction] = slice(None, thickness)
+        region_list[axis] = slice(None, thickness)
     elif polarity > 0:
-        region_list[direction] = slice(-thickness, None)
+        region_list[axis] = slice(-thickness, None)
     else:
         raise Exception('Bad polarity!')
     region = tuple(region_list)
 
-    se = 1 if direction == 1 else -1
+    return {
+        'param_e': (p0e, p1e, p2e),
+        'param_h': (p0h, p1h, p2h),
+        'region': region,
+        }
 
-    # TODO check if epsilon is uniform in pml region?
-    shape = list(epsilon[0].shape)
-    shape[direction] = thickness
-    psi_e = [numpy.zeros(shape, dtype=dtype), numpy.zeros(shape, dtype=dtype)]
-    psi_h = [numpy.zeros(shape, dtype=dtype), numpy.zeros(shape, dtype=dtype)]
 
-    fields = {
-        'psi_e_u': psi_e[0],
-        'psi_e_v': psi_e[1],
-        'psi_h_u': psi_h[0],
-        'psi_h_v': psi_h[1],
-    }
+def updates_with_cpml(
+         cpml_params: Sequence[Sequence[Optional[Dict[str, Any]]]],
+         dt: float,
+         dxes: dx_lists_t,
+         epsilon: fdfield_t,
+         *,
+         dtype: numpy.dtype = numpy.float32,
+         ) -> Tuple[Callable[[fdfield_t, fdfield_t], None],
+                    Callable[[fdfield_t, fdfield_t], None]]:
 
-    # Note that this is kinda slow -- would be faster to reuse dHv*p2h for the original
-    #  H update, but then you have multiple arrays and a monolithic (field + pml) update operation
-    def pml_e(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
-        dHv = h[v][region] - numpy.roll(h[v], 1, axis=direction)[region]
-        dHu = h[u][region] - numpy.roll(h[u], 1, axis=direction)[region]
-        psi_e[0] *= p0e
-        psi_e[0] += p1e * dHv * p2e
-        psi_e[1] *= p0e
-        psi_e[1] += p1e * dHu * p2e
-        e[u][region] += se * dt / epsilon[u][region] * (psi_e[0] + (p2e - 1) * dHv)
-        e[v][region] -= se * dt / epsilon[v][region] * (psi_e[1] + (p2e - 1) * dHu)
-        return e, h
+    Dfx, Dfy, Dfz = deriv_forward(dxes[1])
+    Dbx, Dby, Dbz = deriv_back(dxes[1])
 
-    def pml_h(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
-        dEv = (numpy.roll(e[v], -1, axis=direction)[region] - e[v][region])
-        dEu = (numpy.roll(e[u], -1, axis=direction)[region] - e[u][region])
-        psi_h[0] *= p0h
-        psi_h[0] += p1h * dEv * p2h
-        psi_h[1] *= p0h
-        psi_h[1] += p1h * dEu * p2h
-        h[u][region] -= se * dt * (psi_h[0] + (p2h - 1) * dEv)
-        h[v][region] += se * dt * (psi_h[1] + (p2h - 1) * dEu)
-        return e, h
+    psi_E = [[None, None], [None, None], [None, None]]
+    psi_H = [[None, None], [None, None], [None, None]]
+    params_E = [[None, None], [None, None], [None, None]]
+    params_H = [[None, None], [None, None], [None, None]]
 
-    return pml_e, pml_h, fields
+    for axis in range(3):
+        for pp, polarity in enumerate((-1, 1)):
+            if cpml_params[axis][pp] is None:
+                psi_E[axis][pp] = (None, None)
+                psi_H[axis][pp] = (None, None)
+                continue
+
+            cpml_param = cpml_params[axis][pp]
+
+            region = cpml_param['region']
+            region_shape = epsilon[0][region].shape
+
+            psi_E[axis][pp] = (numpy.zeros(region_shape, dtype=dtype),
+                                    numpy.zeros(region_shape, dtype=dtype))
+            psi_H[axis][pp] = (numpy.zeros(region_shape, dtype=dtype),
+                                    numpy.zeros(region_shape, dtype=dtype))
+            params_E[axis][pp] = cpml_param['param_e'] + (region,)
+            params_H[axis][pp] = cpml_param['param_h'] + (region,)
+
+
+    pE = numpy.empty_like(epsilon, dtype=dtype)
+    pH = numpy.empty_like(epsilon, dtype=dtype)
+
+    def update_E(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t) -> None:
+        dyHx = Dby(h[0])
+        dzHx = Dbz(h[0])
+        dxHy = Dbx(h[1])
+        dzHy = Dbz(h[1])
+        dxHz = Dbx(h[2])
+        dyHz = Dby(h[2])
+
+        dH = ((dxHy, dxHz),
+              (dyHx, dyHz),
+              (dzHx, dzHy))
+
+        pE.fill(0)
+
+        for axis in range(3):
+            se = (-1, 1, -1)[axis]
+            transverse = numpy.delete(range(3), axis)
+            u, v = transverse
+            dHu, dHv = dH[axis]
+
+            for pp in range(2):
+                psi_Eu, psi_Ev = psi_E[axis][pp]
+
+                if psi_Eu is None:
+                    # No pml in this direction
+                    continue
+
+                p0e, p1e, p2e, region = params_E[axis][pp]
+
+                dHu[region] *= p2e
+                dHv[region] *= p2e
+                psi_Eu *= p0e
+                psi_Ev *= p0e
+                psi_Eu += p1e * dHv[region]    # note reversed u,v mapping
+                psi_Ev += p1e * dHu[region]
+                pE[u][region] += +se * psi_Eu
+                pE[v][region] += -se * psi_Ev
+
+        e[0] += dt / epsilon[0] * (dyHz - dzHy + pE[0])
+        e[1] += dt / epsilon[1] * (dzHx - dxHz + pE[1])
+        e[2] += dt / epsilon[2] * (dxHy - dyHx + pE[2])
+
+
+    def update_H(e: fdfield_t, h: fdfield_t, mu: fdfield_t = (1, 1, 1)) -> None:
+        dyEx = Dfy(e[0])
+        dzEx = Dfz(e[0])
+        dxEy = Dfx(e[1])
+        dzEy = Dfz(e[1])
+        dxEz = Dfx(e[2])
+        dyEz = Dfy(e[2])
+
+        dE = ((dxEy, dxEz),
+              (dyEx, dyEz),
+              (dzEx, dzEy))
+
+        pH.fill(0)
+
+        for axis in range(3):
+            se = (-1, 1, -1)[axis]
+            transverse = numpy.delete(range(3), axis)
+            u, v = transverse
+            dEu, dEv = dE[axis]
+
+            for pp in range(2):
+                psi_Hu, psi_Hv = psi_H[axis][pp]
+
+                if psi_Hu is None:
+                    # No pml here
+                    continue
+
+                p0h, p1h, p2h, region = params_H[axis][pp]
+
+                dEu[region] *= p2h      # modifies d_E_
+                dEv[region] *= p2h
+                psi_Hu *= p0h
+                psi_Hv *= p0h
+                psi_Hu += p1h * dEv[region]    # note reversed u,v mapping
+                psi_Hv += p1h * dEu[region]
+                pH[u][region] += +se * psi_Hu
+                pH[v][region] += -se * psi_Hv
+
+        h[0] -= dt / mu[0] * (dyEz - dzEy + pH[0])
+        h[1] -= dt / mu[1] * (dzEx - dxEz + pH[1])
+        h[2] -= dt / mu[2] * (dxEy - dyEx + pH[2])
+    return update_E, update_H
