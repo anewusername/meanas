@@ -15,6 +15,7 @@ from matplotlib import pyplot
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 __author__ = 'Jan Petykiewicz'
 
