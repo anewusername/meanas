@@ -167,7 +167,7 @@ def compute_overlap_e(E: fdfield_t,
         mu: Magnetic permeability (default 1 everywhere)
 
     Returns:
-        overlap_e such that `numpy.sum(overlap_e * other_e)` computes the overlap integral
+        overlap_e such that `numpy.sum(overlap_e * other_e.conj())` computes the overlap integral
     """
     slices = tuple(slices)
 
