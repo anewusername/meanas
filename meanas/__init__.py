@@ -6,13 +6,12 @@ See the readme or `import meanas; help(meanas)` for more info.
 
 import pathlib
 
-from .VERSION import __version__
-
+__version__ = '0.7'
 __author__ = 'Jan Petykiewicz'
 
 
 try:
-    with open(pathlib.Path(__file__).parent.parent / 'README.md', 'r') as f:
+    with open(pathlib.Path(__file__).parent / 'README.md', 'r') as f:
         __doc__ = f.read()
 except Exception:
     pass
