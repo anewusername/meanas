@@ -198,9 +198,9 @@ def maxwell_operator(
     shape = epsilon[0].shape + (1,)
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    epsilon = numpy.stack(epsilon, 3)
+    epsilon = numpy.stack(epsilon, axis=3)
     if mu is not None:
-        mu = numpy.stack(mu, 3)
+        mu = numpy.stack(mu, axis=3)
 
     def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
         """
@@ -272,7 +272,7 @@ def hmn_2_exyz(
         Function for converting `h_mn` into `E_xyz`
     """
     shape = epsilon[0].shape + (1,)
-    epsilon = numpy.stack(epsilon, 3)
+    epsilon = numpy.stack(epsilon, axis=3)
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
@@ -350,12 +350,12 @@ def inverse_maxwell_operator_approx(
         Function which applies the approximate inverse of the maxwell operator to `h_mn`.
     """
     shape = epsilon[0].shape + (1,)
-    epsilon = numpy.stack(epsilon, 3)
+    epsilon = numpy.stack(epsilon, axis=3)
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
     if mu is not None:
-        mu = numpy.stack(mu, 3)
+        mu = numpy.stack(mu, axis=3)
 
     def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
         """
