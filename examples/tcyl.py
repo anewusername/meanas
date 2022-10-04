@@ -42,8 +42,9 @@ def test1(solver=generic_solver):
     edge_coords[0] = numpy.array([-dx, dx])
 
     # #### Create the grid and draw the device ####
-    grid = gridlock.Grid(edge_coords, initial=n_air**2, num_grids=3)
-    grid.draw_cuboid(center=center, dimensions=[8e3, w, th], eps=n_wg**2)
+    grid = gridlock.Grid(edge_coords)
+    epsilon = grid.allocate(n_air**2, dtype=numpy.float32)
+    grid.draw_cuboid(epsilon, center=center, dimensions=[8e3, w, th], eps=n_wg**2)
 
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (1, 2):
@@ -54,7 +55,7 @@ def test1(solver=generic_solver):
     wg_args = {
         'omega': omega,
         'dxes': [(d[1], d[2]) for d in dxes],
-        'epsilon': vec(g.transpose([1, 2, 0]) for g in grid.grids),
+        'epsilon': vec(g.transpose([1, 2, 0]) for g in epsilon),
         'r0': r0,
     }
 

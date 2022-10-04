@@ -105,22 +105,23 @@ def main():
     edge_coords = [numpy.hstack((-h[::-1], h)) for h in half_edge_coords]
 
     # #### Create the grid, mask, and draw the device ####
-    grid = gridlock.Grid(edge_coords, initial=n_air**2, num_grids=3)
-    grid.draw_slab(surface_normal=gridlock.Direction.z,
+    grid = gridlock.Grid(edge_coords)
+    epsilon = grid.allocate(n_air**2, dtype=dtype)
+    grid.draw_slab(epsilon,
+                   surface_normal=2,
                    center=[0, 0, 0],
                    thickness=th,
                    eps=n_slab**2)
     mask = perturbed_l3(a, r)
 
-    grid.draw_polygons(surface_normal=gridlock.Direction.z,
+    grid.draw_polygons(epsilon,
+                       surface_normal=2,
                        center=[0, 0, 0],
                        thickness=2 * th,
                        eps=n_air**2,
                        polygons=mask.as_polygons())
 
     print(grid.shape)
-    # #### Create the simulation grid ####
-    epsilon = [eps.astype(dtype) for eps in grid.grids]
 
     dt = .99/numpy.sqrt(3)
     e = [numpy.zeros_like(epsilon[0], dtype=dtype) for _ in range(3)]

@@ -47,10 +47,10 @@ g = gridlock.Grid([numpy.arange(-x_period/2, x_period/2, dx),
                    numpy.arange(-1000, 1000, dx),
                    numpy.arange(-1000, 1000, dx)],
                   shifts=numpy.array([[0,0,0]]),
-                  initial=1.445**2,
                   periodic=True)
+gdata = g.allocate(1.445**2)
 
-g.draw_cuboid([0,0,0], [200e8, 220, 220], eps=3.47**2)
+g.draw_cuboid(gdata, [0,0,0], [200e8, 220, 220], foreground=3.47**2)
 
 #x_period = y_period = z_period = 13000
 #g = gridlock.Grid([numpy.arange(3), ]*3,
@@ -60,9 +60,9 @@ g.draw_cuboid([0,0,0], [200e8, 220, 220], eps=3.47**2)
 
 g2 = g.copy()
 g2.shifts = numpy.zeros((6,3))
-g2.grids = [numpy.zeros(g.shape) for _ in range(6)]
+g2data = g2.allocate(0)
 
-epsilon = [g.grids[0],] * 3
+epsilon = [gdata[0],] * 3
 reciprocal_lattice = numpy.diag(1000/numpy.array([x_period, y_period, z_period])) #cols are vectors
 
 pyfftw_load_wisdom(WISDOM_FILEPATH)
@@ -93,8 +93,8 @@ for k0x in [.25]:
     z = 0
     e = v2e(v[0])
     for i in range(3):
-        g2.grids[i] += numpy.real(e[i])
-        g2.grids[i+3] += numpy.imag(e[i])
+        g2data[i] += numpy.real(e[i])
+        g2data[i+3] += numpy.imag(e[i])
 
     f = numpy.sqrt(numpy.real(numpy.abs(n))) # TODO
     print('k0x = {:3g}\n eigval = {}\n f = {}\n'.format(k0x, n, f))

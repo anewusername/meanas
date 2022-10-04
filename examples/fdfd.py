@@ -44,14 +44,17 @@ def test0(solver=generic_solver):
     edge_coords = [numpy.hstack((-h[::-1], h)) for h in half_edge_coords]
 
     # #### Create the grid, mask, and draw the device ####
-    grid = gridlock.Grid(edge_coords, initial=n_air**2, num_grids=3)
-    grid.draw_cylinder(surface_normal=gridlock.Direction.z,
+    grid = gridlock.Grid(edge_coords)
+    epsilon = grid.allocate(n_air**2, dtype=numpy.float32)
+    grid.draw_cylinder(epsilon,
+                       surface_normal=2,
                        center=center,
                        radius=max(radii),
                        thickness=th,
                        eps=n_ring**2,
                        num_points=24)
-    grid.draw_cylinder(surface_normal=gridlock.Direction.z,
+    grid.draw_cylinder(epsilon,
+                       surface_normal=2,
                        center=center,
                        radius=min(radii),
                        thickness=th*1.1,
@@ -64,7 +67,7 @@ def test0(solver=generic_solver):
             dxes = meanas.fdfd.scpml.stretch_with_scpml(dxes, axis=a, polarity=p, omega=omega,
                                                         thickness=pml_thickness)
 
-    J = [numpy.zeros_like(grid.grids[0], dtype=complex) for _ in range(3)]
+    J = [numpy.zeros_like(epsilon[0], dtype=complex) for _ in range(3)]
     J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1
 
 
@@ -74,11 +77,11 @@ def test0(solver=generic_solver):
     sim_args = {
         'omega': omega,
         'dxes': dxes,
-        'epsilon': vec(grid.grids),
+        'epsilon': vec(epsilon),
     }
     x = solver(J=vec(J), **sim_args)
 
-    A = operators.e_full(omega, dxes, vec(grid.grids)).tocsr()
+    A = operators.e_full(omega, dxes, vec(epsilon)).tocsr()
     b = -1j * omega * vec(J)
     print('Norm of the residual is ', norm(A @ x - b))
 
@@ -117,8 +120,9 @@ def test1(solver=generic_solver):
     edge_coords = [numpy.hstack((-h[::-1], h)) for h in half_edge_coords]
 
     # #### Create the grid and draw the device ####
-    grid = gridlock.Grid(edge_coords, initial=n_air**2, num_grids=3)
-    grid.draw_cuboid(center=center, dimensions=[8e3, w, th], eps=n_wg**2)
+    grid = gridlock.Grid(edge_coords)
+    epsilon = grid.allocate(n_air**2, dtype=numpy.float32)
+    grid.draw_cuboid(epsilon, center=center, dimensions=[8e3, w, th], eps=n_wg**2)
 
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
@@ -139,18 +143,18 @@ def test1(solver=generic_solver):
         'polarity': +1,
     }
 
-    wg_results = waveguide_3d.solve_mode(mode_number=0, omega=omega, epsilon=grid.grids, **wg_args)
+    wg_results = waveguide_3d.solve_mode(mode_number=0, omega=omega, epsilon=epsilon, **wg_args)
     J = waveguide_3d.compute_source(E=wg_results['E'], wavenumber=wg_results['wavenumber'],
-                                    omega=omega, epsilon=grid.grids, **wg_args)
+                                    omega=omega, epsilon=epsilon, **wg_args)
     e_overlap = waveguide_3d.compute_overlap_e(E=wg_results['E'], wavenumber=wg_results['wavenumber'], **wg_args)
 
-    pecg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
-    # pecg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
-    # pecg.visualize_isosurface()
+    pecg = numpy.zeros_like(epsilon)
+    # pecg.draw_cuboid(pecg, center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
+    # pecg.visualize_isosurface(pecg)
 
-    pmcg = gridlock.Grid(edge_coords, initial=0.0, num_grids=3)
-    # pmcg.draw_cuboid(center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
-    # pmcg.visualize_isosurface()
+    pmcg = numpy.zeros_like(epsilon)
+    # grid.draw_cuboid(pmcg, center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
+    # grid.visualize_isosurface(pmcg)
 
     def pcolor(v):
         vmax = numpy.max(numpy.abs(v))
@@ -171,9 +175,9 @@ def test1(solver=generic_solver):
     sim_args = {
         'omega': omega,
         'dxes': dxes,
-        'epsilon': vec(grid.grids),
-        'pec': vec(pecg.grids),
-        'pmc': vec(pmcg.grids),
+        'epsilon': vec(epsilon),
+        'pec': vec(pecg),
+        'pmc': vec(pmcg),
     }
 
     x = solver(J=vec(J), **sim_args)
