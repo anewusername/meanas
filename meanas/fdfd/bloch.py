@@ -105,9 +105,9 @@ try:
     pyfftw.interfaces.cache.enable()
     pyfftw.interfaces.cache.set_keepalive_time(3600)
     fftw_args = {
-        'threads': multiprocessing.cpu_count(),
+        #'threads': multiprocessing.cpu_count(),
         'overwrite_input': True,
-        'planner_effort': 'FFTW_EXHAUSTIVE',
+        'planner_effort': 'FFTW_PATIENT',
         }
 
     def fftn(*args: Any, **kwargs: Any) -> NDArray[numpy.float64]:
