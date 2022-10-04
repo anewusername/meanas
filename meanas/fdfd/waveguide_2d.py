@@ -179,8 +179,9 @@ to account for numerical dispersion if the result is introduced into a space wit
 # TODO update module docs
 
 from typing import List, Tuple, Optional, Any
-import numpy                        # type: ignore
-from numpy.linalg import norm       # type: ignore
+import numpy
+from numpy.typing import NDArray, ArrayLike
+from numpy.linalg import norm
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
@@ -191,11 +192,12 @@ from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 __author__ = 'Jan Petykiewicz'
 
 
-def operator_e(omega: complex,
-               dxes: dx_lists_t,
-               epsilon: vfdfield_t,
-               mu: Optional[vfdfield_t] = None,
-               ) -> sparse.spmatrix:
+def operator_e(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
 
@@ -257,11 +259,12 @@ def operator_e(omega: complex,
     return op
 
 
-def operator_h(omega: complex,
-               dxes: dx_lists_t,
-               epsilon: vfdfield_t,
-               mu: Optional[vfdfield_t] = None,
-               ) -> sparse.spmatrix:
+def operator_h(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Waveguide operator of the form
 
@@ -324,14 +327,15 @@ def operator_h(omega: complex,
     return op
 
 
-def normalized_fields_e(e_xy: numpy.ndarray,
-                        wavenumber: complex,
-                        omega: complex,
-                        dxes: dx_lists_t,
-                        epsilon: vfdfield_t,
-                        mu: Optional[vfdfield_t] = None,
-                        prop_phase: float = 0,
-                        ) -> Tuple[vfdfield_t, vfdfield_t]:
+def normalized_fields_e(
+        e_xy: ArrayLike,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        prop_phase: float = 0,
+        ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
     Given a vector `e_xy` containing the vectorized E_x and E_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -358,14 +362,15 @@ def normalized_fields_e(e_xy: numpy.ndarray,
     return e_norm, h_norm
 
 
-def normalized_fields_h(h_xy: numpy.ndarray,
-                        wavenumber: complex,
-                        omega: complex,
-                        dxes: dx_lists_t,
-                        epsilon: vfdfield_t,
-                        mu: Optional[vfdfield_t] = None,
-                        prop_phase: float = 0,
-                        ) -> Tuple[vfdfield_t, vfdfield_t]:
+def normalized_fields_h(
+        h_xy: ArrayLike,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        prop_phase: float = 0,
+        ) -> Tuple[vfdfield_t, vfdfield_t]:
     """
     Given a vector `h_xy` containing the vectorized H_x and H_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -392,14 +397,15 @@ def normalized_fields_h(h_xy: numpy.ndarray,
     return e_norm, h_norm
 
 
-def _normalized_fields(e: numpy.ndarray,
-                       h: numpy.ndarray,
-                       omega: complex,
-                       dxes: dx_lists_t,
-                       epsilon: vfdfield_t,
-                       mu: Optional[vfdfield_t] = None,
-                       prop_phase: float = 0,
-                       ) -> Tuple[vfdfield_t, vfdfield_t]:
+def _normalized_fields(
+        e: ArrayLike,
+        h: ArrayLike,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        prop_phase: float = 0,
+        ) -> Tuple[vfdfield_t, vfdfield_t]:
     # TODO documentation
     shape = [s.size for s in dxes[0]]
     dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
@@ -434,12 +440,13 @@ def _normalized_fields(e: numpy.ndarray,
     return e, h
 
 
-def exy2h(wavenumber: complex,
-          omega: complex,
-          dxes: dx_lists_t,
-          epsilon: vfdfield_t,
-          mu: Optional[vfdfield_t] = None
-          ) -> sparse.spmatrix:
+def exy2h(
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None
+        ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized H containing all three H components
@@ -459,12 +466,13 @@ def exy2h(wavenumber: complex,
     return e2hop @ exy2e(wavenumber=wavenumber, dxes=dxes, epsilon=epsilon)
 
 
-def hxy2e(wavenumber: complex,
-          omega: complex,
-          dxes: dx_lists_t,
-          epsilon: vfdfield_t,
-          mu: Optional[vfdfield_t] = None
-          ) -> sparse.spmatrix:
+def hxy2e(
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None
+        ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
      into a vectorized E containing all three E components
@@ -484,10 +492,11 @@ def hxy2e(wavenumber: complex,
     return h2eop @ hxy2h(wavenumber=wavenumber, dxes=dxes, mu=mu)
 
 
-def hxy2h(wavenumber: complex,
-          dxes: dx_lists_t,
-          mu: Optional[vfdfield_t] = None
-          ) -> sparse.spmatrix:
+def hxy2h(
+        wavenumber: complex,
+        dxes: dx_lists_t,
+        mu: Optional[vfdfield_t] = None
+        ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
      into a vectorized H containing all three H components
@@ -517,10 +526,11 @@ def hxy2h(wavenumber: complex,
     return op
 
 
-def exy2e(wavenumber: complex,
-          dxes: dx_lists_t,
-          epsilon: vfdfield_t,
-          ) -> sparse.spmatrix:
+def exy2e(
+        wavenumber: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        ) -> sparse.spmatrix:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized E containing all three E components
@@ -550,7 +560,8 @@ def exy2e(wavenumber: complex,
     return op
 
 
-def e2h(wavenumber: complex,
+def e2h(
+        wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
         mu: Optional[vfdfield_t] = None
@@ -574,7 +585,8 @@ def e2h(wavenumber: complex,
     return op
 
 
-def h2e(wavenumber: complex,
+def h2e(
+        wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t
@@ -636,13 +648,14 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     return cross([Dbx, Dby, Bz])
 
 
-def h_err(h: vfdfield_t,
-          wavenumber: complex,
-          omega: complex,
-          dxes: dx_lists_t,
-          epsilon: vfdfield_t,
-          mu: vfdfield_t = None
-          ) -> float:
+def h_err(
+        h: vfdfield_t,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None
+        ) -> float:
     """
     Calculates the relative error in the H field
 
@@ -670,13 +683,14 @@ def h_err(h: vfdfield_t,
     return norm(op) / norm(h)
 
 
-def e_err(e: vfdfield_t,
-          wavenumber: complex,
-          omega: complex,
-          dxes: dx_lists_t,
-          epsilon: vfdfield_t,
-          mu: vfdfield_t = None
-          ) -> float:
+def e_err(
+        e: vfdfield_t,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: vfdfield_t = Optional[None]
+        ) -> float:
     """
     Calculates the relative error in the E field
 
@@ -703,13 +717,14 @@ def e_err(e: vfdfield_t,
     return norm(op) / norm(e)
 
 
-def solve_modes(mode_numbers: List[int],
-                omega: complex,
-                dxes: dx_lists_t,
-                epsilon: vfdfield_t,
-                mu: vfdfield_t = None,
-                mode_margin: int = 2,
-                ) -> Tuple[numpy.ndarray, List[complex]]:
+def solve_modes(
+        mode_numbers: List[int],
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: vfdfield_t = None,
+        mode_margin: int = 2,
+        ) -> Tuple[NDArray[numpy.float64], List[complex]]:
     """
     Given a 2D region, attempts to solve for the eigenmode with the specified mode numbers.
 
@@ -752,10 +767,11 @@ def solve_modes(mode_numbers: List[int],
     return e_xys, wavenumbers
 
 
-def solve_mode(mode_number: int,
-               *args: Any,
-               **kwargs: Any,
-               ) -> Tuple[vfdfield_t, complex]:
+def solve_mode(
+        mode_number: int,
+        *args: Any,
+        **kwargs: Any,
+        ) -> Tuple[vfdfield_t, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.
 

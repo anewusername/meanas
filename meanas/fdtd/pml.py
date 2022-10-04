@@ -8,7 +8,8 @@ PML implementations
 # TODO retest pmls!
 
 from typing import List, Callable, Tuple, Dict, Sequence, Any, Optional
-import numpy            # type: ignore
+import numpy
+from typing import NDArray
 
 from ..fdmath import fdfield_t, dx_lists_t
 from ..fdmath.functional import deriv_forward, deriv_back
@@ -61,7 +62,7 @@ def cpml_params(
     expand_slice_l[axis] = slice(None)
     expand_slice = tuple(expand_slice_l)
 
-    def par(x: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    def par(x: NDArray[numpy.float64]) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
         scaling = (x / thickness) ** m
         sigma = scaling * sigma_max
         kappa = 1 + scaling * (kappa_max - 1)

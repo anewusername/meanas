@@ -5,7 +5,8 @@ Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
 from typing import Optional, overload, Union, List
-import numpy                # type: ignore
+import numpy
+from numpy.typing import ArrayLike
 
 from .types import fdfield_t, vfdfield_t
 
@@ -15,10 +16,10 @@ def vec(f: None) -> None:
     pass
 
 @overload
-def vec(f: Union[fdfield_t, List[numpy.ndarray]]) -> vfdfield_t:
+def vec(f: Union[fdfield_t, List[ArrayLike]]) -> vfdfield_t:
     pass
 
-def vec(f: Optional[Union[fdfield_t, List[numpy.ndarray]]]) -> Optional[vfdfield_t]:
+def vec(f: Optional[Union[fdfield_t, List[ArrayLike]]]) -> Optional[vfdfield_t]:
     """
     Create a 1D ndarray from a 3D vector field which spans a 1-3D region.
 
@@ -37,14 +38,14 @@ def vec(f: Optional[Union[fdfield_t, List[numpy.ndarray]]]) -> Optional[vfdfield
 
 
 @overload
-def unvec(v: None, shape: numpy.ndarray) -> None:
+def unvec(v: None, shape: ArrayLike) -> None:
     pass
 
 @overload
-def unvec(v: vfdfield_t, shape: numpy.ndarray) -> fdfield_t:
+def unvec(v: vfdfield_t, shape: ArrayLike) -> fdfield_t:
     pass
 
-def unvec(v: Optional[vfdfield_t], shape: numpy.ndarray) -> Optional[fdfield_t]:
+def unvec(v: Optional[vfdfield_t], shape: ArrayLike) -> Optional[fdfield_t]:
     """
     Perform the inverse of vec(): take a 1D ndarray and output a 3D field
      of form `[f_x, f_y, f_z]` where each of `f_*` is a len(shape)-dimensional

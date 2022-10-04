@@ -1,7 +1,8 @@
 from typing import Optional, Tuple, Iterable, List
 import pytest       # type: ignore
-import numpy        # type: ignore
-from numpy.testing import assert_allclose   # type: ignore
+import numpy
+from numpy.typing import NDArray, ArrayLike
+from numpy.testing import assert_allclose
 
 from .. import fdfd
 from ..fdmath import vec, unvec, dx_lists_mut
@@ -48,12 +49,12 @@ def omega(request: FixtureRequest) -> Iterable[float]:
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pec(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pmc(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
     yield request.param
 
 
@@ -70,13 +71,14 @@ def src_polarity(request: FixtureRequest) -> Iterable[int]:
 
 
 @pytest.fixture()
-def j_distribution(request: FixtureRequest,
-                   shape: Tuple[int, ...],
-                   epsilon: numpy.ndarray,
-                   dxes: dx_lists_mut,
-                   omega: float,
-                   src_polarity: int,
-                   ) -> Iterable[numpy.ndarray]:
+def j_distribution(
+        request: FixtureRequest,
+        shape: Tuple[int, ...],
+        epsilon: NDArray[numpy.float64],
+        dxes: dx_lists_mut,
+        omega: float,
+        src_polarity: int,
+        ) -> Iterable[NDArray[numpy.float64]]:
     j = numpy.zeros(shape, dtype=complex)
 
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -108,47 +110,60 @@ def j_distribution(request: FixtureRequest,
 
 
 @pytest.fixture()
-def epsilon(request: FixtureRequest,
-            shape: Tuple[int, ...],
-            epsilon_bg: float,
-            epsilon_fg: float,
-            ) -> Iterable[numpy.ndarray]:
+def epsilon(
+        request: FixtureRequest,
+        shape: Tuple[int, ...],
+        epsilon_bg: float,
+        epsilon_fg: float,
+        ) -> Iterable[NDArray[numpy.float64]]:
     epsilon = numpy.full(shape, epsilon_fg, dtype=float)
     yield epsilon
 
 
 @pytest.fixture(params=['uniform'])
-def dxes(request: FixtureRequest,
-         shape: Tuple[int, ...],
-         dx: float,
-         omega: float,
-         epsilon_fg: float,
-         ) -> Iterable[List[List[numpy.ndarray]]]:
+def dxes(
+        request: FixtureRequest,
+        shape: Tuple[int, ...],
+        dx: float,
+        omega: float,
+        epsilon_fg: float,
+        ) -> Iterable[List[List[NDArray[numpy.float64]]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
     for axis in (dim,):
         for polarity in (-1, 1):
-            dxes = fdfd.scpml.stretch_with_scpml(dxes, axis=axis, polarity=polarity,
-                                                 omega=omega, epsilon_effective=epsilon_fg,
-                                                 thickness=10)
+            dxes = fdfd.scpml.stretch_with_scpml(
+                dxes,
+                axis=axis,
+                polarity=polarity,
+                omega=omega,
+                epsilon_effective=epsilon_fg,
+                thickness=10,
+                )
     yield dxes
 
 
 @pytest.fixture()
-def sim(request: FixtureRequest,
+def sim(
+        request: FixtureRequest,
         shape: Tuple[int, ...],
-        epsilon: numpy.ndarray,
+        epsilon: NDArray[numpy.float64],
         dxes: dx_lists_mut,
-        j_distribution: numpy.ndarray,
+        j_distribution: NDArray[numpy.float64],
         omega: float,
-        pec: Optional[numpy.ndarray],
-        pmc: Optional[numpy.ndarray],
+        pec: Optional[NDArray[numpy.float64]],
+        pmc: Optional[NDArray[numpy.float64]],
         ) -> FDResult:
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)
-    e_vec = fdfd.solvers.generic(J=j_vec, omega=omega, dxes=dxes, epsilon=eps_vec,
-                                 matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11})
+    e_vec = fdfd.solvers.generic(
+        J=j_vec,
+        omega=omega,
+        dxes=dxes,
+        epsilon=eps_vec,
+        matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11},
+        )
     e = unvec(e_vec, shape[1:])
 
     sim = FDResult(

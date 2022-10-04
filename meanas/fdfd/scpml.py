@@ -3,7 +3,9 @@ Functions for creating stretched coordinate perfectly matched layer (PML) absorb
 """
 
 from typing import Sequence, Union, Callable, Optional, List
-import numpy            # type: ignore
+
+import numpy
+from numpy.typing import ArrayLike, NDArray
 
 
 __author__ = 'Jan Petykiewicz'
@@ -13,9 +15,10 @@ s_function_t = Callable[[float], float]
 """Typedef for s-functions, see `prepare_s_function()`"""
 
 
-def prepare_s_function(ln_R: float = -16,
-                       m: float = 4
-                       ) -> s_function_t:
+def prepare_s_function(
+        ln_R: float = -16,
+        m: float = 4
+        ) -> s_function_t:
     """
     Create an s_function to pass to the SCPML functions. This is used when you would like to
     customize the PML parameters.
@@ -29,18 +32,19 @@ def prepare_s_function(ln_R: float = -16,
         of the cell width; needs to be divided by `sqrt(epilon_effective) * real(omega))`
         before use.
     """
-    def s_factor(distance: numpy.ndarray) -> numpy.ndarray:
+    def s_factor(distance: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
         s_max = (m + 1) * ln_R / 2  # / 2 because we assume periodic boundaries
         return s_max * (distance ** m)
     return s_factor
 
 
-def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
-                       thicknesses: Union[numpy.ndarray, Sequence[int]],
-                       omega: float,
-                       epsilon_effective: float = 1.0,
-                       s_function: Optional[s_function_t] = None,
-                       ) -> List[List[numpy.ndarray]]:
+def uniform_grid_scpml(
+        shape: ArrayLike,    # ints
+        thicknesses: ArrayLike,  # ints
+        omega: float,
+        epsilon_effective: float = 1.0,
+        s_function: Optional[s_function_t] = None,
+        ) -> List[List[NDArray[numpy.float64]]]:
     """
     Create dx arrays for a uniform grid with a cell width of 1 and a pml.
 
@@ -67,7 +71,11 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
         s_function = prepare_s_function()
 
     # Normalized distance to nearest boundary
-    def ll(u: numpy.ndarray, n: numpy.ndarray, t: numpy.ndarray) -> numpy.ndarray:
+    def ll(
+            u: NDArray[numpy.float64],
+            n: NDArray[numpy.float64],
+            t: NDArray[numpy.float64],
+            ) -> NDArray[numpy.float64]:
         return ((t - u).clip(0) + (u - (n - t)).clip(0)) / t
 
     dx_a = [numpy.array(numpy.inf)] * 3
@@ -88,14 +96,15 @@ def uniform_grid_scpml(shape: Union[numpy.ndarray, Sequence[int]],
     return [dx_a, dx_b]
 
 
-def stretch_with_scpml(dxes: List[List[numpy.ndarray]],
-                       axis: int,
-                       polarity: int,
-                       omega: float,
-                       epsilon_effective: float = 1.0,
-                       thickness: int = 10,
-                       s_function: Optional[s_function_t] = None,
-                       ) -> List[List[numpy.ndarray]]:
+def stretch_with_scpml(
+        dxes: List[List[NDArray[numpy.float64]]],
+        axis: int,
+        polarity: int,
+        omega: float,
+        epsilon_effective: float = 1.0,
+        thickness: int = 10,
+        s_function: Optional[s_function_t] = None,
+        ) -> List[List[NDArray[numpy.float64]]]:
     """
         Stretch dxes to contain a stretched-coordinate PML (SCPML) in one direction along one axis.
 
@@ -132,7 +141,7 @@ def stretch_with_scpml(dxes: List[List[numpy.ndarray]],
         bound = pos[thickness]
         d = bound - pos[0]
 
-        def l_d(x: numpy.ndarray) -> numpy.ndarray:
+        def l_d(x: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
             return (bound - x) / (bound - pos[0])
 
         slc = slice(thickness)
@@ -142,7 +151,7 @@ def stretch_with_scpml(dxes: List[List[numpy.ndarray]],
         bound = pos[-thickness - 1]
         d = pos[-1] - bound
 
-        def l_d(x: numpy.ndarray) -> numpy.ndarray:
+        def l_d(x: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
             return (x - bound) / (pos[-1] - bound)
 
         if thickness == 0:

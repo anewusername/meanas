@@ -28,7 +28,7 @@ The following operators are included:
 """
 
 from typing import Tuple, Optional
-import numpy                        # type: ignore
+import numpy
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath import vec, dx_lists_t, vfdfield_t
@@ -38,13 +38,14 @@ from ..fdmath.operators import shift_with_mirror, shift_circ, curl_forward, curl
 __author__ = 'Jan Petykiewicz'
 
 
-def e_full(omega: complex,
-           dxes: dx_lists_t,
-           epsilon: vfdfield_t,
-           mu: Optional[vfdfield_t] = None,
-           pec: Optional[vfdfield_t] = None,
-           pmc: Optional[vfdfield_t] = None,
-           ) -> sparse.spmatrix:
+def e_full(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        pec: Optional[vfdfield_t] = None,
+        pmc: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Wave operator
      $$ \\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\Omega^2 \\epsilon $$
@@ -96,8 +97,9 @@ def e_full(omega: complex,
     return op
 
 
-def e_full_preconditioners(dxes: dx_lists_t
-                           ) -> Tuple[sparse.spmatrix, sparse.spmatrix]:
+def e_full_preconditioners(
+        dxes: dx_lists_t,
+        ) -> Tuple[sparse.spmatrix, sparse.spmatrix]:
     """
     Left and right preconditioners `(Pl, Pr)` for symmetrizing the `e_full` wave operator.
 
@@ -122,13 +124,14 @@ def e_full_preconditioners(dxes: dx_lists_t
     return P_left, P_right
 
 
-def h_full(omega: complex,
-           dxes: dx_lists_t,
-           epsilon: vfdfield_t,
-           mu: Optional[vfdfield_t] = None,
-           pec: Optional[vfdfield_t] = None,
-           pmc: Optional[vfdfield_t] = None,
-           ) -> sparse.spmatrix:
+def h_full(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        pec: Optional[vfdfield_t] = None,
+        pmc: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Wave operator
      $$ \\nabla \\times (\\frac{1}{\\epsilon} \\nabla \\times) - \\omega^2 \\mu $$
@@ -178,13 +181,14 @@ def h_full(omega: complex,
     return A
 
 
-def eh_full(omega: complex,
-            dxes: dx_lists_t,
-            epsilon: vfdfield_t,
-            mu: Optional[vfdfield_t] = None,
-            pec: Optional[vfdfield_t] = None,
-            pmc: Optional[vfdfield_t] = None
-            ) -> sparse.spmatrix:
+def eh_full(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        pec: Optional[vfdfield_t] = None,
+        pmc: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
@@ -247,7 +251,8 @@ def eh_full(omega: complex,
     return A
 
 
-def e2h(omega: complex,
+def e2h(
+        omega: complex,
         dxes: dx_lists_t,
         mu: Optional[vfdfield_t] = None,
         pmc: Optional[vfdfield_t] = None,
@@ -278,9 +283,10 @@ def e2h(omega: complex,
     return op
 
 
-def m2j(omega: complex,
+def m2j(
+        omega: complex,
         dxes: dx_lists_t,
-        mu: Optional[vfdfield_t] = None
+        mu: Optional[vfdfield_t] = None,
         ) -> sparse.spmatrix:
     """
     Operator for converting a magnetic current M into an electric current J.
@@ -357,12 +363,13 @@ def poynting_h_cross(h: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     return P
 
 
-def e_tfsf_source(TF_region: vfdfield_t,
-                  omega: complex,
-                  dxes: dx_lists_t,
-                  epsilon: vfdfield_t,
-                  mu: Optional[vfdfield_t] = None,
-                  ) -> sparse.spmatrix:
+def e_tfsf_source(
+        TF_region: vfdfield_t,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        ) -> sparse.spmatrix:
     """
     Operator that turns a desired E-field distribution into a
      total-field/scattered-field (TFSF) source.
@@ -387,13 +394,14 @@ def e_tfsf_source(TF_region: vfdfield_t,
     return (A @ Q - Q @ A) / (-1j * omega)
 
 
-def e_boundary_source(mask: vfdfield_t,
-                      omega: complex,
-                      dxes: dx_lists_t,
-                      epsilon: vfdfield_t,
-                      mu: Optional[vfdfield_t] = None,
-                      periodic_mask_edges: bool = False,
-                      ) -> sparse.spmatrix:
+def e_boundary_source(
+        mask: vfdfield_t,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: Optional[vfdfield_t] = None,
+        periodic_mask_edges: bool = False,
+        ) -> sparse.spmatrix:
     """
     Operator that turns an E-field distrubtion into a current (J) distribution
       along the edges (external and internal) of the provided mask. This is just an

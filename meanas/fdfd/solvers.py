@@ -2,11 +2,12 @@
 Solvers and solver interface for FDFD problems.
 """
 
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Optional
 import logging
 
-import numpy                        # type: ignore
-from numpy.linalg import norm       # type: ignore
+import numpy
+from numpy.typing import ArrayLike, NDArray
+from numpy.linalg import norm
 import scipy.sparse.linalg          # type: ignore
 
 from ..fdmath import dx_lists_t, vfdfield_t
@@ -16,10 +17,11 @@ from . import operators
 logger = logging.getLogger(__name__)
 
 
-def _scipy_qmr(A: scipy.sparse.csr_matrix,
-               b: numpy.ndarray,
-               **kwargs: Any,
-               ) -> numpy.ndarray:
+def _scipy_qmr(
+        A: scipy.sparse.csr_matrix,
+        b: ArrayLike,
+        **kwargs: Any,
+        ) -> NDArray[numpy.float64]:
     """
     Wrapper for scipy.sparse.linalg.qmr
 
@@ -37,14 +39,14 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     '''
     ii = 0
 
-    def log_residual(xk: numpy.ndarray) -> None:
+    def log_residual(xk: ArrayLike) -> None:
         nonlocal ii
         ii += 1
         if ii % 100 == 0:
             logger.info('Solver residual at iteration {} : {}'.format(ii, norm(A @ xk - b)))
 
     if 'callback' in kwargs:
-        def augmented_callback(xk: numpy.ndarray) -> None:
+        def augmented_callback(xk: ArrayLike) -> None:
             log_residual(xk)
             kwargs['callback'](xk)
 
@@ -60,17 +62,18 @@ def _scipy_qmr(A: scipy.sparse.csr_matrix,
     return x
 
 
-def generic(omega: complex,
-            dxes: dx_lists_t,
-            J: vfdfield_t,
-            epsilon: vfdfield_t,
-            mu: vfdfield_t = None,
-            pec: vfdfield_t = None,
-            pmc: vfdfield_t = None,
-            adjoint: bool = False,
-            matrix_solver: Callable[..., numpy.ndarray] = _scipy_qmr,
-            matrix_solver_opts: Dict[str, Any] = None,
-            ) -> vfdfield_t:
+def generic(
+        omega: complex,
+        dxes: dx_lists_t,
+        J: vfdfield_t,
+        epsilon: vfdfield_t,
+        mu: vfdfield_t = None,
+        pec: vfdfield_t = None,
+        pmc: vfdfield_t = None,
+        adjoint: bool = False,
+        matrix_solver: Callable[..., ArrayLike] = _scipy_qmr,
+        matrix_solver_opts: Optional[Dict[str, Any]] = None,
+        ) -> vfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
 
@@ -90,8 +93,8 @@ def generic(omega: complex,
         adjoint: If true, solves the adjoint problem.
         matrix_solver: Called as `matrix_solver(A, b, **matrix_solver_opts) -> x`,
                 where `A`: `scipy.sparse.csr_matrix`;
-                      `b`: `numpy.ndarray`;
-                      `x`: `numpy.ndarray`;
+                      `b`: `ArrayLike`;
+                      `x`: `ArrayLike`;
                 Default is a wrapped version of `scipy.sparse.linalg.qmr()`
                  which doesn't return convergence info and logs the residual
                  every 100 iterations.

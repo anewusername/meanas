@@ -1,7 +1,8 @@
 from typing import List, Tuple, Iterable, Optional
 import dataclasses
 import pytest       # type: ignore
-import numpy        # type: ignore
+import numpy
+from numpy.typing import NDArray, ArrayLike
 #from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd
@@ -59,12 +60,12 @@ def omega(request: FixtureRequest) -> Iterable[float]:
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pec(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
+def pmc(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
     yield request.param
 
 
@@ -75,10 +76,11 @@ def pmc(request: FixtureRequest) -> Iterable[Optional[numpy.ndarray]]:
 
 
 @pytest.fixture(params=['diag'])        # 'center'
-def j_distribution(request: FixtureRequest,
-                   shape: Tuple[int, ...],
-                   j_mag: float,
-                   ) -> Iterable[numpy.ndarray]:
+def j_distribution(
+        request: FixtureRequest,
+        shape: Tuple[int, ...],
+        j_mag: float,
+        ) -> Iterable[NDArray[numpy.float64]]:
     j = numpy.zeros(shape, dtype=complex)
     center_mask = numpy.zeros(shape, dtype=bool)
     center_mask[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = True
@@ -94,24 +96,25 @@ def j_distribution(request: FixtureRequest,
 @dataclasses.dataclass()
 class FDResult:
     shape: Tuple[int, ...]
-    dxes: List[List[numpy.ndarray]]
-    epsilon: numpy.ndarray
+    dxes: List[List[NDArray[numpy.float64]]]
+    epsilon: NDArray[numpy.float64]
     omega: complex
-    j: numpy.ndarray
-    e: numpy.ndarray
-    pmc: numpy.ndarray
-    pec: numpy.ndarray
+    j: NDArray[numpy.float64]
+    e: NDArray[numpy.float64]
+    pmc: Optional[NDArray[numpy.float64]]
+    pec: Optional[NDArray[numpy.float64]]
 
 
 @pytest.fixture()
-def sim(request: FixtureRequest,
+def sim(
+        request: FixtureRequest,
         shape: Tuple[int, ...],
-        epsilon: numpy.ndarray,
-        dxes: List[List[numpy.ndarray]],
-        j_distribution: numpy.ndarray,
+        epsilon: NDArray[numpy.float64],
+        dxes: List[List[NDArray[numpy.float64]]],
+        j_distribution: NDArray[numpy.float64],
         omega: float,
-        pec: Optional[numpy.ndarray],
-        pmc: Optional[numpy.ndarray],
+        pec: Optional[NDArray[numpy.float64]],
+        pmc: Optional[NDArray[numpy.float64]],
         ) -> FDResult:
     """
     Build simulation from parts

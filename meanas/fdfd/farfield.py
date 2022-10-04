@@ -2,19 +2,20 @@
 Functions for performing near-to-farfield transformation (and the reverse).
 """
 from typing import Dict, List, Any
-import numpy            # type: ignore
-from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift     # type: ignore
-from numpy import pi    # type: ignore
+import numpy
+from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
+from numpy import pi
 
 from ..fdmath import fdfield_t
 
 
-def near_to_farfield(E_near: fdfield_t,
-                     H_near: fdfield_t,
-                     dx: float,
-                     dy: float,
-                     padded_size: List[int] = None
-                     ) -> Dict[str, Any]:
+def near_to_farfield(
+        E_near: fdfield_t,
+        H_near: fdfield_t,
+        dx: float,
+        dy: float,
+        padded_size: List[int] = None
+        ) -> Dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.
@@ -120,12 +121,13 @@ def near_to_farfield(E_near: fdfield_t,
     return outputs
 
 
-def far_to_nearfield(E_far: fdfield_t,
-                     H_far: fdfield_t,
-                     dkx: float,
-                     dky: float,
-                     padded_size: List[int] = None
-                     ) -> Dict[str, Any]:
+def far_to_nearfield(
+        E_far: fdfield_t,
+        H_far: fdfield_t,
+        dkx: float,
+        dky: float,
+        padded_size: List[int] = None
+        ) -> Dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.

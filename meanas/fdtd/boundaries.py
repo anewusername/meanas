@@ -9,9 +9,10 @@ from typing import Tuple, Any, List
 from ..fdmath import fdfield_t, fdfield_updater_t
 
 
-def conducting_boundary(direction: int,
-                        polarity: int
-                        ) -> Tuple[fdfield_updater_t, fdfield_updater_t]:
+def conducting_boundary(
+        direction: int,
+        polarity: int
+        ) -> Tuple[fdfield_updater_t, fdfield_updater_t]:
     dirs = [0, 1, 2]
     if direction not in dirs:
         raise Exception('Invalid direction: {}'.format(direction))

@@ -5,13 +5,15 @@ Basic discrete calculus etc.
 """
 from typing import Sequence, Tuple, Optional, Callable
 
-import numpy            # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from .types import fdfield_t, fdfield_updater_t
 
 
-def deriv_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None
-                  ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
+def deriv_forward(
+        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -33,8 +35,9 @@ def deriv_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None
     return derivs
 
 
-def deriv_back(dx_h: Optional[Sequence[numpy.ndarray]] = None
-               ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
+def deriv_back(
+        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -56,7 +59,9 @@ def deriv_back(dx_h: Optional[Sequence[numpy.ndarray]] = None
     return derivs
 
 
-def curl_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater_t:
+def curl_forward(
+        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> fdfield_updater_t:
     """
     Curl operator for use with the E field.
 
@@ -83,7 +88,9 @@ def curl_forward(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_upda
     return ce_fun
 
 
-def curl_back(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater_t:
+def curl_back(
+        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> fdfield_updater_t:
     """
     Create a function which takes the backward curl of a field.
 
@@ -110,7 +117,9 @@ def curl_back(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> fdfield_updater
     return ch_fun
 
 
-def curl_forward_parts(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> Callable:
+def curl_forward_parts(
+        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> Callable:
     Dx, Dy, Dz = deriv_forward(dx_e)
 
     def mkparts_fwd(e: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
@@ -121,7 +130,9 @@ def curl_forward_parts(dx_e: Optional[Sequence[numpy.ndarray]] = None) -> Callab
     return mkparts_fwd
 
 
-def curl_back_parts(dx_h: Optional[Sequence[numpy.ndarray]] = None) -> Callable:
+def curl_back_parts(
+        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        ) -> Callable:
     Dx, Dy, Dz = deriv_back(dx_e)
 
     def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:

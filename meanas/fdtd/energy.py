@@ -1,5 +1,5 @@
 from typing import Optional, Union
-import numpy        # type: ignore
+import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t
 from ..fdmath.functional import deriv_back
@@ -8,10 +8,11 @@ from ..fdmath.functional import deriv_back
 # TODO documentation
 
 
-def poynting(e: fdfield_t,
-             h: fdfield_t,
-             dxes: Optional[dx_lists_t] = None,
-             ) -> fdfield_t:
+def poynting(
+        e: fdfield_t,
+        h: fdfield_t,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Calculate the poynting vector `S` ($S$).
 
@@ -87,12 +88,13 @@ def poynting(e: fdfield_t,
     return s
 
 
-def poynting_divergence(s: Optional[fdfield_t] = None,
-                        *,
-                        e: Optional[fdfield_t] = None,
-                        h: Optional[fdfield_t] = None,
-                        dxes: Optional[dx_lists_t] = None,
-                        ) -> fdfield_t:
+def poynting_divergence(
+        s: Optional[fdfield_t] = None,
+        *,
+        e: Optional[fdfield_t] = None,
+        h: Optional[fdfield_t] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Calculate the divergence of the poynting vector.
 
@@ -124,13 +126,14 @@ def poynting_divergence(s: Optional[fdfield_t] = None,
     return ds
 
 
-def energy_hstep(e0: fdfield_t,
-                 h1: fdfield_t,
-                 e2: fdfield_t,
-                 epsilon: Optional[fdfield_t] = None,
-                 mu: Optional[fdfield_t] = None,
-                 dxes: Optional[dx_lists_t] = None,
-                 ) -> fdfield_t:
+def energy_hstep(
+        e0: fdfield_t,
+        h1: fdfield_t,
+        e2: fdfield_t,
+        epsilon: Optional[fdfield_t] = None,
+        mu: Optional[fdfield_t] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Calculate energy `U` at the time of the provided H-field `h1`.
 
@@ -151,13 +154,14 @@ def energy_hstep(e0: fdfield_t,
     return u
 
 
-def energy_estep(h0: fdfield_t,
-                 e1: fdfield_t,
-                 h2: fdfield_t,
-                 epsilon: Optional[fdfield_t] = None,
-                 mu: Optional[fdfield_t] = None,
-                 dxes: Optional[dx_lists_t] = None,
-                 ) -> fdfield_t:
+def energy_estep(
+        h0: fdfield_t,
+        e1: fdfield_t,
+        h2: fdfield_t,
+        epsilon: Optional[fdfield_t] = None,
+        mu: Optional[fdfield_t] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Calculate energy `U` at the time of the provided E-field `e1`.
 
@@ -178,15 +182,16 @@ def energy_estep(h0: fdfield_t,
     return u
 
 
-def delta_energy_h2e(dt: float,
-                     e0: fdfield_t,
-                     h1: fdfield_t,
-                     e2: fdfield_t,
-                     h3: fdfield_t,
-                     epsilon: Optional[fdfield_t] = None,
-                     mu: Optional[fdfield_t] = None,
-                     dxes: Optional[dx_lists_t] = None,
-                     ) -> fdfield_t:
+def delta_energy_h2e(
+        dt: float,
+        e0: fdfield_t,
+        h1: fdfield_t,
+        e2: fdfield_t,
+        h3: fdfield_t,
+        epsilon: Optional[fdfield_t] = None,
+        mu: Optional[fdfield_t] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Change in energy during the half-step from `h1` to `e2`.
 
@@ -210,15 +215,16 @@ def delta_energy_h2e(dt: float,
     return du
 
 
-def delta_energy_e2h(dt: float,
-                     h0: fdfield_t,
-                     e1: fdfield_t,
-                     h2: fdfield_t,
-                     e3: fdfield_t,
-                     epsilon: Optional[fdfield_t] = None,
-                     mu: Optional[fdfield_t] = None,
-                     dxes: Optional[dx_lists_t] = None,
-                     ) -> fdfield_t:
+def delta_energy_e2h(
+        dt: float,
+        h0: fdfield_t,
+        e1: fdfield_t,
+        h2: fdfield_t,
+        e3: fdfield_t,
+        epsilon: Optional[fdfield_t] = None,
+        mu: Optional[fdfield_t] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Change in energy during the half-step from `e1` to `h2`.
 
@@ -242,10 +248,11 @@ def delta_energy_e2h(dt: float,
     return du
 
 
-def delta_energy_j(j0: fdfield_t,
-                   e1: fdfield_t,
-                   dxes: Optional[dx_lists_t] = None,
-                   ) -> fdfield_t:
+def delta_energy_j(
+        j0: fdfield_t,
+        e1: fdfield_t,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     """
     Calculate
 
@@ -264,12 +271,13 @@ def delta_energy_j(j0: fdfield_t,
     return du
 
 
-def dxmul(ee: fdfield_t,
-          hh: fdfield_t,
-          epsilon: Optional[Union[fdfield_t, float]] = None,
-          mu: Optional[Union[fdfield_t, float]] = None,
-          dxes: Optional[dx_lists_t] = None
-          ) -> fdfield_t:
+def dxmul(
+        ee: fdfield_t,
+        hh: fdfield_t,
+        epsilon: Optional[Union[fdfield_t, float]] = None,
+        mu: Optional[Union[fdfield_t, float]] = None,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_t:
     if epsilon is None:
         epsilon = 1
     if mu is None:

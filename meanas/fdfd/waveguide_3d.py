@@ -5,21 +5,23 @@ This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
 from typing import Dict, Optional, Sequence, Union, Any
-import numpy                    # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t
 from . import operators, waveguide_2d
 
 
-def solve_mode(mode_number: int,
-               omega: complex,
-               dxes: dx_lists_t,
-               axis: int,
-               polarity: int,
-               slices: Sequence[slice],
-               epsilon: fdfield_t,
-               mu: Optional[fdfield_t] = None,
-               ) -> Dict[str, Union[complex, numpy.ndarray]]:
+def solve_mode(
+        mode_number: int,
+        omega: complex,
+        dxes: dx_lists_t,
+        axis: int,
+        polarity: int,
+        slices: Sequence[slice],
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None,
+        ) -> Dict[str, Union[complex, NDArray[numpy.float_]]]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
      solve for an eigenmode propagating through that slice.
@@ -36,7 +38,13 @@ def solve_mode(mode_number: int,
         mu: Magnetic permeability (default 1 everywhere)
 
     Returns:
-        `{'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}`
+        ```
+        {
+            'E': List[NDArray[numpy.float_]],
+            'H': List[NDArray[numpy.float_]],
+            'wavenumber': complex,
+        }
+        ```
     """
     if mu is None:
         mu = numpy.ones_like(epsilon)
@@ -97,16 +105,17 @@ def solve_mode(mode_number: int,
     return results
 
 
-def compute_source(E: fdfield_t,
-                   wavenumber: complex,
-                   omega: complex,
-                   dxes: dx_lists_t,
-                   axis: int,
-                   polarity: int,
-                   slices: Sequence[slice],
-                   epsilon: fdfield_t,
-                   mu: Optional[fdfield_t] = None,
-                   ) -> fdfield_t:
+def compute_source(
+        E: fdfield_t,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        axis: int,
+        polarity: int,
+        slices: Sequence[slice],
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None,
+        ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution
     necessary to position a unidirectional source at the slice location.
@@ -142,17 +151,20 @@ def compute_source(E: fdfield_t,
     return J
 
 
-def compute_overlap_e(E: fdfield_t,
-                      wavenumber: complex,
-                      dxes: dx_lists_t,
-                      axis: int,
-                      polarity: int,
-                      slices: Sequence[slice],
-                      ) -> fdfield_t:                 # TODO DOCS
+def compute_overlap_e(
+        E: fdfield_t,
+        wavenumber: complex,
+        dxes: dx_lists_t,
+        axis: int,
+        polarity: int,
+        slices: Sequence[slice],
+        ) -> fdfield_t:                 # TODO DOCS
     """
     Given an eigenmode obtained by `solve_mode`, calculates an overlap_e for the
     mode orthogonality relation Integrate(((E x H_mode) + (E_mode x H)) dot dn)
     [assumes reflection symmetry].
+
+    TODO: add reference
 
     Args:
         E: E-field of the mode
@@ -187,13 +199,14 @@ def compute_overlap_e(E: fdfield_t,
     return Etgt
 
 
-def expand_e(E: fdfield_t,
-             wavenumber: complex,
-             dxes: dx_lists_t,
-             axis: int,
-             polarity: int,
-             slices: Sequence[slice],
-             ) -> fdfield_t:
+def expand_e(
+        E: fdfield_t,
+        wavenumber: complex,
+        dxes: dx_lists_t,
+        axis: int,
+        polarity: int,
+        slices: Sequence[slice],
+        ) -> fdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, expands the E-field from the 2D
     slice where the mode was calculated to the entire domain (along the propagation

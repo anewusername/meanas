@@ -80,7 +80,7 @@ This module contains functions for generating and solving the
 
 '''
 
-from typing import Tuple, Callable, Any, List, Optional, cast
+from typing import Tuple, Callable, Any, List, Optional, cast, Union
 import logging
 import numpy
 from numpy import pi, real, trace
@@ -433,11 +433,10 @@ def find_k(
         `(k, actual_frequency)`
         The found k-vector and its frequency.
     """
-
     direction = numpy.array(direction) / norm(direction)
 
     def get_f(k0_mag: float, band: int = 0) -> float:
-        k0 = direction * k0_mag
+        k0 = direction * k0_mag                         # type: ignore
         n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
         if solve_callback:
@@ -482,6 +481,8 @@ def eigsolve(
         `(eigenvalues, eigenvectors)` where `eigenvalues[i]` corresponds to the
         vector `eigenvectors[i, :]`
     """
+    k0 = numpy.array(k0, copy=False)
+
     h_size = 2 * epsilon[0].size
 
     kmag = norm(G_matrix @ k0)
@@ -497,9 +498,9 @@ def eigsolve(
 
     y_shape = (h_size, num_modes)
 
-    prev_E = 0
-    d_scale = 1
-    prev_traceGtKG = 0
+    prev_E = 0.0
+    d_scale = 1.0
+    prev_traceGtKG = 0.0
     #prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
@@ -545,7 +546,7 @@ def eigsolve(
 
         if prev_traceGtKG == 0 or i % reset_iters == 0:
             logger.info('CG reset')
-            gamma = 0
+            gamma = 0.0
         else:
             gamma = traceGtKG / prev_traceGtKG
 
@@ -695,7 +696,10 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
         return x, fx, dfx
 '''
 
-def _rtrace_AtB(A: NDArray[numpy.float64], B: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
+def _rtrace_AtB(
+        A: NDArray[numpy.float64],
+        B: Union[NDArray[numpy.float64], float],
+        ) -> float:
     return real(numpy.sum(A.conj() * B))
 
 def _symmetrize(A: NDArray[numpy.float64]) -> NDArray[numpy.float64]:

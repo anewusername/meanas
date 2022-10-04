@@ -9,7 +9,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 # TODO update module docs
 
 from typing import Dict, Union
-import numpy                        # type: ignore
+import numpy
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
@@ -17,11 +17,12 @@ from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
-def cylindrical_operator(omega: complex,
-                         dxes: dx_lists_t,
-                         epsilon: vfdfield_t,
-                         r0: float,
-                         ) -> sparse.spmatrix:
+def cylindrical_operator(
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        r0: float,
+        ) -> sparse.spmatrix:
     """
     Cylindrical coordinate waveguide operator of the form
 
@@ -78,12 +79,13 @@ def cylindrical_operator(omega: complex,
     return op
 
 
-def solve_mode(mode_number: int,
-               omega: complex,
-               dxes: dx_lists_t,
-               epsilon: vfdfield_t,
-               r0: float,
-               ) -> Dict[str, Union[complex, fdfield_t]]:
+def solve_mode(
+        mode_number: int,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        r0: float,
+        ) -> Dict[str, Union[complex, fdfield_t]]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
@@ -99,7 +101,13 @@ def solve_mode(mode_number: int,
             r within the simulation domain.
 
     Returns:
-        `{'E': List[numpy.ndarray], 'H': List[numpy.ndarray], 'wavenumber': complex}`
+        ```
+        {
+            'E': List[NDArray[numpy.float_]],
+            'H': List[NDArray[numpy.float_]],
+            'wavenumber': complex,
+        }
+        ```
     """
 
     '''
