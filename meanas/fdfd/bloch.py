@@ -82,9 +82,10 @@ This module contains functions for generating and solving the
 
 from typing import Tuple, Callable, Any, List, Optional, cast
 import logging
-import numpy                            # type: ignore
-from numpy import pi, real, trace       # type: ignore
-from numpy.fft import fftfreq           # type: ignore
+import numpy
+from numpy import pi, real, trace
+from numpy.fft import fftfreq
+from numpy.typing import NDArray, ArrayLike
 import scipy                            # type: ignore
 import scipy.optimize                   # type: ignore
 from scipy.linalg import norm           # type: ignore
@@ -109,21 +110,22 @@ try:
         'planner_effort': 'FFTW_EXHAUSTIVE',
         }
 
-    def fftn(*args: Any, **kwargs: Any) -> numpy.ndarray:
+    def fftn(*args: Any, **kwargs: Any) -> NDArray[numpy.float64]:
         return pyfftw.interfaces.numpy_fft.fftn(*args, **kwargs, **fftw_args)
 
-    def ifftn(*args: Any, **kwargs: Any) -> numpy.ndarray:
+    def ifftn(*args: Any, **kwargs: Any) -> NDArray[numpy.float64]:
         return pyfftw.interfaces.numpy_fft.ifftn(*args, **kwargs, **fftw_args)
 
 except ImportError:
-    from numpy.fft import fftn, ifftn       # type: ignore
+    from numpy.fft import fftn, ifftn
     logger.info('Using numpy fft')
 
 
-def generate_kmn(k0: numpy.ndarray,
-                 G_matrix: numpy.ndarray,
-                 shape: numpy.ndarray
-                 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+def generate_kmn(
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        shape: ArrayLike,
+        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
     """
     Generate a (k, m, n) orthogonal basis for each k-vector in the simulation grid.
 
@@ -162,11 +164,12 @@ def generate_kmn(k0: numpy.ndarray,
     return k_mag, m, n
 
 
-def maxwell_operator(k0: numpy.ndarray,
-                     G_matrix: numpy.ndarray,
-                     epsilon: fdfield_t,
-                     mu: fdfield_t = None
-                     ) -> Callable[[numpy.ndarray], numpy.ndarray]:
+def maxwell_operator(
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None
+        ) -> Callable[[NDArray[numpy.float64]], NDArray[numpy.float64]]:
     """
     Generate the Maxwell operator
 
@@ -199,7 +202,7 @@ def maxwell_operator(k0: numpy.ndarray,
     if mu is not None:
         mu = numpy.stack(mu, 3)
 
-    def operator(h: numpy.ndarray) -> numpy.ndarray:
+    def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
         """
         Maxwell operator for Bloch eigenmode simulation.
 
@@ -244,10 +247,11 @@ def maxwell_operator(k0: numpy.ndarray,
     return operator
 
 
-def hmn_2_exyz(k0: numpy.ndarray,
-               G_matrix: numpy.ndarray,
-               epsilon: fdfield_t,
-               ) -> Callable[[numpy.ndarray], fdfield_t]:
+def hmn_2_exyz(
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t,
+        ) -> Callable[[NDArray[numpy.float64]], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      `h_mn` into an E-field distribution, i.e.
@@ -272,7 +276,7 @@ def hmn_2_exyz(k0: numpy.ndarray,
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: numpy.ndarray) -> fdfield_t:
+    def operator(h: NDArray[numpy.float64]) -> fdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         d_xyz = (n * hin_m
                - m * hin_n) * k_mag
@@ -283,10 +287,11 @@ def hmn_2_exyz(k0: numpy.ndarray,
     return operator
 
 
-def hmn_2_hxyz(k0: numpy.ndarray,
-               G_matrix: numpy.ndarray,
-               epsilon: fdfield_t
-               ) -> Callable[[numpy.ndarray], fdfield_t]:
+def hmn_2_hxyz(
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t
+        ) -> Callable[[NDArray[numpy.float64]], fdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      `h_mn` into an H-field distribution, i.e.
@@ -309,7 +314,7 @@ def hmn_2_hxyz(k0: numpy.ndarray,
     shape = epsilon[0].shape + (1,)
     _k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: numpy.ndarray) -> fdfield_t:
+    def operator(h: NDArray[numpy.float64]) -> fdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m
                + n * hin_n)
@@ -318,11 +323,12 @@ def hmn_2_hxyz(k0: numpy.ndarray,
     return operator
 
 
-def inverse_maxwell_operator_approx(k0: numpy.ndarray,
-                                    G_matrix: numpy.ndarray,
-                                    epsilon: fdfield_t,
-                                    mu: fdfield_t = None
-                                    ) -> Callable[[numpy.ndarray], numpy.ndarray]:
+def inverse_maxwell_operator_approx(
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None,
+        ) -> Callable[[NDArray[numpy.float64]], NDArray[numpy.float64]]:
     """
     Generate an approximate inverse of the Maxwell operator,
 
@@ -351,7 +357,7 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
     if mu is not None:
         mu = numpy.stack(mu, 3)
 
-    def operator(h: numpy.ndarray) -> numpy.ndarray:
+    def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
         """
         Approximate inverse Maxwell operator for Bloch eigenmode simulation.
 
@@ -397,17 +403,18 @@ def inverse_maxwell_operator_approx(k0: numpy.ndarray,
     return operator
 
 
-def find_k(frequency: float,
-           tolerance: float,
-           direction: numpy.ndarray,
-           G_matrix: numpy.ndarray,
-           epsilon: fdfield_t,
-           mu: fdfield_t = None,
-           band: int = 0,
-           k_min: float = 0,
-           k_max: float = 0.5,
-           solve_callback: Callable = None
-           ) -> Tuple[numpy.ndarray, float]:
+def find_k(
+        frequency: float,
+        tolerance: float,
+        direction: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None,
+        band: int = 0,
+        k_min: float = 0,
+        k_max: float = 0.5,
+        solve_callback: Optional[Callable] = None
+        ) -> Tuple[NDArray[numpy.float64], float]:
     """
     Search for a bloch vector that has a given frequency.
 
@@ -429,7 +436,7 @@ def find_k(frequency: float,
 
     direction = numpy.array(direction) / norm(direction)
 
-    def get_f(k0_mag: float, band: int = 0) -> numpy.ndarray:
+    def get_f(k0_mag: float, band: int = 0) -> float:
         k0 = direction * k0_mag
         n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
@@ -437,23 +444,26 @@ def find_k(frequency: float,
             solve_callback(k0_mag, n, v, f)
         return f
 
-    res = scipy.optimize.minimize_scalar(lambda x: abs(get_f(x, band) - frequency),
-                                         (k_min + k_max) / 2,
-                                         method='Bounded',
-                                         bounds=(k_min, k_max),
-                                         options={'xatol': abs(tolerance)})
+    res = scipy.optimize.minimize_scalar(
+        lambda x: abs(get_f(x, band) - frequency),
+        (k_min + k_max) / 2,
+        method='Bounded',
+        bounds=(k_min, k_max),
+        options={'xatol': abs(tolerance)},
+        )
     return res.x * direction, res.fun + frequency
 
 
-def eigsolve(num_modes: int,
-             k0: numpy.ndarray,
-             G_matrix: numpy.ndarray,
-             epsilon: fdfield_t,
-             mu: fdfield_t = None,
-             tolerance: float = 1e-20,
-             max_iters: int = 10000,
-             reset_iters: int = 100,
-             ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+def eigsolve(
+        num_modes: int,
+        k0: ArrayLike,
+        G_matrix: ArrayLike,
+        epsilon: fdfield_t,
+        mu: Optional[fdfield_t] = None,
+        tolerance: float = 1e-20,
+        max_iters: int = 10000,
+        reset_iters: int = 100,
+        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64]]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
      k0 of the specified structure.
@@ -625,7 +635,7 @@ def eigsolve(num_modes: int,
         theta = result.x
 
         improvement = numpy.abs(E - new_E) * 2 / numpy.abs(E + new_E)
-        logger.info('linmin improvement {}'.format(improvement))
+        logger.info(f'linmin improvement {improvement}')
         Z *= numpy.cos(theta)
         Z += D * numpy.sin(theta)
 
@@ -651,7 +661,7 @@ def eigsolve(num_modes: int,
         f = numpy.sqrt(-numpy.real(n))
         df = numpy.sqrt(-numpy.real(n + eigness))
         neff_err = kmag * (1 / df - 1 / f)
-        logger.info('eigness {}: {}\n neff_err: {}'.format(i, eigness, neff_err))
+        logger.info(f'eigness {i}: {eigness}\n neff_err: {neff_err}')
 
     order = numpy.argsort(numpy.abs(eigvals))
     return eigvals[order], eigvecs.T[order]
@@ -685,9 +695,9 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
         return x, fx, dfx
 '''
 
-def _rtrace_AtB(A: numpy.ndarray, B: numpy.ndarray) -> numpy.ndarray:
+def _rtrace_AtB(A: NDArray[numpy.float64], B: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
     return real(numpy.sum(A.conj() * B))
 
-def _symmetrize(A: numpy.ndarray) -> numpy.ndarray:
+def _symmetrize(A: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
     return (A + A.conj().T) * 0.5
 

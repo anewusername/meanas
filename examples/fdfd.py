@@ -156,7 +156,7 @@ def test1(solver=generic_solver):
     # grid.draw_cuboid(pmcg, center=[700, 0, 0], dimensions=[80, 1e8, 1e8], eps=1)
     # grid.visualize_isosurface(pmcg)
 
-    def pcolor(v):
+    def pcolor(v) -> None:
         vmax = numpy.max(numpy.abs(v))
         pyplot.pcolor(v, cmap='seismic', vmin=-vmax, vmax=vmax)
         pyplot.axis('equal')
