@@ -11,6 +11,7 @@ import numpy
 import h5py
 
 from meanas import fdtd
+from meanas.fdtd import cpml_params, updates_with_cpml
 from masque import Pattern, shapes
 import gridlock
 import pcgen
@@ -127,19 +128,15 @@ def main():
     e = [numpy.zeros_like(epsilon[0], dtype=dtype) for _ in range(3)]
     h = [numpy.zeros_like(epsilon[0], dtype=dtype) for _ in range(3)]
 
-    update_e = fdtd.maxwell_e(dt)
-    update_h = fdtd.maxwell_h(dt)
+    dxes = [grid.dxyz, grid.autoshifted_dxyz()]
 
     # PMLs in every direction
-    pml_e_funcs = []
-    pml_h_funcs = []
-    pml_fields = {}
-    for d in (0, 1, 2):
-        for p in (-1, 1):
-            ef, hf, psis = fdtd.cpml(direction=d, polarity=p, dt=dt, epsilon=epsilon, epsilon_eff=n_slab**2, dtype=dtype)
-            pml_e_funcs.append(ef)
-            pml_h_funcs.append(hf)
-            pml_fields.update(psis)
+    pml_params = [[cpml_params(axis=dd, polarity=pp, dt=dt,
+                               thickness=pml_thickness, epsilon_eff=1.0**2)
+                   for pp in (-1, +1)]
+                  for dd in range(3)]
+    update_E, update_H = updates_with_cpml(cpml_params=pml_params, dt=dt,
+                                           dxes=dxes, epsilon=epsilon)
 
     # Source parameters and function
     w = 2 * numpy.pi * dx / wl
@@ -155,12 +152,10 @@ def main():
     output_file = h5py.File('simulation_output.h5', 'w')
     start = time.perf_counter()
     for t in range(max_t):
-        [f(e, h, epsilon) for f in pml_e_funcs]
-        update_e(e, h, epsilon)
+        update_E(e, h, epsilon)
 
         e[1][tuple(grid.shape//2)] += field_source(t)
-        [f(e, h) for f in pml_h_funcs]
-        update_h(e, h)
+        update_H(e, h)
 
         print('iteration {}: average {} iterations per sec'.format(t, (t+1)/(time.perf_counter()-start)))
         sys.stdout.flush()
