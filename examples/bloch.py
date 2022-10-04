@@ -4,14 +4,15 @@ from numpy.linalg import norm
 import logging
 from pathlib import Path
 
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-WISDOM_FILEPATH = pathlib.Path.home() / '.local' / 'share' / 'pyfftw' / 'wisdom.pickle'
+WISDOM_FILEPATH = Path.home() / '.local/share/pyfftw/wisdom.pickle'
 
 
 def pyfftw_save_wisdom(path):
-    path = pathlib.Path(path)
+    path = Path(path)
     try:
         import pyfftw
         import pickle
@@ -24,7 +25,7 @@ def pyfftw_save_wisdom(path):
 
 
 def pyfftw_load_wisdom(path):
-    path = pathlib.Path(path)
+    path = Path(path)
     try:
         import pyfftw
         import pickle
