@@ -133,7 +133,7 @@ def curl_forward_parts(
 def curl_back_parts(
         dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
         ) -> Callable:
-    Dx, Dy, Dz = deriv_back(dx_e)
+    Dx, Dy, Dz = deriv_back(dx_h)
 
     def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
         return ((-Dz(h[1]),  Dy(h[2])),
