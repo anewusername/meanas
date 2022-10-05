@@ -32,12 +32,11 @@ def pyfftw_load_wisdom(path):
     except ImportError as e:
         pass
 
-    try:
+    if path.exists():
         with open(path, 'rb') as f:
             wisdom = pickle.load(f)
         pyfftw.import_wisdom(wisdom)
-    except FileNotFoundError as e:
-        pass
+
 
 logger.info('Drawing grid...')
 dx = 40
