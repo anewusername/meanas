@@ -31,7 +31,7 @@ from typing import Tuple, Optional
 import numpy
 import scipy.sparse as sparse       # type: ignore
 
-from ..fdmath import vec, dx_lists_t, vfdfield_t
+from ..fdmath import vec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..fdmath.operators import shift_with_mirror, shift_circ, curl_forward, curl_back
 
 
@@ -91,7 +91,7 @@ def e_full(
     if numpy.any(numpy.equal(mu, None)):
         m_div = sparse.eye(epsilon.size)
     else:
-        m_div = sparse.diags(1 / mu)                # type: ignore  # checked mu is not None
+        m_div = sparse.diags(1 / mu)
 
     op = pe @ (ch @ pm @ m_div @ ce - omega**2 * e) @ pe
     return op
@@ -275,7 +275,7 @@ def e2h(
     op = curl_forward(dxes[0]) / (-1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
-        op = sparse.diags(1 / mu) @ op              # type: ignore  # checked mu is not None
+        op = sparse.diags(1 / mu) @ op
 
     if not numpy.any(numpy.equal(pmc, None)):
         op = sparse.diags(numpy.where(pmc, 0, 1)) @ op
@@ -303,12 +303,12 @@ def m2j(
     op = curl_back(dxes[1]) / (1j * omega)
 
     if not numpy.any(numpy.equal(mu, None)):
-        op = op @ sparse.diags(1 / mu)            # type: ignore  # checked mu is not None
+        op = op @ sparse.diags(1 / mu)
 
     return op
 
 
-def poynting_e_cross(e: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Operator for computing the Poynting vector, containing the
     (E x) portion of the Poynting vector.
@@ -336,7 +336,7 @@ def poynting_e_cross(e: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     return P
 
 
-def poynting_h_cross(h: vfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_h_cross(h: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     Operator for computing the Poynting vector, containing the (H x) portion of the Poynting vector.
 

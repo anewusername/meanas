@@ -185,7 +185,7 @@ from numpy.linalg import norm
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
-from ..fdmath import unvec, dx_lists_t, vfdfield_t
+from ..fdmath import unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
@@ -335,7 +335,7 @@ def normalized_fields_e(
         epsilon: vfdfield_t,
         mu: Optional[vfdfield_t] = None,
         prop_phase: float = 0,
-        ) -> Tuple[vfdfield_t, vfdfield_t]:
+        ) -> Tuple[vcfdfield_t, vcfdfield_t]:
     """
     Given a vector `e_xy` containing the vectorized E_x and E_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -370,7 +370,7 @@ def normalized_fields_h(
         epsilon: vfdfield_t,
         mu: Optional[vfdfield_t] = None,
         prop_phase: float = 0,
-        ) -> Tuple[vfdfield_t, vfdfield_t]:
+        ) -> Tuple[vcfdfield_t, vcfdfield_t]:
     """
     Given a vector `h_xy` containing the vectorized H_x and H_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -398,14 +398,14 @@ def normalized_fields_h(
 
 
 def _normalized_fields(
-        e: ArrayLike,
-        h: ArrayLike,
+        e: vcfdfield_t,
+        h: vcfdfield_t,
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         mu: Optional[vfdfield_t] = None,
         prop_phase: float = 0,
-        ) -> Tuple[vfdfield_t, vfdfield_t]:
+        ) -> Tuple[vcfdfield_t, vcfdfield_t]:
     # TODO documentation
     shape = [s.size for s in dxes[0]]
     dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
@@ -581,7 +581,7 @@ def e2h(
     """
     op = curl_e(wavenumber, dxes) / (-1j * omega)
     if not numpy.any(numpy.equal(mu, None)):
-        op = sparse.diags(1 / mu) @ op          # type: ignore   # checked that mu is not None
+        op = sparse.diags(1 / mu) @ op
     return op
 
 
@@ -649,7 +649,7 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
 
 
 def h_err(
-        h: vfdfield_t,
+        h: vcfdfield_t,
         wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
@@ -684,12 +684,12 @@ def h_err(
 
 
 def e_err(
-        e: vfdfield_t,
+        e: vcfdfield_t,
         wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: vfdfield_t = Optional[None]
+        mu: Optional[vfdfield_t] = None,
         ) -> float:
     """
     Calculates the relative error in the E field
@@ -711,7 +711,7 @@ def e_err(
     if numpy.any(numpy.equal(mu, None)):
         op = ch @ ce @ e - omega ** 2 * (epsilon * e)
     else:
-        mu_inv = sparse.diags(1 / mu)          # type: ignore   # checked that mu is not None
+        mu_inv = sparse.diags(1 / mu)
         op = ch @ mu_inv @ ce @ e - omega ** 2 * (epsilon * e)
 
     return norm(op) / norm(e)
@@ -724,7 +724,7 @@ def solve_modes(
         epsilon: vfdfield_t,
         mu: vfdfield_t = None,
         mode_margin: int = 2,
-        ) -> Tuple[NDArray[numpy.float64], List[complex]]:
+        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.complex128]]:
     """
     Given a 2D region, attempts to solve for the eigenmode with the specified mode numbers.
 
@@ -771,7 +771,7 @@ def solve_mode(
         mode_number: int,
         *args: Any,
         **kwargs: Any,
-        ) -> Tuple[vfdfield_t, complex]:
+        ) -> Tuple[vcfdfield_t, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.
 

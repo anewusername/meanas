@@ -78,7 +78,7 @@ def j_distribution(
         dxes: dx_lists_mut,
         omega: float,
         src_polarity: int,
-        ) -> Iterable[NDArray[numpy.float64]]:
+        ) -> Iterable[NDArray[numpy.complex128]]:
     j = numpy.zeros(shape, dtype=complex)
 
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -150,7 +150,7 @@ def sim(
         shape: Tuple[int, ...],
         epsilon: NDArray[numpy.float64],
         dxes: dx_lists_mut,
-        j_distribution: NDArray[numpy.float64],
+        j_distribution: NDArray[numpy.complex128],
         omega: float,
         pec: Optional[NDArray[numpy.float64]],
         pmc: Optional[NDArray[numpy.float64]],

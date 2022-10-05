@@ -11,7 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 __author__ = 'Jan Petykiewicz'
 
 
-s_function_t = Callable[[float], float]
+s_function_t = Callable[[NDArray[numpy.float64]], NDArray[numpy.float64]]
 """Typedef for s-functions, see `prepare_s_function()`"""
 
 
@@ -39,8 +39,8 @@ def prepare_s_function(
 
 
 def uniform_grid_scpml(
-        shape: ArrayLike,    # ints
-        thicknesses: ArrayLike,  # ints
+        shape: Sequence[int],
+        thicknesses: Sequence[int],
         omega: float,
         epsilon_effective: float = 1.0,
         s_function: Optional[s_function_t] = None,
@@ -70,12 +70,11 @@ def uniform_grid_scpml(
     if s_function is None:
         s_function = prepare_s_function()
 
+    shape = tuple(shape)
+    thicknesses = tuple(thicknesses)
+
     # Normalized distance to nearest boundary
-    def ll(
-            u: NDArray[numpy.float64],
-            n: NDArray[numpy.float64],
-            t: NDArray[numpy.float64],
-            ) -> NDArray[numpy.float64]:
+    def ll(u: NDArray[numpy.float64], n: int, t: int) -> NDArray[numpy.float64]:
         return ((t - u).clip(0) + (u - (n - t)).clip(0)) / t
 
     dx_a = [numpy.array(numpy.inf)] * 3

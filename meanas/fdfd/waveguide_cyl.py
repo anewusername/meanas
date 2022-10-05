@@ -12,7 +12,7 @@ from typing import Dict, Union
 import numpy
 import scipy.sparse as sparse       # type: ignore
 
-from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t, cfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
@@ -85,7 +85,7 @@ def solve_mode(
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         r0: float,
-        ) -> Dict[str, Union[complex, fdfield_t]]:
+        ) -> Dict[str, Union[complex, cfdfield_t]]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
@@ -103,8 +103,8 @@ def solve_mode(
     Returns:
         ```
         {
-            'E': List[NDArray[numpy.float_]],
-            'H': List[NDArray[numpy.float_]],
+            'E': List[NDArray[numpy.complex_]],
+            'H': List[NDArray[numpy.complex_]],
             'wavenumber': complex,
         }
         ```

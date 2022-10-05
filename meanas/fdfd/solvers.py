@@ -10,7 +10,7 @@ from numpy.typing import ArrayLike, NDArray
 from numpy.linalg import norm
 import scipy.sparse.linalg          # type: ignore
 
-from ..fdmath import dx_lists_t, vfdfield_t
+from ..fdmath import dx_lists_t, vfdfield_t, vcfdfield_t
 from . import operators
 
 
@@ -65,7 +65,7 @@ def _scipy_qmr(
 def generic(
         omega: complex,
         dxes: dx_lists_t,
-        J: vfdfield_t,
+        J: vcfdfield_t,
         epsilon: vfdfield_t,
         mu: vfdfield_t = None,
         pec: vfdfield_t = None,
@@ -73,7 +73,7 @@ def generic(
         adjoint: bool = False,
         matrix_solver: Callable[..., ArrayLike] = _scipy_qmr,
         matrix_solver_opts: Optional[Dict[str, Any]] = None,
-        ) -> vfdfield_t:
+        ) -> vcfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
 

@@ -8,7 +8,7 @@ from typing import Dict, Optional, Sequence, Union, Any
 import numpy
 from numpy.typing import NDArray
 
-from ..fdmath import vec, unvec, dx_lists_t, fdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, cfdfield_t
 from . import operators, waveguide_2d
 
 
@@ -106,7 +106,7 @@ def solve_mode(
 
 
 def compute_source(
-        E: fdfield_t,
+        E: cfdfield_t,
         wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
@@ -115,7 +115,7 @@ def compute_source(
         slices: Sequence[slice],
         epsilon: fdfield_t,
         mu: Optional[fdfield_t] = None,
-        ) -> fdfield_t:
+        ) -> cfdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution
     necessary to position a unidirectional source at the slice location.
@@ -152,13 +152,13 @@ def compute_source(
 
 
 def compute_overlap_e(
-        E: fdfield_t,
+        E: cfdfield_t,
         wavenumber: complex,
         dxes: dx_lists_t,
         axis: int,
         polarity: int,
         slices: Sequence[slice],
-        ) -> fdfield_t:                 # TODO DOCS
+        ) -> cfdfield_t:                 # TODO DOCS
     """
     Given an eigenmode obtained by `solve_mode`, calculates an overlap_e for the
     mode orthogonality relation Integrate(((E x H_mode) + (E_mode x H)) dot dn)
@@ -200,13 +200,13 @@ def compute_overlap_e(
 
 
 def expand_e(
-        E: fdfield_t,
+        E: cfdfield_t,
         wavenumber: complex,
         dxes: dx_lists_t,
         axis: int,
         polarity: int,
         slices: Sequence[slice],
-        ) -> fdfield_t:
+        ) -> cfdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, expands the E-field from the 2D
     slice where the mode was calculated to the entire domain (along the propagation

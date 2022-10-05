@@ -6,12 +6,12 @@ import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi
 
-from ..fdmath import fdfield_t
+from ..fdmath import cfdfield_t
 
 
 def near_to_farfield(
-        E_near: fdfield_t,
-        H_near: fdfield_t,
+        E_near: cfdfield_t,
+        H_near: cfdfield_t,
         dx: float,
         dy: float,
         padded_size: List[int] = None
@@ -122,8 +122,8 @@ def near_to_farfield(
 
 
 def far_to_nearfield(
-        E_far: fdfield_t,
-        H_far: fdfield_t,
+        E_far: cfdfield_t,
+        H_far: cfdfield_t,
         dkx: float,
         dky: float,
         padded_size: List[int] = None

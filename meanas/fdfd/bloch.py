@@ -80,7 +80,7 @@ This module contains functions for generating and solving the
 
 '''
 
-from typing import Tuple, Callable, Any, List, Optional, cast, Union
+from typing import Tuple, Callable, Any, List, Optional, cast, Union, Sequence
 import logging
 import numpy
 from numpy import pi, real, trace
@@ -91,7 +91,8 @@ import scipy.optimize                   # type: ignore
 from scipy.linalg import norm           # type: ignore
 import scipy.sparse.linalg as spalg     # type: ignore
 
-from ..fdmath import fdfield_t
+from ..fdmath import fdfield_t, cfdfield_t
+
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +111,10 @@ try:
         'planner_effort': 'FFTW_PATIENT',
         }
 
-    def fftn(*args: Any, **kwargs: Any) -> NDArray[numpy.float64]:
+    def fftn(*args: Any, **kwargs: Any) -> NDArray[numpy.complex128]:
         return pyfftw.interfaces.numpy_fft.fftn(*args, **kwargs, **fftw_args)
 
-    def ifftn(*args: Any, **kwargs: Any) -> NDArray[numpy.float64]:
+    def ifftn(*args: Any, **kwargs: Any) -> NDArray[numpy.complex128]:
         return pyfftw.interfaces.numpy_fft.ifftn(*args, **kwargs, **fftw_args)
 
 except ImportError:
@@ -124,7 +125,7 @@ except ImportError:
 def generate_kmn(
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        shape: ArrayLike,
+        shape: Sequence[int],
         ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
     """
     Generate a (k, m, n) orthogonal basis for each k-vector in the simulation grid.
@@ -142,7 +143,7 @@ def generate_kmn(
     k0 = numpy.array(k0)
 
     Gi_grids = numpy.meshgrid(*(fftfreq(n, 1 / n) for n in shape[:3]), indexing='ij')
-    Gi = numpy.stack(Gi_grids, axis=3)
+    Gi = numpy.moveaxis(Gi_grids, 0, -1)
 
     k_G = k0[None, None, None, :] - Gi
     k_xyz = numpy.rollaxis(G_matrix @ numpy.rollaxis(k_G, 3, 2), 3, 2)
@@ -169,7 +170,7 @@ def maxwell_operator(
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
         mu: Optional[fdfield_t] = None
-        ) -> Callable[[NDArray[numpy.float64]], NDArray[numpy.float64]]:
+        ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate the Maxwell operator
 
@@ -198,11 +199,11 @@ def maxwell_operator(
     shape = epsilon[0].shape + (1,)
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    epsilon = numpy.stack(epsilon, axis=3)
+    epsilon = numpy.moveaxis(epsilon, 0, -1)
     if mu is not None:
-        mu = numpy.stack(mu, axis=3)
+        mu = numpy.moveaxis(mu, 0, -1)
 
-    def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
+    def operator(h: NDArray[numpy.complex128]) -> NDArray[numpy.complex128]:
         """
         Maxwell operator for Bloch eigenmode simulation.
 
@@ -251,7 +252,7 @@ def hmn_2_exyz(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
-        ) -> Callable[[NDArray[numpy.float64]], fdfield_t]:
+        ) -> Callable[[NDArray[numpy.complex128]], cfdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      `h_mn` into an E-field distribution, i.e.
@@ -272,11 +273,11 @@ def hmn_2_exyz(
         Function for converting `h_mn` into `E_xyz`
     """
     shape = epsilon[0].shape + (1,)
-    epsilon = numpy.stack(epsilon, axis=3)
+    epsilon = numpy.moveaxis(epsilon, 0, -1)
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: NDArray[numpy.float64]) -> fdfield_t:
+    def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         d_xyz = (n * hin_m
                - m * hin_n) * k_mag
@@ -291,7 +292,7 @@ def hmn_2_hxyz(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t
-        ) -> Callable[[NDArray[numpy.float64]], fdfield_t]:
+        ) -> Callable[[NDArray[numpy.complex128]], cfdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
      `h_mn` into an H-field distribution, i.e.
@@ -314,7 +315,7 @@ def hmn_2_hxyz(
     shape = epsilon[0].shape + (1,)
     _k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    def operator(h: NDArray[numpy.float64]) -> fdfield_t:
+    def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m
                + n * hin_n)
@@ -328,7 +329,7 @@ def inverse_maxwell_operator_approx(
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
         mu: Optional[fdfield_t] = None,
-        ) -> Callable[[NDArray[numpy.float64]], NDArray[numpy.float64]]:
+        ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate an approximate inverse of the Maxwell operator,
 
@@ -350,14 +351,13 @@ def inverse_maxwell_operator_approx(
         Function which applies the approximate inverse of the maxwell operator to `h_mn`.
     """
     shape = epsilon[0].shape + (1,)
-    epsilon = numpy.stack(epsilon, axis=3)
+    epsilon = numpy.moveaxis(epsilon, 0, -1)
+    if mu is not None:
+        mu = numpy.moveaxis(mu, 0, -1)
 
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
-    if mu is not None:
-        mu = numpy.stack(mu, axis=3)
-
-    def operator(h: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
+    def operator(h: NDArray[numpy.complex128]) -> NDArray[numpy.complex128]:
         """
         Approximate inverse Maxwell operator for Bloch eigenmode simulation.
 
@@ -462,7 +462,7 @@ def eigsolve(
         tolerance: float = 1e-20,
         max_iters: int = 10000,
         reset_iters: int = 100,
-        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64]]:
+        ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
      k0 of the specified structure.
@@ -697,11 +697,11 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
 '''
 
 def _rtrace_AtB(
-        A: NDArray[numpy.float64],
-        B: Union[NDArray[numpy.float64], float],
+        A: NDArray[numpy.complex128],
+        B: Union[NDArray[numpy.complex128], float],
         ) -> float:
     return real(numpy.sum(A.conj() * B))
 
-def _symmetrize(A: NDArray[numpy.float64]) -> NDArray[numpy.float64]:
+def _symmetrize(A: NDArray[numpy.complex128]) -> NDArray[numpy.complex128]:
     return (A + A.conj().T) * 0.5
 

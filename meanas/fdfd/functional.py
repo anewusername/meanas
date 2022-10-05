@@ -2,13 +2,13 @@
 Functional versions of many FDFD operators. These can be useful for performing
  FDFD calculations without needing to construct large matrices in memory.
 
-The functions generated here expect `fdfield_t` inputs with shape (3, X, Y, Z),
-e.g. E = [E_x, E_y, E_z] where each component has shape (X, Y, Z)
+The functions generated here expect `cfdfield_t` inputs with shape (3, X, Y, Z),
+e.g. E = [E_x, E_y, E_z] where each (complex) component has shape (X, Y, Z)
 """
 from typing import Callable, Tuple, Optional
 import numpy
 
-from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
+from ..fdmath import dx_lists_t, fdfield_t, cfdfield_t, cfdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
 
 
@@ -19,8 +19,8 @@ def e_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: fdfield_t = None
-        ) -> fdfield_updater_t:
+        mu: Optional[fdfield_t] = None
+        ) -> cfdfield_updater_t:
     """
     Wave operator for use with E-field. See `operators.e_full` for details.
 
@@ -37,13 +37,13 @@ def e_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e: fdfield_t) -> fdfield_t:
+    def op_1(e: cfdfield_t) -> cfdfield_t:
         curls = ch(ce(e))
-        return curls - omega ** 2 * epsilon * e         # type: ignore      # issues with numpy/mypy
+        return curls - omega ** 2 * epsilon * e
 
-    def op_mu(e: fdfield_t) -> fdfield_t:
-        curls = ch(mu * ce(e))
-        return curls - omega ** 2 * epsilon * e         # type: ignore      # issues with numpy/mypy
+    def op_mu(e: cfdfield_t) -> cfdfield_t:
+        curls = ch(mu * ce(e))          # type: ignore   # mu = None ok because we don't return the function
+        return curls - omega ** 2 * epsilon * e
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -56,7 +56,7 @@ def eh_full(
         dxes: dx_lists_t,
         epsilon: fdfield_t,
         mu: fdfield_t = None
-        ) -> Callable[[fdfield_t, fdfield_t], Tuple[fdfield_t, fdfield_t]]:
+        ) -> Callable[[cfdfield_t, cfdfield_t], Tuple[cfdfield_t, cfdfield_t]]:
     """
     Wave operator for full (both E and H) field representation.
     See `operators.eh_full`.
@@ -74,13 +74,13 @@ def eh_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
+    def op_1(e: cfdfield_t, h: cfdfield_t) -> Tuple[cfdfield_t, cfdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * h)                 # type: ignore    # issues with numpy/mypy
+                ce(e) + 1j * omega * h)
 
-    def op_mu(e: fdfield_t, h: fdfield_t) -> Tuple[fdfield_t, fdfield_t]:
+    def op_mu(e: cfdfield_t, h: cfdfield_t) -> Tuple[cfdfield_t, cfdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * mu * h)            # type: ignore    # issues with numpy/mypy
+                ce(e) + 1j * omega * mu * h)            # type: ignore   # mu=None ok
 
     if numpy.any(numpy.equal(mu, None)):
         return op_1
@@ -92,7 +92,7 @@ def e2h(
         omega: complex,
         dxes: dx_lists_t,
         mu: Optional[fdfield_t] = None,
-        ) -> fdfield_updater_t:
+        ) -> cfdfield_updater_t:
     """
     Utility operator for converting the `E` field into the `H` field.
     For use with `e_full` -- assumes that there is no magnetic current `M`.
@@ -108,11 +108,11 @@ def e2h(
     """
     ce = curl_forward(dxes[0])
 
-    def e2h_1_1(e: fdfield_t) -> fdfield_t:
-        return ce(e) / (-1j * omega)            # type: ignore    # issues with numpy/mypy
+    def e2h_1_1(e: cfdfield_t) -> cfdfield_t:
+        return ce(e) / (-1j * omega)
 
-    def e2h_mu(e: fdfield_t) -> fdfield_t:
-        return ce(e) / (-1j * omega * mu)       # type: ignore    # issues with numpy/mypy
+    def e2h_mu(e: cfdfield_t) -> cfdfield_t:
+        return ce(e) / (-1j * omega * mu)       # type: ignore   # mu=None ok
 
     if numpy.any(numpy.equal(mu, None)):
         return e2h_1_1
@@ -124,7 +124,7 @@ def m2j(
         omega: complex,
         dxes: dx_lists_t,
         mu: Optional[fdfield_t] = None,
-        ) -> fdfield_updater_t:
+        ) -> cfdfield_updater_t:
     """
     Utility operator for converting magnetic current `M` distribution
     into equivalent electric current distribution `J`.
@@ -141,13 +141,13 @@ def m2j(
     """
     ch = curl_back(dxes[1])
 
-    def m2j_mu(m: fdfield_t) -> fdfield_t:
-        J = ch(m / mu) / (-1j * omega)
-        return J                          # type: ignore    # issues with numpy/mypy
+    def m2j_mu(m: cfdfield_t) -> cfdfield_t:
+        J = ch(m / mu) / (-1j * omega)          # type: ignore  # mu=None ok
+        return J
 
-    def m2j_1(m: fdfield_t) -> fdfield_t:
+    def m2j_1(m: cfdfield_t) -> cfdfield_t:
         J = ch(m) / (-1j * omega)
-        return J                          # type: ignore    # issues with numpy/mypy
+        return J
 
     if numpy.any(numpy.equal(mu, None)):
         return m2j_1
@@ -161,7 +161,7 @@ def e_tfsf_source(
         dxes: dx_lists_t,
         epsilon: fdfield_t,
         mu: Optional[fdfield_t] = None,
-        ) -> fdfield_updater_t:
+        ) -> cfdfield_updater_t:
     """
     Operator that turns an E-field distribution into a total-field/scattered-field
     (TFSF) source.
@@ -182,13 +182,13 @@ def e_tfsf_source(
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
 
-    def op(e: fdfield_t) -> fdfield_t:
+    def op(e: cfdfield_t) -> cfdfield_t:
         neg_iwj = A(TF_region * e) - TF_region * A(e)
         return neg_iwj / (-1j * omega)
     return op
 
 
-def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[fdfield_t, fdfield_t], fdfield_t]:
+def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], cfdfield_t]:
     """
     Generates a function that takes the single-frequency `E` and `H` fields
     and calculates the cross product `E` x `H` = $E \\times H$ as required
@@ -210,7 +210,7 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[fdfield_t, fdfield_t], fdf
     Returns:
         Function `f` that returns E x H as required for the poynting vector.
     """
-    def exh(e: fdfield_t, h: fdfield_t) -> fdfield_t:
+    def exh(e: cfdfield_t, h: cfdfield_t) -> cfdfield_t:
         s = numpy.empty_like(e)
         ex = e[0] * dxes[0][0][:, None, None]
         ey = e[1] * dxes[0][1][None, :, None]

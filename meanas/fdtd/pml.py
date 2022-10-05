@@ -8,8 +8,9 @@ PML implementations
 # TODO retest pmls!
 
 from typing import List, Callable, Tuple, Dict, Sequence, Any, Optional
+from copy import deepcopy
 import numpy
-from typing import NDArray
+from numpy.typing import NDArray, DTypeLike
 
 from ..fdmath import fdfield_t, dx_lists_t
 from ..fdmath.functional import deriv_forward, deriv_back
@@ -97,34 +98,38 @@ def updates_with_cpml(
          dxes: dx_lists_t,
          epsilon: fdfield_t,
          *,
-         dtype: numpy.dtype = numpy.float32,
-         ) -> Tuple[Callable[[fdfield_t, fdfield_t], None],
-                    Callable[[fdfield_t, fdfield_t], None]]:
+         dtype: DTypeLike = numpy.float32,
+         ) -> Tuple[Callable[[fdfield_t, fdfield_t, fdfield_t], None],
+                    Callable[[fdfield_t, fdfield_t, fdfield_t], None]]:
 
     Dfx, Dfy, Dfz = deriv_forward(dxes[1])
     Dbx, Dby, Dbz = deriv_back(dxes[1])
 
-    psi_E = [[None, None], [None, None], [None, None]]
-    psi_H = [[None, None], [None, None], [None, None]]
-    params_E = [[None, None], [None, None], [None, None]]
-    params_H = [[None, None], [None, None], [None, None]]
+
+    psi_E: List[List[Tuple[Any, Any]]] = [[(None, None) for _ in range(2)] for _ in range(3)]
+    psi_H: List[List[Tuple[Any, Any]]] = deepcopy(psi_E)
+    params_E: List[List[Tuple[Any, Any, Any, Any]]] = [[(None, None, None, None) for _ in range(2)] for _ in range(3)]
+    params_H: List[List[Tuple[Any, Any, Any, Any]]] = deepcopy(params_E)
 
     for axis in range(3):
         for pp, polarity in enumerate((-1, 1)):
-            if cpml_params[axis][pp] is None:
+            cpml_param = cpml_params[axis][pp]
+            if cpml_param is None:
                 psi_E[axis][pp] = (None, None)
                 psi_H[axis][pp] = (None, None)
                 continue
 
-            cpml_param = cpml_params[axis][pp]
-
             region = cpml_param['region']
             region_shape = epsilon[0][region].shape
 
-            psi_E[axis][pp] = (numpy.zeros(region_shape, dtype=dtype),
-                                    numpy.zeros(region_shape, dtype=dtype))
-            psi_H[axis][pp] = (numpy.zeros(region_shape, dtype=dtype),
-                                    numpy.zeros(region_shape, dtype=dtype))
+            psi_E[axis][pp] = (
+                numpy.zeros(region_shape, dtype=dtype),
+                numpy.zeros(region_shape, dtype=dtype),
+                )
+            psi_H[axis][pp] = (
+                numpy.zeros(region_shape, dtype=dtype),
+                numpy.zeros(region_shape, dtype=dtype),
+                )
             params_E[axis][pp] = cpml_param['param_e'] + (region,)
             params_H[axis][pp] = cpml_param['param_h'] + (region,)
 
@@ -132,7 +137,11 @@ def updates_with_cpml(
     pE = numpy.empty_like(epsilon, dtype=dtype)
     pH = numpy.empty_like(epsilon, dtype=dtype)
 
-    def update_E(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t) -> None:
+    def update_E(
+            e: fdfield_t,
+            h: fdfield_t,
+            epsilon: fdfield_t,
+            ) -> None:
         dyHx = Dby(h[0])
         dzHx = Dbz(h[0])
         dxHy = Dbx(h[1])
@@ -175,7 +184,11 @@ def updates_with_cpml(
         e[2] += dt / epsilon[2] * (dxHy - dyHx + pE[2])
 
 
-    def update_H(e: fdfield_t, h: fdfield_t, mu: fdfield_t = (1, 1, 1)) -> None:
+    def update_H(
+            e: fdfield_t,
+            h: fdfield_t,
+            mu: fdfield_t = numpy.ones(3),
+            ) -> None:
         dyEx = Dfy(e[0])
         dzEx = Dfz(e[0])
         dxEy = Dfx(e[1])

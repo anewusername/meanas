@@ -11,9 +11,9 @@ import scipy.sparse.linalg as spalg   # type: ignore
 
 def power_iteration(
         operator: sparse.spmatrix,
-        guess_vector: Optional[NDArray[numpy.float64]] = None,
+        guess_vector: Optional[NDArray[numpy.complex128]] = None,
         iterations: int = 20,
-        ) -> Tuple[complex, NDArray[numpy.float64]]:
+        ) -> Tuple[complex, NDArray[numpy.complex128]]:
     """
     Use power iteration to estimate the dominant eigenvector of a matrix.
 
@@ -26,7 +26,7 @@ def power_iteration(
         (Largest-magnitude eigenvalue, Corresponding eigenvector estimate)
     """
     if numpy.any(numpy.equal(guess_vector, None)):
-        v = numpy.random.rand(operator.shape[0])
+        v = numpy.random.rand(operator.shape[0]) + 1j * numpy.random.rand(operator.shape[0])
     else:
         v = guess_vector
 
@@ -41,11 +41,11 @@ def power_iteration(
 
 def rayleigh_quotient_iteration(
         operator: Union[sparse.spmatrix, spalg.LinearOperator],
-        guess_vector: NDArray[numpy.float64],
+        guess_vector: NDArray[numpy.complex128],
         iterations: int = 40,
         tolerance: float = 1e-13,
-        solver: Optional[Callable[..., NDArray[numpy.float64]]] = None,
-        ) -> Tuple[complex, NDArray[numpy.float64]]:
+        solver: Optional[Callable[..., NDArray[numpy.complex128]]] = None,
+        ) -> Tuple[complex, NDArray[numpy.complex128]]:
     """
     Use Rayleigh quotient iteration to refine an eigenvector guess.
 
@@ -78,7 +78,7 @@ def rayleigh_quotient_iteration(
                     matvec=lambda v: eigval * v,
                     )
         if solver is None:
-            def solver(A: spalg.LinearOperator, b: ArrayLike) -> NDArray[numpy.float64]:
+            def solver(A: spalg.LinearOperator, b: ArrayLike) -> NDArray[numpy.complex128]:
                 return spalg.bicgstab(A, b)[0]
     assert(solver is not None)
 
@@ -99,7 +99,7 @@ def signed_eigensolve(
         operator: Union[sparse.spmatrix, spalg.LinearOperator],
         how_many: int,
         negative: bool = False,
-        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64]]:
+        ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Find the largest-magnitude positive-only (or negative-only) eigenvalues and
      eigenvectors of the provided matrix.

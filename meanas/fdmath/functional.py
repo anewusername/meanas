@@ -24,7 +24,7 @@ def deriv_forward(
     Returns:
         List of functions for taking forward derivatives along each axis.
     """
-    if dx_e:
+    if dx_e is not None:
         derivs = (lambda f: (numpy.roll(f, -1, axis=0) - f) / dx_e[0][:, None, None],
                   lambda f: (numpy.roll(f, -1, axis=1) - f) / dx_e[1][None, :, None],
                   lambda f: (numpy.roll(f, -1, axis=2) - f) / dx_e[2][None, None, :])
@@ -48,7 +48,7 @@ def deriv_back(
     Returns:
         List of functions for taking forward derivatives along each axis.
     """
-    if dx_h:
+    if dx_h is not None:
         derivs = (lambda f: (f - numpy.roll(f, 1, axis=0)) / dx_h[0][:, None, None],
                   lambda f: (f - numpy.roll(f, 1, axis=1)) / dx_h[1][None, :, None],
                   lambda f: (f - numpy.roll(f, 1, axis=2)) / dx_h[2][None, None, :])
@@ -122,7 +122,7 @@ def curl_forward_parts(
         ) -> Callable:
     Dx, Dy, Dz = deriv_forward(dx_e)
 
-    def mkparts_fwd(e: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
+    def mkparts_fwd(e: fdfield_t) -> Tuple[Tuple[fdfield_t, fdfield_t], ...]:
         return ((-Dz(e[1]),  Dy(e[2])),
                 ( Dz(e[0]), -Dx(e[2])),
                 (-Dy(e[0]),  Dx(e[1])))
@@ -135,7 +135,7 @@ def curl_back_parts(
         ) -> Callable:
     Dx, Dy, Dz = deriv_back(dx_h)
 
-    def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, ...]]:
+    def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, fdfield_t], ...]:
         return ((-Dz(h[1]),  Dy(h[2])),
                 ( Dz(h[0]), -Dx(h[2])),
                 (-Dy(h[0]),  Dx(h[1])))

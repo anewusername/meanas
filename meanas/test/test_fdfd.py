@@ -99,8 +99,8 @@ class FDResult:
     dxes: List[List[NDArray[numpy.float64]]]
     epsilon: NDArray[numpy.float64]
     omega: complex
-    j: NDArray[numpy.float64]
-    e: NDArray[numpy.float64]
+    j: NDArray[numpy.complex128]
+    e: NDArray[numpy.complex128]
     pmc: Optional[NDArray[numpy.float64]]
     pec: Optional[NDArray[numpy.float64]]
 
@@ -111,7 +111,7 @@ def sim(
         shape: Tuple[int, ...],
         epsilon: NDArray[numpy.float64],
         dxes: List[List[NDArray[numpy.float64]]],
-        j_distribution: NDArray[numpy.float64],
+        j_distribution: NDArray[numpy.complex128],
         omega: float,
         pec: Optional[NDArray[numpy.float64]],
         pmc: Optional[NDArray[numpy.float64]],
@@ -134,8 +134,13 @@ def sim(
 
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)
-    e_vec = fdfd.solvers.generic(J=j_vec, omega=omega, dxes=dxes, epsilon=eps_vec,
-                                 matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11})
+    e_vec = fdfd.solvers.generic(
+        J=j_vec,
+        omega=omega,
+        dxes=dxes,
+        epsilon=eps_vec,
+        matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11},
+        )
     e = unvec(e_vec, shape[1:])
 
     sim = FDResult(
