@@ -77,18 +77,18 @@ def e_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    if numpy.any(numpy.equal(pec, None)):
+    if pec is None:
         pe = sparse.eye(epsilon.size)
     else:
         pe = sparse.diags(numpy.where(pec, 0, 1))     # Set pe to (not PEC)
 
-    if numpy.any(numpy.equal(pmc, None)):
+    if pmc is None:
         pm = sparse.eye(epsilon.size)
     else:
         pm = sparse.diags(numpy.where(pmc, 0, 1))     # set pm to (not PMC)
 
     e = sparse.diags(epsilon)
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         m_div = sparse.eye(epsilon.size)
     else:
         m_div = sparse.diags(1 / mu)
@@ -161,12 +161,12 @@ def h_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    if numpy.any(numpy.equal(pec, None)):
+    if pec is None:
         pe = sparse.eye(epsilon.size)
     else:
         pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
-    if numpy.any(numpy.equal(pmc, None)):
+    if pmc is None:
         pm = sparse.eye(epsilon.size)
     else:
         pm = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
@@ -227,19 +227,19 @@ def eh_full(
     Returns:
         Sparse matrix containing the wave operator.
     """
-    if numpy.any(numpy.equal(pec, None)):
+    if pec is None:
         pe = sparse.eye(epsilon.size)
     else:
         pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
-    if numpy.any(numpy.equal(pmc, None)):
+    if pmc is None:
         pm = sparse.eye(epsilon.size)
     else:
         pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
 
     iwe = pe @ (1j * omega * sparse.diags(epsilon)) @ pe
     iwm = 1j * omega
-    if not numpy.any(numpy.equal(mu, None)):
+    if mu is not None:
         iwm *= sparse.diags(mu)
     iwm = pm @ iwm @ pm
 
@@ -274,10 +274,10 @@ def e2h(
     """
     op = curl_forward(dxes[0]) / (-1j * omega)
 
-    if not numpy.any(numpy.equal(mu, None)):
+    if mu is not None:
         op = sparse.diags(1 / mu) @ op
 
-    if not numpy.any(numpy.equal(pmc, None)):
+    if pmc is not None:
         op = sparse.diags(numpy.where(pmc, 0, 1)) @ op
 
     return op
@@ -302,7 +302,7 @@ def m2j(
     """
     op = curl_back(dxes[1]) / (1j * omega)
 
-    if not numpy.any(numpy.equal(mu, None)):
+    if mu is not None:
         op = op @ sparse.diags(1 / mu)
 
     return op

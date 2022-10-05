@@ -25,7 +25,7 @@ def power_iteration(
     Returns:
         (Largest-magnitude eigenvalue, Corresponding eigenvector estimate)
     """
-    if numpy.any(numpy.equal(guess_vector, None)):
+    if guess_vector is None:
         v = numpy.random.rand(operator.shape[0]) + 1j * numpy.random.rand(operator.shape[0])
     else:
         v = guess_vector

@@ -40,7 +40,7 @@ def vec(f: Union[fdfield_t, cfdfield_t, ArrayLike, None]) -> Union[vfdfield_t, v
     Returns:
         1D ndarray containing the linearized field (or `None`)
     """
-    if numpy.any(numpy.equal(f, None)):
+    if f is None:
         return None
     return numpy.ravel(f, order='C')
 
@@ -72,7 +72,7 @@ def unvec(v: Union[vfdfield_t, vcfdfield_t, None], shape: Sequence[int]) -> Unio
     Returns:
         `[f_x, f_y, f_z]` where each `f_` is a `len(shape)` dimensional ndarray (or `None`)
     """
-    if numpy.any(numpy.equal(v, None)):
+    if v is None:
         return None
     return v.reshape((3, *shape), order='C')
 

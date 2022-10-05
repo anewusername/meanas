@@ -239,7 +239,7 @@ def operator_e(
     Returns:
         Sparse matrix representation of the operator.
     """
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         mu = numpy.ones_like(epsilon)
 
     Dfx, Dfy = deriv_forward(dxes[0])
@@ -306,7 +306,7 @@ def operator_h(
     Returns:
         Sparse matrix representation of the operator.
     """
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         mu = numpy.ones_like(epsilon)
 
     Dfx, Dfy = deriv_forward(dxes[0])
@@ -513,7 +513,7 @@ def hxy2h(
     Dfx, Dfy = deriv_forward(dxes[0])
     hxy2hz = sparse.hstack((Dfx, Dfy)) / (1j * wavenumber)
 
-    if not numpy.any(numpy.equal(mu, None)):
+    if mu is not None:
         mu_parts = numpy.split(mu, 3)
         mu_xy = sparse.diags(numpy.hstack((mu_parts[0], mu_parts[1])))
         mu_z_inv = sparse.diags(1 / mu_parts[2])
@@ -547,7 +547,7 @@ def exy2e(
     Dbx, Dby = deriv_back(dxes[1])
     exy2ez = sparse.hstack((Dbx, Dby)) / (1j * wavenumber)
 
-    if not numpy.any(numpy.equal(epsilon, None)):
+    if epsilon is not None:
         epsilon_parts = numpy.split(epsilon, 3)
         epsilon_xy = sparse.diags(numpy.hstack((epsilon_parts[0], epsilon_parts[1])))
         epsilon_z_inv = sparse.diags(1 / epsilon_parts[2])
@@ -580,7 +580,7 @@ def e2h(
         Sparse matrix representation of the operator.
     """
     op = curl_e(wavenumber, dxes) / (-1j * omega)
-    if not numpy.any(numpy.equal(mu, None)):
+    if mu is not None:
         op = sparse.diags(1 / mu) @ op
     return op
 
@@ -675,7 +675,7 @@ def h_err(
 
     eps_inv = sparse.diags(1 / epsilon)
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         op = ce @ eps_inv @ ch @ h - omega ** 2 * h
     else:
         op = ce @ eps_inv @ ch @ h - omega ** 2 * (mu * h)
@@ -708,7 +708,7 @@ def e_err(
     ce = curl_e(wavenumber, dxes)
     ch = curl_h(wavenumber, dxes)
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         op = ch @ ce @ e - omega ** 2 * (epsilon * e)
     else:
         mu_inv = sparse.diags(1 / mu)

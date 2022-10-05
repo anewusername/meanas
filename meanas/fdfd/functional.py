@@ -45,7 +45,7 @@ def e_full(
         curls = ch(mu * ce(e))          # type: ignore   # mu = None ok because we don't return the function
         return curls - omega ** 2 * epsilon * e
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         return op_1
     else:
         return op_mu
@@ -82,7 +82,7 @@ def eh_full(
         return (ch(h) - 1j * omega * epsilon * e,
                 ce(e) + 1j * omega * mu * h)            # type: ignore   # mu=None ok
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         return op_1
     else:
         return op_mu
@@ -114,7 +114,7 @@ def e2h(
     def e2h_mu(e: cfdfield_t) -> cfdfield_t:
         return ce(e) / (-1j * omega * mu)       # type: ignore   # mu=None ok
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         return e2h_1_1
     else:
         return e2h_mu
@@ -149,7 +149,7 @@ def m2j(
         J = ch(m) / (-1j * omega)
         return J
 
-    if numpy.any(numpy.equal(mu, None)):
+    if mu is None:
         return m2j_1
     else:
         return m2j_mu
