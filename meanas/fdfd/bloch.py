@@ -414,7 +414,7 @@ def find_k(
         k_min: float = 0,
         k_max: float = 0.5,
         solve_callback: Optional[Callable] = None
-        ) -> Tuple[NDArray[numpy.float64], float]:
+        ) -> Tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Search for a bloch vector that has a given frequency.
 
@@ -430,12 +430,16 @@ def find_k(
         band: Which band to search in. Default 0 (lowest frequency).
 
     Returns:
-        `(k, actual_frequency)`
-        The found k-vector and its frequency.
+        `(k, actual_frequency, eigenvalues, eigenvectors)`
+        The found k-vector and its frequency, along with all eigenvalues and eigenvectors.
     """
     direction = numpy.array(direction) / norm(direction)
 
+    n = None
+    v = None
+
     def get_f(k0_mag: float, band: int = 0) -> float:
+        nonlocal n, v
         k0 = direction * k0_mag                         # type: ignore
         n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
@@ -450,7 +454,10 @@ def find_k(
         bounds=(k_min, k_max),
         options={'xatol': abs(tolerance)},
         )
-    return res.x * direction, res.fun + frequency
+
+    assert n is not None
+    assert v is not None
+    return float(res.x * direction), float(res.fun + frequency), n, v
 
 
 def eigsolve(
