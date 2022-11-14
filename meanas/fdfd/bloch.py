@@ -480,6 +480,7 @@ def eigsolve(
         tolerance: float = 1e-20,
         max_iters: int = 10000,
         reset_iters: int = 100,
+        y0: Optional[ArrayLike] = None,
         callback: Optional[Callable[[...], None]] = None,
         ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
@@ -498,6 +499,7 @@ def eigsolve(
         max_iters: TODO
         reset_iters: TODO
         callback: TODO
+        y0: TODO, initial guess
 
     Returns:
         `(eigenvalues, eigenvectors)` where `eigenvalues[i]` corresponds to the
@@ -526,7 +528,6 @@ def eigsolve(
     #prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
-    y0 = None
     if y0 is None:
         Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
     else:
