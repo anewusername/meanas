@@ -452,7 +452,7 @@ def find_k(
     def get_f(k0_mag: float, band: int = 0) -> float:
         nonlocal n, v
         k0 = direction * k0_mag                         # type: ignore
-        n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu, callback=iter_callback)
+        n, v = eigsolve(band + 1, k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu, y0=v, callback=iter_callback)
         f = numpy.sqrt(numpy.abs(numpy.real(n[band])))
         if solve_callback:
             solve_callback(k0_mag, n, v, f)
