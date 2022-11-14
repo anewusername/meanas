@@ -108,7 +108,7 @@ try:
     fftw_args = {
         #'threads': multiprocessing.cpu_count(),
         'overwrite_input': True,
-        'planner_effort': 'FFTW_PATIENT',
+        #'planner_effort': 'FFTW_PATIENT',
         }
 
     def fftn(*args: Any, **kwargs: Any) -> NDArray[numpy.complex128]:
