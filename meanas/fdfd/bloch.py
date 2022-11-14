@@ -411,9 +411,9 @@ def find_k(
         epsilon: fdfield_t,
         mu: Optional[fdfield_t] = None,
         band: int = 0,
-        k_min: float = 0,
-        k_max: float = 0.5,
         solve_callback: Optional[Callable] = None
+        k_bounds: Tuple[float, float] = (0, 0.5),
+        k_guess: Optional[float] = None,
         ) -> Tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Search for a bloch vector that has a given frequency.
@@ -428,12 +428,20 @@ def find_k(
         mu: Magnetic permability distribution for the simulation.
             Default None (1 everywhere).
         band: Which band to search in. Default 0 (lowest frequency).
+        k_bounds: Minimum and maximum values for k. Default (0, 0.5).
+        k_guess: Initial value for k.
 
     Returns:
         `(k, actual_frequency, eigenvalues, eigenvectors)`
         The found k-vector and its frequency, along with all eigenvalues and eigenvectors.
     """
     direction = numpy.array(direction) / norm(direction)
+
+    k_bounds = tuple(sorted(k_bounds))
+    assert len(k_bounds) == 2
+
+    if k_guess is None:
+        k_guess = sum(k_bounds) / 2
 
     n = None
     v = None
@@ -449,9 +457,9 @@ def find_k(
 
     res = scipy.optimize.minimize_scalar(
         lambda x: abs(get_f(x, band) - frequency),
-        (k_min + k_max) / 2,
+        k_guess,
         method='Bounded',
-        bounds=(k_min, k_max),
+        bounds=k_bounds,
         options={'xatol': abs(tolerance)},
         )
 
