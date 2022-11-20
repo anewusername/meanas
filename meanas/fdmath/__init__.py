@@ -13,7 +13,7 @@ Discrete fields are stored in one of two forms:
       discrete indices referring to positions on the x, y, and z axes respectively.
     + For a vector field, the first index specifies which vector component is accessed:
       `E[:, m, n, p] = [Ex[m, n, p], Ey[m, n, p], Ez[m, n, p]]`.
-- The `vfdfield_t` form is simply a vectorzied (i.e. 1D) version of the `field_t`,
+- The `vfdfield_t` form is simply a vectorzied (i.e. 1D) version of the `fdfield_t`,
     as obtained by `meanas.fdmath.vectorization.vec` (effectively just `numpy.ravel`)
 
 Operators which act on fields also come in two forms:
