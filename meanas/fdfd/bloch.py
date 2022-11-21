@@ -146,7 +146,7 @@ def generate_kmn(
     Gi = numpy.moveaxis(Gi_grids, 0, -1)
 
     k_G = k0[None, None, None, :] - Gi
-    k_xyz = numpy.rollaxis(G_matrix @ numpy.rollaxis(k_G, 3, 2), 3, 2)
+    k_xyz = numpy.moveaxis(G_matrix @ numpy.moveaxis(k_G, 3, 2), 3, 2)
 
     m = numpy.broadcast_to([0, 1, 0], tuple(shape[:3]) + (3,)).astype(float)
     n = numpy.broadcast_to([0, 0, 1], tuple(shape[:3]) + (3,)).astype(float)
@@ -283,7 +283,7 @@ def hmn_2_exyz(
                - m * hin_n) * k_mag
 
         # divide by epsilon
-        return numpy.array([ei for ei in numpy.rollaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3)])         # TODO avoid copy
+        return numpy.array([ei for ei in numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)])         # TODO avoid copy
 
     return operator
 
@@ -319,7 +319,7 @@ def hmn_2_hxyz(
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m
                + n * hin_n)
-        return numpy.array([ifftn(hi) for hi in numpy.rollaxis(h_xyz, 3)])
+        return numpy.array([ifftn(hi) for hi in numpy.moveaxis(h_xyz, 3, 0)])
 
     return operator
 

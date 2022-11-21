@@ -15,8 +15,8 @@ def assert_fields_close(
         ) -> None:
     numpy.testing.assert_allclose(
         x, y, verbose=False,
-        err_msg='Fields did not match:\n{}\n{}'.format(numpy.rollaxis(x, -1),
-                                                       numpy.rollaxis(y, -1)),
+        err_msg='Fields did not match:\n{}\n{}'.format(numpy.moveaxis(x, -1, 0),
+                                                       numpy.moveaxis(y, -1, 0)),
         *args,
         **kwargs,
         )
