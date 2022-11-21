@@ -19,7 +19,7 @@ def e_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None
+        mu: Optional[fdfield_t] = None,
         ) -> cfdfield_updater_t:
     """
     Wave operator for use with E-field. See `operators.e_full` for details.
@@ -55,7 +55,7 @@ def eh_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: fdfield_t = None
+        mu: Optional[fdfield_t] = None,
         ) -> Callable[[cfdfield_t, cfdfield_t], Tuple[cfdfield_t, cfdfield_t]]:
     """
     Wave operator for full (both E and H) field representation.

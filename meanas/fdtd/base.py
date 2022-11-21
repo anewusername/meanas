@@ -3,7 +3,7 @@ Basic FDTD field updates
 
 
 """
-from typing import Union
+from typing import Union, Optional
 
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
@@ -12,7 +12,10 @@ from ..fdmath.functional import curl_forward, curl_back
 __author__ = 'Jan Petykiewicz'
 
 
-def maxwell_e(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
+def maxwell_e(
+        dt: float,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_updater_t:
     """
     Build a function which performs a portion the time-domain E-field update,
 
@@ -64,7 +67,10 @@ def maxwell_e(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
     return me_fun
 
 
-def maxwell_h(dt: float, dxes: dx_lists_t = None) -> fdfield_updater_t:
+def maxwell_h(
+        dt: float,
+        dxes: Optional[dx_lists_t] = None,
+        ) -> fdfield_updater_t:
     """
     Build a function which performs part of the time-domain H-field update,
 

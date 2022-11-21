@@ -413,8 +413,8 @@ def find_k(
         band: int = 0,
         k_bounds: Tuple[float, float] = (0, 0.5),
         k_guess: Optional[float] = None,
-        solve_callback: Optional[Callable[[...], None]] = None,
-        iter_callback: Optional[Callable[[...], None]] = None,
+        solve_callback: Optional[Callable[..., None]] = None,
+        iter_callback: Optional[Callable[..., None]] = None,
         ) -> Tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Search for a bloch vector that has a given frequency.
@@ -440,7 +440,7 @@ def find_k(
     """
     direction = numpy.array(direction) / norm(direction)
 
-    k_bounds = tuple(sorted(k_bounds))
+    k_bounds = tuple(sorted(k_bounds))    # type: ignore    # we know the length already...
     assert len(k_bounds) == 2
 
     if k_guess is None:
@@ -481,7 +481,7 @@ def eigsolve(
         max_iters: int = 10000,
         reset_iters: int = 100,
         y0: Optional[ArrayLike] = None,
-        callback: Optional[Callable[[...], None]] = None,
+        callback: Optional[Callable[..., None]] = None,
         ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
@@ -531,7 +531,7 @@ def eigsolve(
     if y0 is None:
         Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
     else:
-        Z = y0
+        Z = numpy.array(y0, copy=False)
 
     while True:
         Z *= num_modes / norm(Z)

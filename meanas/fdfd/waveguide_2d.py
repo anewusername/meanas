@@ -722,7 +722,7 @@ def solve_modes(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: vfdfield_t = None,
+        mu: Optional[vfdfield_t] = None,
         mode_margin: int = 2,
         ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.complex128]]:
     """
