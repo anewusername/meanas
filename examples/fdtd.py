@@ -61,7 +61,7 @@ def perturbed_l3(a: float, radius: float, **kwargs) -> Pattern:
     xyr[:, 2] *= radius
 
     pat = Pattern()
-    pat.name = 'L3p-a{:g}r{:g}rp{:g}'.format(a, radius, kwargs['perturbed_radius'])
+    pat.name = f'L3p-a{a:g}r{radius:g}rp{kwargs["perturbed_radius"]:g}'
     pat.shapes += [shapes.Circle(radius=r, offset=(x, y),
                                  dose=kwargs['hole_dose'],
                                  layer=kwargs['hole_layer'])
