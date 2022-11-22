@@ -550,15 +550,16 @@ def eigsolve(
         break
 
     for i in range(max_iters):
-        ZtZ = Z.conj().T @ Z
+        Zt = Z.conj().T
+        ZtZ = Zt @ Z
         U = numpy.linalg.inv(ZtZ)
         AZ = scipy_op @ Z
-        AZU = AZ @ U
-        ZtAZU = Z.conj().T @ AZU
+        ZtAZ = Zt @ AZ
+        ZtAZU = ZtAZ @ U
         E_signed = real(trace(ZtAZU))
         sgn = numpy.sign(E_signed)
         E = numpy.abs(E_signed)
-        G = (AZU - Z @ U @ ZtAZU) * sgn
+        G = (AZ @ U - Z @ U @ ZtAZU) * sgn
 
         if i > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
             logger.info('Optimization succeded: {} - 5e-8 < {} * {} / 2'.format(abs(E - prev_E), tolerance, E + prev_E))
@@ -577,14 +578,12 @@ def eigsolve(
         d_scale = num_modes / norm(D)
         D *= d_scale
 
-        ZtAZ = Z.conj().T @ AZ
-
         AD = scipy_op @ D
         DtD = D.conj().T @ D
         DtAD = D.conj().T @ AD
 
-        symZtD = _symmetrize(Z.conj().T @ D)
-        symZtAD = _symmetrize(Z.conj().T @ AD)
+        symZtD = _symmetrize(Zt @ D)
+        symZtAD = _symmetrize(Zt @ AD)
 
         Qi_memo: List[Optional[float]] = [None, None]
 
@@ -673,7 +672,7 @@ def eigsolve(
     '''
     Recover eigenvectors from Z
     '''
-    U = numpy.linalg.inv(Z.conj().T @ Z)
+    U = numpy.linalg.inv(ZtZ)
     Y = Z @ scipy.linalg.sqrtm(U)
     W = Y.conj().T @ (scipy_op @ Y)
 
