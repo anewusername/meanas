@@ -562,7 +562,10 @@ def eigsolve(
         G = (AZ @ U - Z @ U @ ZtAZU) * sgn
 
         if i > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
-            logger.info('Optimization succeded: {} - 5e-8 < {} * {} / 2'.format(abs(E - prev_E), tolerance, E + prev_E))
+            logger.info('Optimization succeded: '
+                f'[change in trace] {abs(E - prev_E)} - 5e-8 '
+                f'< {tolerance} [tolerance] * {(E + prev_E) / 2} [value of trace]'
+                )
             break
 
         KG = scipy_iop @ G
