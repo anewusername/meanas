@@ -582,6 +582,13 @@ def eigsolve(
         d_scale = num_modes / norm(D)
         D *= d_scale
 
+        # Now know the direction (D), but need to find how far to go (alpha)
+        # We are still minimizing E = tr((Z + alpha D)t A (Z + alpha D) U')
+        #         = tr(ZtAZU' + alpha DtAZU' + alpha ZtADU' + alpha**2 DtADU')
+
+        # where U' = inv((Z + alpha D)t (Z + alpha D))
+        #          = inv(ZtZ + alpha ZtD + alpha DtZ + alpha**2 DtD)
+
         AD = scipy_op @ D
         DtD = D.conj().T @ D
         DtAD = D.conj().T @ AD
