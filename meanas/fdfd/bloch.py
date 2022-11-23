@@ -577,6 +577,7 @@ def eigsolve(
             gamma = 0.0
         else:
             gamma = traceGtKG / prev_traceGtKG
+        prev_traceGtKG = traceGtKG
 
         D = gamma / d_scale * D + KG
         d_scale = num_modes / norm(D)
@@ -673,7 +674,6 @@ def eigsolve(
         Z *= numpy.cos(theta)
         Z += D * numpy.sin(theta)
 
-        prev_traceGtKG = traceGtKG
         #prev_theta = theta
         prev_E = E
 
