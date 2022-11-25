@@ -5,7 +5,7 @@ This module contains functions for generating and solving the
  3D Bloch eigenproblem. The approach is to transform the problem
  into the (spatial) fourier domain, transforming the equation
 
-    1/mu * curl(1/eps * curl(H)) = (w/c)^2 H
+    1/mu * curl(1/eps * curl(H_eigenmode)) = (w/c)^2 H_eigenmode
 
  into
 
@@ -20,29 +20,43 @@ This module contains functions for generating and solving the
 
  Since `k` and `H` are orthogonal for each plane wave, we can use each
  `k` to create an orthogonal basis (k, m, n), with `k x m = n`, and
- `|m| = |n| = 1`. The cross products are then simplified with
+ `|m| = |n| = 1`. The cross products are then simplified as follows:
+
+  - `h` is shorthand for `H_k`
+  - `(...)_xyz` denotes the `(x, y, z)` basis
+  - `(...)_kmn` denotes the `(k, m, n)` basis
+  - `hm` is the component of `h` in the `m` direction, etc.
+
+  We know
 
     k @ h = kx hx + ky hy + kz hz = 0 = hk
     h = hk + hm + hn = hm + hn
     k = kk + km + kn = kk = |k|
 
+  We can write
+
     k x h = (ky hz - kz hy,
              kz hx - kx hz,
-             kx hy - ky hx)
+             kx hy - ky hx)_xyz
           = ((k x h) @ k, (k x h) @ m, (k x h) @ n)_kmn
           = (0, (m x k) @ h, (n x k) @ h)_kmn         # triple product ordering
           = (0, kk (-n @ h), kk (m @ h))_kmn          # (m x k) = -|k| n, etc.
           = |k| (0, -h @ n, h @ m)_kmn
 
+  which gives us a straightforward way to perform the cross product
+  while simultaneously transforming into the `_kmn` basis.
+  We can also write
+
     k x h = (km hn - kn hm,
              kn hk - kk hn,
              kk hm - km hk)_kmn
           = (0, -kk hn, kk hm)_kmn
-          = (-kk hn)(mx, my, mz) + (kk hm)(nx, ny, nz)
-          = |k| (hm * (nx, ny, nz) - hn * (mx, my, mz))
+          = (-kk hn)(mx, my, mz)_xyz + (kk hm)(nx, ny, nz)_xyz
+          = |k| (hm * (nx, ny, nz)_xyz
+               - hn * (mx, my, mz)_xyz)
 
- where `h` is shorthand for `H_k`, `(...)_kmn` deontes the `(k, m, n)` basis,
- and e.g. `hm` is the component of `h` in the `m` direction.
+  which gives us a way to perform the cross product while simultaneously
+  trasnforming back into the `_xyz` basis.
 
  We can also simplify `conv(X_k, Y_k)` as `fftn(X * ifftn(Y_k))`.
 
