@@ -600,9 +600,17 @@ def eigsolve(
         # Now know the direction (D), but need to find how far to go (alpha)
         # We are still minimizing E = tr((Z + alpha D)t A (Z + alpha D) U')
         #         = tr(ZtAZU' + alpha DtAZU' + alpha ZtADU' + alpha**2 DtADU')
+        #         = tr((ZtAZ + 2 alpha sym(DtAZ) + alpha**2 DtAD) U')
+        #         = tr(R U')
+        #         = tr(R Qi) = tr(R inv(Q))
 
-        # where U' = inv((Z + alpha D)t (Z + alpha D))
-        #          = inv(ZtZ + alpha ZtD + alpha DtZ + alpha**2 DtD)
+        # where
+        #   R = ZtAZ + 2 alpha sym(DtAZ) + alpha**2 DtAD
+        #
+        #   Q = (Z + alpha D)t (Z + alpha D)
+        #     = inv(ZtZ + alpha ZtD + alpha DtZ + alpha**2 DtD)
+        #
+        #   Qi = inv(Q) = U'
 
         AD = scipy_op @ D
         DtD = D.conj().T @ D
