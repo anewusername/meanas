@@ -257,7 +257,9 @@ def maxwell_operator(
             # transform back to mn
             h_m = numpy.sum(h_xyz * m, axis=3)
             h_n = numpy.sum(h_xyz * n, axis=3)
-        return numpy.hstack((h_m.ravel(), h_n.ravel()))
+
+        h = numpy.concatenate((h_m, h_n), axis=None, out=h)     # ravel and merge
+        return h
 
     return operator
 
@@ -412,7 +414,8 @@ def inverse_maxwell_operator_approx(
         h_m = numpy.sum(d_xyz * n, axis=3, keepdims=True) / +k_mag
         h_n = numpy.sum(d_xyz * m, axis=3, keepdims=True) / -k_mag
 
-        return numpy.hstack((h_m.ravel(), h_n.ravel()))
+        h = numpy.concatenate((h_m, h_n), axis=None, out=h)
+        return h
 
     return operator
 
