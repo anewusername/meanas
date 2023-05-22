@@ -241,8 +241,8 @@ def maxwell_operator(
         e_xyz = fftn(ifftn(d_xyz, axes=range(3)) / epsilon, axes=range(3))
 
         # cross product and transform into mn basis
-        b_m = numpy.sum(e_xyz * n, axis=3)[:, :, :, None] * -k_mag
-        b_n = numpy.sum(e_xyz * m, axis=3)[:, :, :, None] * +k_mag
+        b_m = numpy.sum(e_xyz * n, axis=3, keepdims=True) * -k_mag
+        b_n = numpy.sum(e_xyz * m, axis=3, keepdims=True) * +k_mag
 
         if mu is None:
             h_m, h_n = b_m, b_n
@@ -409,8 +409,8 @@ def inverse_maxwell_operator_approx(
         d_xyz = fftn(ifftn(e_xyz, axes=range(3)) * epsilon, axes=range(3))
 
         # cross product and transform into mn basis   crossinv_t2c
-        h_m = numpy.sum(d_xyz * n, axis=3)[:, :, :, None] / +k_mag
-        h_n = numpy.sum(d_xyz * m, axis=3)[:, :, :, None] / -k_mag
+        h_m = numpy.sum(d_xyz * n, axis=3, keepdims=True) / +k_mag
+        h_n = numpy.sum(d_xyz * m, axis=3, keepdims=True) / -k_mag
 
         return numpy.hstack((h_m.ravel(), h_n.ravel()))
 
