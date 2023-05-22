@@ -4,7 +4,7 @@ Tools for working with waveguide modes in 3D domains.
 This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
-from typing import Dict, Optional, Sequence, Union, Any
+from typing import Sequence, Any
 import numpy
 from numpy.typing import NDArray
 
@@ -20,8 +20,8 @@ def solve_mode(
         polarity: int,
         slices: Sequence[slice],
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
-        ) -> Dict[str, Union[complex, NDArray[numpy.float_]]]:
+        mu: fdfield_t | None = None,
+        ) -> dict[str, complex | NDArray[numpy.float_]]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
      solve for an eigenmode propagating through that slice.
@@ -40,8 +40,8 @@ def solve_mode(
     Returns:
         ```
         {
-            'E': List[NDArray[numpy.float_]],
-            'H': List[NDArray[numpy.float_]],
+            'E': list[NDArray[numpy.float_]],
+            'H': list[NDArray[numpy.float_]],
             'wavenumber': complex,
         }
         ```
@@ -63,7 +63,7 @@ def solve_mode(
     dx_prop = 0.5 * dxab_forward.sum()
 
     # Reduce to 2D and solve the 2D problem
-    args_2d: Dict[str, Any] = {
+    args_2d: dict[str, Any] = {
         'omega': omega,
         'dxes': [[dx[i][slices[i]] for i in order[:2]] for dx in dxes],
         'epsilon': vec([epsilon[i][slices].transpose(order) for i in order]),
@@ -114,7 +114,7 @@ def compute_source(
         polarity: int,
         slices: Sequence[slice],
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> cfdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution

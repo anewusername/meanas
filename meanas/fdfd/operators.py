@@ -27,7 +27,6 @@ The following operators are included:
 - Cross product matrices
 """
 
-from typing import Tuple, Optional
 import numpy
 import scipy.sparse as sparse       # type: ignore
 
@@ -42,9 +41,9 @@ def e_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
-        pec: Optional[vfdfield_t] = None,
-        pmc: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
+        pec: vfdfield_t | None = None,
+        pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Wave operator
@@ -99,7 +98,7 @@ def e_full(
 
 def e_full_preconditioners(
         dxes: dx_lists_t,
-        ) -> Tuple[sparse.spmatrix, sparse.spmatrix]:
+        ) -> tuple[sparse.spmatrix, sparse.spmatrix]:
     """
     Left and right preconditioners `(Pl, Pr)` for symmetrizing the `e_full` wave operator.
 
@@ -128,9 +127,9 @@ def h_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
-        pec: Optional[vfdfield_t] = None,
-        pmc: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
+        pec: vfdfield_t | None = None,
+        pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Wave operator
@@ -185,9 +184,9 @@ def eh_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
-        pec: Optional[vfdfield_t] = None,
-        pmc: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
+        pec: vfdfield_t | None = None,
+        pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
@@ -254,8 +253,8 @@ def eh_full(
 def e2h(
         omega: complex,
         dxes: dx_lists_t,
-        mu: Optional[vfdfield_t] = None,
-        pmc: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
+        pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Utility operator for converting the E field into the H field.
@@ -286,7 +285,7 @@ def e2h(
 def m2j(
         omega: complex,
         dxes: dx_lists_t,
-        mu: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Operator for converting a magnetic current M into an electric current J.
@@ -368,7 +367,7 @@ def e_tfsf_source(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
     """
     Operator that turns a desired E-field distribution into a
@@ -399,7 +398,7 @@ def e_boundary_source(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
         periodic_mask_edges: bool = False,
         ) -> sparse.spmatrix:
     """

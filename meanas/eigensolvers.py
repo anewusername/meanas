@@ -1,7 +1,7 @@
 """
 Solvers for eigenvalue / eigenvector problems
 """
-from typing import Tuple, Callable, Optional, Union
+from typing import Callable
 import numpy
 from numpy.typing import NDArray, ArrayLike
 from numpy.linalg import norm
@@ -11,9 +11,9 @@ import scipy.sparse.linalg as spalg   # type: ignore
 
 def power_iteration(
         operator: sparse.spmatrix,
-        guess_vector: Optional[NDArray[numpy.complex128]] = None,
+        guess_vector: NDArray[numpy.complex128] | None = None,
         iterations: int = 20,
-        ) -> Tuple[complex, NDArray[numpy.complex128]]:
+        ) -> tuple[complex, NDArray[numpy.complex128]]:
     """
     Use power iteration to estimate the dominant eigenvector of a matrix.
 
@@ -40,12 +40,12 @@ def power_iteration(
 
 
 def rayleigh_quotient_iteration(
-        operator: Union[sparse.spmatrix, spalg.LinearOperator],
+        operator: sparse.spmatrix | spalg.LinearOperator,
         guess_vector: NDArray[numpy.complex128],
         iterations: int = 40,
         tolerance: float = 1e-13,
-        solver: Optional[Callable[..., NDArray[numpy.complex128]]] = None,
-        ) -> Tuple[complex, NDArray[numpy.complex128]]:
+        solver: Callable[..., NDArray[numpy.complex128]] | None = None,
+        ) -> tuple[complex, NDArray[numpy.complex128]]:
     """
     Use Rayleigh quotient iteration to refine an eigenvector guess.
 
@@ -73,14 +73,14 @@ def rayleigh_quotient_iteration(
     except TypeError:
         def shift(eigval: float) -> spalg.LinearOperator:
             return spalg.LinearOperator(
-                    shape=operator.shape,
-                    dtype=operator.dtype,
-                    matvec=lambda v: eigval * v,
-                    )
+                shape=operator.shape,
+                dtype=operator.dtype,
+                matvec=lambda v: eigval * v,
+                )
         if solver is None:
             def solver(A: spalg.LinearOperator, b: ArrayLike) -> NDArray[numpy.complex128]:
                 return spalg.bicgstab(A, b)[0]
-    assert(solver is not None)
+    assert solver is not None
 
     v = numpy.squeeze(guess_vector)
     v /= norm(v)
@@ -96,10 +96,10 @@ def rayleigh_quotient_iteration(
 
 
 def signed_eigensolve(
-        operator: Union[sparse.spmatrix, spalg.LinearOperator],
+        operator: sparse.spmatrix | spalg.LinearOperator,
         how_many: int,
         negative: bool = False,
-        ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
+        ) -> tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Find the largest-magnitude positive-only (or negative-only) eigenvalues and
      eigenvectors of the provided matrix.

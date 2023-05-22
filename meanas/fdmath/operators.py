@@ -3,7 +3,7 @@ Matrix operators for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, List
+from typing import Sequence
 import numpy
 from numpy.typing import NDArray
 import scipy.sparse as sparse   # type: ignore
@@ -98,7 +98,7 @@ def shift_with_mirror(
 
 def deriv_forward(
         dx_e: Sequence[NDArray[numpy.float_]],
-        ) -> List[sparse.spmatrix]:
+        ) -> list[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -125,7 +125,7 @@ def deriv_forward(
 
 def deriv_back(
         dx_h: Sequence[NDArray[numpy.float_]],
-        ) -> List[sparse.spmatrix]:
+        ) -> list[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 

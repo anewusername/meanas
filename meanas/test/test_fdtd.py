@@ -1,8 +1,8 @@
-from typing import List, Tuple, Iterable, Any, Dict
+from typing import Iterable, Any
 import dataclasses
 import pytest       # type: ignore
 import numpy
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 #from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdtd
@@ -33,7 +33,7 @@ def test_initial_energy(sim: 'TDResult') -> None:
 
     dV = numpy.prod(numpy.meshgrid(*sim.dxes[0], indexing='ij'), axis=0)
     u0 = (j0 * j0.conj() / sim.epsilon * dV).sum(axis=0)
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         'dxes': sim.dxes,
         'epsilon': sim.epsilon,
         }
@@ -52,7 +52,7 @@ def test_energy_conservation(sim: 'TDResult') -> None:
     e0 = sim.es[0]
     j0 = sim.js[0]
     u = fdtd.delta_energy_j(j0=j0, e1=e0, dxes=sim.dxes).sum()
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         'dxes': sim.dxes,
         'epsilon': sim.epsilon,
         }
@@ -70,7 +70,7 @@ def test_energy_conservation(sim: 'TDResult') -> None:
 
 
 def test_poynting_divergence(sim: 'TDResult') -> None:
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         'dxes': sim.dxes,
         'epsilon': sim.epsilon,
         }
@@ -103,7 +103,7 @@ def test_poynting_planes(sim: 'TDResult') -> None:
     if mask.sum() > 1:
         pytest.skip('test_poynting_planes can only test single point sources, got {}'.format(mask.sum()))
 
-    args: Dict[str, Any] = {
+    args: dict[str, Any] = {
         'dxes': sim.dxes,
         'epsilon': sim.epsilon,
         }
@@ -156,26 +156,26 @@ def dt(request: FixtureRequest) -> Iterable[float]:
 
 @dataclasses.dataclass()
 class TDResult:
-    shape: Tuple[int, ...]
+    shape: tuple[int, ...]
     dt: float
-    dxes: List[List[NDArray[numpy.float64]]]
+    dxes: list[list[NDArray[numpy.float64]]]
     epsilon: NDArray[numpy.float64]
     j_distribution: NDArray[numpy.float64]
-    j_steps: Tuple[int, ...]
-    es: List[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
-    hs: List[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
-    js: List[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
+    j_steps: tuple[int, ...]
+    es: list[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
+    hs: list[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
+    js: list[NDArray[numpy.float64]] = dataclasses.field(default_factory=list)
 
 
 @pytest.fixture(params=[(0, 4, 8)])  # (0,)
-def j_steps(request: FixtureRequest) -> Iterable[Tuple[int, ...]]:
+def j_steps(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
     yield request.param
 
 
 @pytest.fixture(params=['center', 'random'])
 def j_distribution(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         j_mag: float,
         ) -> Iterable[NDArray[numpy.float64]]:
     j = numpy.zeros(shape)
@@ -191,12 +191,12 @@ def j_distribution(
 @pytest.fixture()
 def sim(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon: NDArray[numpy.float64],
-        dxes: List[List[NDArray[numpy.float64]]],
+        dxes: list[list[NDArray[numpy.float64]]],
         dt: float,
         j_distribution: NDArray[numpy.float64],
-        j_steps: Tuple[int, ...],
+        j_steps: tuple[int, ...],
         ) -> TDResult:
     is3d = (numpy.array(shape) == 1).sum() == 0
     if is3d:

@@ -2,10 +2,10 @@
 Functions for creating stretched coordinate perfectly matched layer (PML) absorbers.
 """
 
-from typing import Sequence, Union, Callable, Optional, List
+from typing import Sequence, Callable
 
 import numpy
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 
 __author__ = 'Jan Petykiewicz'
@@ -43,8 +43,8 @@ def uniform_grid_scpml(
         thicknesses: Sequence[int],
         omega: float,
         epsilon_effective: float = 1.0,
-        s_function: Optional[s_function_t] = None,
-        ) -> List[List[NDArray[numpy.float64]]]:
+        s_function: s_function_t | None = None,
+        ) -> list[list[NDArray[numpy.float64]]]:
     """
     Create dx arrays for a uniform grid with a cell width of 1 and a pml.
 
@@ -86,7 +86,7 @@ def uniform_grid_scpml(
     for k, th in enumerate(thicknesses):
         s = shape[k]
         if th > 0:
-            sr = numpy.arange(s)
+            sr = numpy.arange(s, dtype=numpy.float64)
             dx_a[k] = 1 + 1j * s_function(ll(sr,       s, th)) / s_correction
             dx_b[k] = 1 + 1j * s_function(ll(sr + 0.5, s, th)) / s_correction
         else:
@@ -96,14 +96,14 @@ def uniform_grid_scpml(
 
 
 def stretch_with_scpml(
-        dxes: List[List[NDArray[numpy.float64]]],
+        dxes: list[list[NDArray[numpy.float64]]],
         axis: int,
         polarity: int,
         omega: float,
         epsilon_effective: float = 1.0,
         thickness: int = 10,
-        s_function: Optional[s_function_t] = None,
-        ) -> List[List[NDArray[numpy.float64]]]:
+        s_function: s_function_t | None = None,
+        ) -> list[list[NDArray[numpy.float64]]]:
     """
         Stretch dxes to contain a stretched-coordinate PML (SCPML) in one direction along one axis.
 

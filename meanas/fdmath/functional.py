@@ -3,7 +3,7 @@ Math functions for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, Tuple, Optional, Callable
+from typing import Sequence, Callable
 
 import numpy
 from numpy.typing import NDArray
@@ -12,8 +12,8 @@ from .types import fdfield_t, fdfield_updater_t
 
 
 def deriv_forward(
-        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
-        ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
+        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
+        ) -> tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -36,8 +36,8 @@ def deriv_forward(
 
 
 def deriv_back(
-        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
-        ) -> Tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
+        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
+        ) -> tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -60,7 +60,7 @@ def deriv_back(
 
 
 def curl_forward(
-        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> fdfield_updater_t:
     """
     Curl operator for use with the E field.
@@ -89,7 +89,7 @@ def curl_forward(
 
 
 def curl_back(
-        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> fdfield_updater_t:
     """
     Create a function which takes the backward curl of a field.
@@ -118,11 +118,11 @@ def curl_back(
 
 
 def curl_forward_parts(
-        dx_e: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> Callable:
     Dx, Dy, Dz = deriv_forward(dx_e)
 
-    def mkparts_fwd(e: fdfield_t) -> Tuple[Tuple[fdfield_t, fdfield_t], ...]:
+    def mkparts_fwd(e: fdfield_t) -> tuple[tuple[fdfield_t, fdfield_t], ...]:
         return ((-Dz(e[1]),  Dy(e[2])),
                 ( Dz(e[0]), -Dx(e[2])),
                 (-Dy(e[0]),  Dx(e[1])))
@@ -131,11 +131,11 @@ def curl_forward_parts(
 
 
 def curl_back_parts(
-        dx_h: Optional[Sequence[NDArray[numpy.float_]]] = None,
+        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> Callable:
     Dx, Dy, Dz = deriv_back(dx_h)
 
-    def mkparts_back(h: fdfield_t) -> Tuple[Tuple[fdfield_t, fdfield_t], ...]:
+    def mkparts_back(h: fdfield_t) -> tuple[tuple[fdfield_t, fdfield_t], ...]:
         return ((-Dz(h[1]),  Dy(h[2])),
                 ( Dz(h[0]), -Dx(h[2])),
                 (-Dy(h[0]),  Dx(h[1])))

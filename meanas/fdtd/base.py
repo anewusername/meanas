@@ -3,8 +3,6 @@ Basic FDTD field updates
 
 
 """
-from typing import Union, Optional
-
 from ..fdmath import dx_lists_t, fdfield_t, fdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
 
@@ -14,7 +12,7 @@ __author__ = 'Jan Petykiewicz'
 
 def maxwell_e(
         dt: float,
-        dxes: Optional[dx_lists_t] = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_updater_t:
     """
     Build a function which performs a portion the time-domain E-field update,
@@ -49,7 +47,7 @@ def maxwell_e(
     else:
         curl_h_fun = curl_back()
 
-    def me_fun(e: fdfield_t, h: fdfield_t, epsilon: Union[fdfield_t, float]) -> fdfield_t:
+    def me_fun(e: fdfield_t, h: fdfield_t, epsilon: fdfield_t | float) -> fdfield_t:
         """
         Update the E-field.
 
@@ -69,7 +67,7 @@ def maxwell_e(
 
 def maxwell_h(
         dt: float,
-        dxes: Optional[dx_lists_t] = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_updater_t:
     """
     Build a function which performs part of the time-domain H-field update,
@@ -105,7 +103,7 @@ def maxwell_h(
     else:
         curl_e_fun = curl_forward()
 
-    def mh_fun(e: fdfield_t, h: fdfield_t, mu: Union[fdfield_t, float, None] = None) -> fdfield_t:
+    def mh_fun(e: fdfield_t, h: fdfield_t, mu: fdfield_t | float | None = None) -> fdfield_t:
         """
         Update the H-field.
 

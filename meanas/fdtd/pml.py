@@ -7,7 +7,7 @@ PML implementations
 """
 # TODO retest pmls!
 
-from typing import List, Callable, Tuple, Dict, Sequence, Any, Optional
+from typing import Callable, Sequence, Any
 from copy import deepcopy
 import numpy
 from numpy.typing import NDArray, DTypeLike
@@ -30,7 +30,7 @@ def cpml_params(
         m: float = 3.5,
         ma: float = 1,
         cfs_alpha: float = 0,
-        ) -> Dict[str, Any]:
+        ) -> dict[str, Any]:
 
     if axis not in range(3):
         raise Exception('Invalid axis: {}'.format(axis))
@@ -59,11 +59,11 @@ def cpml_params(
     else:
         raise Exception('Bad polarity!')
 
-    expand_slice_l: List[Any] = [None, None, None]
+    expand_slice_l: list[Any] = [None, None, None]
     expand_slice_l[axis] = slice(None)
     expand_slice = tuple(expand_slice_l)
 
-    def par(x: NDArray[numpy.float64]) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
+    def par(x: NDArray[numpy.float64]) -> tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
         scaling = (x / thickness) ** m
         sigma = scaling * sigma_max
         kappa = 1 + scaling * (kappa_max - 1)
@@ -93,23 +93,22 @@ def cpml_params(
 
 
 def updates_with_cpml(
-         cpml_params: Sequence[Sequence[Optional[Dict[str, Any]]]],
-         dt: float,
-         dxes: dx_lists_t,
-         epsilon: fdfield_t,
-         *,
-         dtype: DTypeLike = numpy.float32,
-         ) -> Tuple[Callable[[fdfield_t, fdfield_t, fdfield_t], None],
-                    Callable[[fdfield_t, fdfield_t, fdfield_t], None]]:
+        cpml_params: Sequence[Sequence[dict[str, Any] | None]],
+        dt: float,
+        dxes: dx_lists_t,
+        epsilon: fdfield_t,
+        *,
+        dtype: DTypeLike = numpy.float32,
+        ) -> tuple[Callable[[fdfield_t, fdfield_t, fdfield_t], None],
+                   Callable[[fdfield_t, fdfield_t, fdfield_t], None]]:
 
     Dfx, Dfy, Dfz = deriv_forward(dxes[1])
     Dbx, Dby, Dbz = deriv_back(dxes[1])
 
-
-    psi_E: List[List[Tuple[Any, Any]]] = [[(None, None) for _ in range(2)] for _ in range(3)]
-    psi_H: List[List[Tuple[Any, Any]]] = deepcopy(psi_E)
-    params_E: List[List[Tuple[Any, Any, Any, Any]]] = [[(None, None, None, None) for _ in range(2)] for _ in range(3)]
-    params_H: List[List[Tuple[Any, Any, Any, Any]]] = deepcopy(params_E)
+    psi_E: list[list[tuple[Any, Any]]] = [[(None, None) for _ in range(2)] for _ in range(3)]
+    psi_H: list[list[tuple[Any, Any]]] = deepcopy(psi_E)
+    params_E: list[list[tuple[Any, Any, Any, Any]]] = [[(None, None, None, None) for _ in range(2)] for _ in range(3)]
+    params_H: list[list[tuple[Any, Any, Any, Any]]] = deepcopy(params_E)
 
     for axis in range(3):
         for pp, polarity in enumerate((-1, 1)):
@@ -132,7 +131,6 @@ def updates_with_cpml(
                 )
             params_E[axis][pp] = cpml_param['param_e'] + (region,)
             params_H[axis][pp] = cpml_param['param_h'] + (region,)
-
 
     pE = numpy.empty_like(epsilon, dtype=dtype)
     pH = numpy.empty_like(epsilon, dtype=dtype)
@@ -182,7 +180,6 @@ def updates_with_cpml(
         e[0] += dt / epsilon[0] * (dyHz - dzHy + pE[0])
         e[1] += dt / epsilon[1] * (dzHx - dxHz + pE[1])
         e[2] += dt / epsilon[2] * (dxHy - dyHx + pE[2])
-
 
     def update_H(
             e: fdfield_t,

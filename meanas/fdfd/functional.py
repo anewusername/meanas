@@ -5,7 +5,7 @@ Functional versions of many FDFD operators. These can be useful for performing
 The functions generated here expect `cfdfield_t` inputs with shape (3, X, Y, Z),
 e.g. E = [E_x, E_y, E_z] where each (complex) component has shape (X, Y, Z)
 """
-from typing import Callable, Tuple, Optional
+from typing import Callable
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, cfdfield_t, cfdfield_updater_t
@@ -19,7 +19,7 @@ def e_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> cfdfield_updater_t:
     """
     Wave operator for use with E-field. See `operators.e_full` for details.
@@ -55,8 +55,8 @@ def eh_full(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
-        ) -> Callable[[cfdfield_t, cfdfield_t], Tuple[cfdfield_t, cfdfield_t]]:
+        mu: fdfield_t | None = None,
+        ) -> Callable[[cfdfield_t, cfdfield_t], tuple[cfdfield_t, cfdfield_t]]:
     """
     Wave operator for full (both E and H) field representation.
     See `operators.eh_full`.
@@ -74,11 +74,11 @@ def eh_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e: cfdfield_t, h: cfdfield_t) -> Tuple[cfdfield_t, cfdfield_t]:
+    def op_1(e: cfdfield_t, h: cfdfield_t) -> tuple[cfdfield_t, cfdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
                 ce(e) + 1j * omega * h)
 
-    def op_mu(e: cfdfield_t, h: cfdfield_t) -> Tuple[cfdfield_t, cfdfield_t]:
+    def op_mu(e: cfdfield_t, h: cfdfield_t) -> tuple[cfdfield_t, cfdfield_t]:
         return (ch(h) - 1j * omega * epsilon * e,
                 ce(e) + 1j * omega * mu * h)            # type: ignore   # mu=None ok
 
@@ -91,7 +91,7 @@ def eh_full(
 def e2h(
         omega: complex,
         dxes: dx_lists_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> cfdfield_updater_t:
     """
     Utility operator for converting the `E` field into the `H` field.
@@ -123,7 +123,7 @@ def e2h(
 def m2j(
         omega: complex,
         dxes: dx_lists_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> cfdfield_updater_t:
     """
     Utility operator for converting magnetic current `M` distribution
@@ -160,7 +160,7 @@ def e_tfsf_source(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> cfdfield_updater_t:
     """
     Operator that turns an E-field distribution into a total-field/scattered-field

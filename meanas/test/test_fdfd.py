@@ -1,8 +1,8 @@
-from typing import List, Tuple, Iterable, Optional
+from typing import Iterable
 import dataclasses
 import pytest       # type: ignore
 import numpy
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 #from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd
@@ -60,12 +60,12 @@ def omega(request: FixtureRequest) -> Iterable[float]:
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
+def pec(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
+def pmc(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
     yield request.param
 
 
@@ -78,7 +78,7 @@ def pmc(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
 @pytest.fixture(params=['diag'])        # 'center'
 def j_distribution(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         j_mag: float,
         ) -> Iterable[NDArray[numpy.float64]]:
     j = numpy.zeros(shape, dtype=complex)
@@ -95,26 +95,26 @@ def j_distribution(
 
 @dataclasses.dataclass()
 class FDResult:
-    shape: Tuple[int, ...]
-    dxes: List[List[NDArray[numpy.float64]]]
+    shape: tuple[int, ...]
+    dxes: list[list[NDArray[numpy.float64]]]
     epsilon: NDArray[numpy.float64]
     omega: complex
     j: NDArray[numpy.complex128]
     e: NDArray[numpy.complex128]
-    pmc: Optional[NDArray[numpy.float64]]
-    pec: Optional[NDArray[numpy.float64]]
+    pmc: NDArray[numpy.float64] | None
+    pec: NDArray[numpy.float64] | None
 
 
 @pytest.fixture()
 def sim(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon: NDArray[numpy.float64],
-        dxes: List[List[NDArray[numpy.float64]]],
+        dxes: list[list[NDArray[numpy.float64]]],
         j_distribution: NDArray[numpy.complex128],
         omega: float,
-        pec: Optional[NDArray[numpy.float64]],
-        pmc: Optional[NDArray[numpy.float64]],
+        pec: NDArray[numpy.float64] | None,
+        pmc: NDArray[numpy.float64] | None,
         ) -> FDResult:
     """
     Build simulation from parts

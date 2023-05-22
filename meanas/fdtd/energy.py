@@ -1,4 +1,3 @@
-from typing import Optional, Union
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t
@@ -11,7 +10,7 @@ from ..fdmath.functional import deriv_back
 def poynting(
         e: fdfield_t,
         h: fdfield_t,
-        dxes: Optional[dx_lists_t] = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Calculate the poynting vector `S` ($S$).
@@ -89,11 +88,11 @@ def poynting(
 
 
 def poynting_divergence(
-        s: Optional[fdfield_t] = None,
+        s: fdfield_t | None = None,
         *,
-        e: Optional[fdfield_t] = None,
-        h: Optional[fdfield_t] = None,
-        dxes: Optional[dx_lists_t] = None,
+        e: fdfield_t | None = None,
+        h: fdfield_t | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Calculate the divergence of the poynting vector.
@@ -116,9 +115,9 @@ def poynting_divergence(
             energy cell.
     """
     if s is None:
-        assert(e is not None)
-        assert(h is not None)
-        assert(dxes is not None)
+        assert e is not None
+        assert h is not None
+        assert dxes is not None
         s = poynting(e, h, dxes=dxes)
 
     Dx, Dy, Dz = deriv_back()
@@ -130,9 +129,9 @@ def energy_hstep(
         e0: fdfield_t,
         h1: fdfield_t,
         e2: fdfield_t,
-        epsilon: Optional[fdfield_t] = None,
-        mu: Optional[fdfield_t] = None,
-        dxes: Optional[dx_lists_t] = None,
+        epsilon: fdfield_t | None = None,
+        mu: fdfield_t | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Calculate energy `U` at the time of the provided H-field `h1`.
@@ -158,9 +157,9 @@ def energy_estep(
         h0: fdfield_t,
         e1: fdfield_t,
         h2: fdfield_t,
-        epsilon: Optional[fdfield_t] = None,
-        mu: Optional[fdfield_t] = None,
-        dxes: Optional[dx_lists_t] = None,
+        epsilon: fdfield_t | None = None,
+        mu: fdfield_t | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Calculate energy `U` at the time of the provided E-field `e1`.
@@ -188,9 +187,9 @@ def delta_energy_h2e(
         h1: fdfield_t,
         e2: fdfield_t,
         h3: fdfield_t,
-        epsilon: Optional[fdfield_t] = None,
-        mu: Optional[fdfield_t] = None,
-        dxes: Optional[dx_lists_t] = None,
+        epsilon: fdfield_t | None = None,
+        mu: fdfield_t | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Change in energy during the half-step from `h1` to `e2`.
@@ -221,9 +220,9 @@ def delta_energy_e2h(
         e1: fdfield_t,
         h2: fdfield_t,
         e3: fdfield_t,
-        epsilon: Optional[fdfield_t] = None,
-        mu: Optional[fdfield_t] = None,
-        dxes: Optional[dx_lists_t] = None,
+        epsilon: fdfield_t | None = None,
+        mu: fdfield_t | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Change in energy during the half-step from `e1` to `h2`.
@@ -251,7 +250,7 @@ def delta_energy_e2h(
 def delta_energy_j(
         j0: fdfield_t,
         e1: fdfield_t,
-        dxes: Optional[dx_lists_t] = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
     Calculate
@@ -274,9 +273,9 @@ def delta_energy_j(
 def dxmul(
         ee: fdfield_t,
         hh: fdfield_t,
-        epsilon: Optional[Union[fdfield_t, float]] = None,
-        mu: Optional[Union[fdfield_t, float]] = None,
-        dxes: Optional[dx_lists_t] = None,
+        epsilon: fdfield_t | float | None = None,
+        mu: fdfield_t | float | None = None,
+        dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     if epsilon is None:
         epsilon = 1

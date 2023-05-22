@@ -94,7 +94,7 @@ This module contains functions for generating and solving the
 
 '''
 
-from typing import Tuple, Callable, Any, List, Optional, cast, Union, Sequence
+from typing import Callable, Any, cast, Sequence
 import logging
 import numpy
 from numpy import pi, real, trace
@@ -140,7 +140,7 @@ def generate_kmn(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         shape: Sequence[int],
-        ) -> Tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
+        ) -> tuple[NDArray[numpy.float64], NDArray[numpy.float64], NDArray[numpy.float64]]:
     """
     Generate a (k, m, n) orthogonal basis for each k-vector in the simulation grid.
 
@@ -155,8 +155,9 @@ def generate_kmn(
             All are given in the xyz basis (e.g. `|k|[0,0,0] = norm(G_matrix @ k0)`).
     """
     k0 = numpy.array(k0)
+    G_matrix = numpy.array(G_matrix, copy=False)
 
-    Gi_grids = numpy.meshgrid(*(fftfreq(n, 1 / n) for n in shape[:3]), indexing='ij')
+    Gi_grids = numpy.array(numpy.meshgrid(*(fftfreq(n, 1 / n) for n in shape[:3]), indexing='ij'))
     Gi = numpy.moveaxis(Gi_grids, 0, -1)
 
     k_G = k0[None, None, None, :] - Gi
@@ -183,7 +184,7 @@ def maxwell_operator(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None
+        mu: fdfield_t | None = None
         ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate the Maxwell operator
@@ -237,7 +238,7 @@ def maxwell_operator(
 
         # cross product and transform into xyz basis
         d_xyz = (n * hin_m
-               - m * hin_n) * k_mag
+               - m * hin_n) * k_mag         # noqa: E128
 
         # divide by epsilon
         temp = ifftn(d_xyz, axes=range(3))   # reuses d_xyz if using pyfftw
@@ -253,7 +254,7 @@ def maxwell_operator(
         else:
             # transform from mn to xyz
             b_xyz = (m * b_m[:, :, :, None]
-                   + n * b_n[:, :, :, None])
+                   + n * b_n[:, :, :, None])    # noqa: E128
 
             # divide by mu
             temp = ifftn(b_xyz, axes=range(3))
@@ -302,7 +303,7 @@ def hmn_2_exyz(
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         d_xyz = (n * hin_m
-               - m * hin_n) * k_mag
+               - m * hin_n) * k_mag         # noqa: E128
 
         # divide by epsilon
         return numpy.array([ei for ei in numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)])         # TODO avoid copy
@@ -340,7 +341,7 @@ def hmn_2_hxyz(
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
         h_xyz = (m * hin_m
-               + n * hin_n)
+               + n * hin_n)     # noqa: E128
         return numpy.array([ifftn(hi) for hi in numpy.moveaxis(h_xyz, 3, 0)])
 
     return operator
@@ -350,7 +351,7 @@ def inverse_maxwell_operator_approx(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate an approximate inverse of the Maxwell operator,
@@ -400,7 +401,7 @@ def inverse_maxwell_operator_approx(
         else:
             # transform from mn to xyz
             h_xyz = (m * hin_m[:, :, :, None]
-                   + n * hin_n[:, :, :, None])
+                   + n * hin_n[:, :, :, None])  # noqa: E128
 
             # multiply by mu
             temp = ifftn(h_xyz, axes=range(3))
@@ -413,7 +414,7 @@ def inverse_maxwell_operator_approx(
 
         # cross product and transform into xyz basis
         e_xyz = (n * b_m
-               - m * b_n) / k_mag
+               - m * b_n) / k_mag  # noqa: E128
 
         # multiply by epsilon
         temp = ifftn(e_xyz, axes=range(3))
@@ -436,13 +437,13 @@ def find_k(
         direction: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         band: int = 0,
-        k_bounds: Tuple[float, float] = (0, 0.5),
-        k_guess: Optional[float] = None,
-        solve_callback: Optional[Callable[..., None]] = None,
-        iter_callback: Optional[Callable[..., None]] = None,
-        ) -> Tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
+        k_bounds: tuple[float, float] = (0, 0.5),
+        k_guess: float | None = None,
+        solve_callback: Callable[..., None] | None = None,
+        iter_callback: Callable[..., None] | None = None,
+        ) -> tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Search for a bloch vector that has a given frequency.
 
@@ -503,13 +504,13 @@ def eigsolve(
         k0: ArrayLike,
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
-        mu: Optional[fdfield_t] = None,
+        mu: fdfield_t | None = None,
         tolerance: float = 1e-20,
         max_iters: int = 10000,
         reset_iters: int = 100,
-        y0: Optional[ArrayLike] = None,
-        callback: Optional[Callable[..., None]] = None,
-        ) -> Tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
+        y0: ArrayLike | None = None,
+        callback: Callable[..., None] | None = None,
+        ) -> tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Find the first (lowest-frequency) num_modes eigenmodes with Bloch wavevector
      k0 of the specified structure.
@@ -555,6 +556,7 @@ def eigsolve(
     #prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
+    Z: NDArray[numpy.complex128]
     if y0 is None:
         Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
     else:
@@ -589,11 +591,12 @@ def eigsolve(
         E_signed = real(trace(ZtAZU))
         sgn = numpy.sign(E_signed)
         E = numpy.abs(E_signed)
-        G = (AZ @ U - Z @ U @ ZtAZU) * sgn     # G = AZU projected onto the space orthonormal to Z
-                                               #  via (1 - ZUZt)
+        G = (AZ @ U - Z @ U @ ZtAZU) * sgn      # G = AZU projected onto the space orthonormal to Z
+                                                #  via (1 - ZUZt)
 
         if i > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
-            logger.info('Optimization succeded: '
+            logger.info(
+                'Optimization succeded: '
                 f'[change in trace] {abs(E - prev_E)} - 5e-8 '
                 f'< {tolerance} [tolerance] * {(E + prev_E) / 2} [value of trace]'
                 )
@@ -635,7 +638,7 @@ def eigsolve(
         symZtD = _symmetrize(Zt @ D)
         symZtAD = _symmetrize(Zt @ AD)
 
-        Qi_memo: List[Optional[float]] = [None, None]
+        Qi_memo: list[float | None] = [None, None]
 
         def Qi_func(theta: float) -> float:
             nonlocal Qi_memo
@@ -659,8 +662,8 @@ def eigsolve(
                 else:
                     raise Exception('Inexplicable singularity in trace_func')
             Qi_memo[0] = theta
-            Qi_memo[1] = Qi
-            return Qi
+            Qi_memo[1] = cast(float, Qi)
+            return cast(float, Qi)
 
         def trace_func(theta: float) -> float:
             c = numpy.cos(theta)
@@ -772,7 +775,7 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
 
 def _rtrace_AtB(
         A: NDArray[numpy.complex128],
-        B: Union[NDArray[numpy.complex128], float],
+        B: NDArray[numpy.complex128] | float,
         ) -> float:
     return real(numpy.sum(A.conj() * B))
 

@@ -1,7 +1,7 @@
 """
 Functions for performing near-to-farfield transformation (and the reverse).
 """
-from typing import Dict, List, Any, Union, Sequence
+from typing import Any, Sequence, cast
 import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi
@@ -14,8 +14,8 @@ def near_to_farfield(
         H_near: cfdfield_t,
         dx: float,
         dy: float,
-        padded_size: Union[List[int], int, None] = None
-        ) -> Dict[str, Any]:
+        padded_size: list[int] | int | None = None
+        ) -> dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.
@@ -62,14 +62,15 @@ def near_to_farfield(
         padded_size = (2**numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
         padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
+    padded_shape = cast(Sequence[int], padded_size)
 
-    En_fft = [fftshift(fft2(fftshift(Eni), s=padded_size)) for Eni in E_near]
-    Hn_fft = [fftshift(fft2(fftshift(Hni), s=padded_size)) for Hni in H_near]
+    En_fft = [fftshift(fft2(fftshift(Eni), s=padded_shape)) for Eni in E_near]
+    Hn_fft = [fftshift(fft2(fftshift(Hni), s=padded_shape)) for Hni in H_near]
 
     # Propagation vectors kx, ky
     k  = 2 * pi
-    kxx = 2 * pi * fftshift(fftfreq(padded_size[0], dx))
-    kyy = 2 * pi * fftshift(fftfreq(padded_size[1], dy))
+    kxx = 2 * pi * fftshift(fftfreq(padded_shape[0], dx))
+    kyy = 2 * pi * fftshift(fftfreq(padded_shape[1], dy))
 
     kx, ky = numpy.meshgrid(kxx, kyy, indexing='ij')
     kxy2 = kx * kx + ky * ky
@@ -85,14 +86,14 @@ def near_to_farfield(
 
     # Normalized vector potentials N, L
     N = [-Hn_fft[1] * cos_phi * cos_th + Hn_fft[0] * cos_phi * sin_th,
-          Hn_fft[1] * sin_th + Hn_fft[0] * cos_th]
+          Hn_fft[1] * sin_th + Hn_fft[0] * cos_th]                      # noqa: E127
     L = [ En_fft[1] * cos_phi * cos_th - En_fft[0] * cos_phi * sin_th,
-         -En_fft[1] * sin_th - En_fft[0] * cos_th]
+         -En_fft[1] * sin_th - En_fft[0] * cos_th]                      # noqa: E128
 
     E_far = [-L[1] - N[0],
-              L[0] - N[1]]
+              L[0] - N[1]]      # noqa: E127
     H_far = [-E_far[1],
-              E_far[0]]
+              E_far[0]]         # noqa: E127
 
     theta = numpy.arctan2(ky, kx)
     phi = numpy.arccos(cos_phi)
@@ -126,8 +127,8 @@ def far_to_nearfield(
         H_far: cfdfield_t,
         dkx: float,
         dky: float,
-        padded_size: Union[List[int], int, None] = None
-        ) -> Dict[str, Any]:
+        padded_size: list[int] | int | None = None
+        ) -> dict[str, Any]:
     """
     Compute the farfield, i.e. the distribution of the fields after propagation
       through several wavelengths of uniform medium.
@@ -170,6 +171,7 @@ def far_to_nearfield(
         padded_size = (2 ** numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
         padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
+    padded_shape = cast(Sequence[int], padded_size)
 
     k = 2 * pi
     kxs = fftshift(fftfreq(s[0], 1 / (s[0] * dkx)))
@@ -203,9 +205,9 @@ def far_to_nearfield(
 
     # Normalized vector potentials N, L
     L = [0.5 * E_far[1],
-        -0.5 * E_far[0]]
+        -0.5 * E_far[0]]    # noqa: E128
     N = [L[1],
-        -L[0]]
+        -L[0]]  # noqa: E128
 
     En_fft = [-( L[0] * sin_th + L[1] * cos_phi * cos_th) / cos_phi,
               -(-L[0] * cos_th + L[1] * cos_phi * sin_th) / cos_phi]
@@ -217,8 +219,8 @@ def far_to_nearfield(
         En_fft[i][cos_phi == 0] = 0
         Hn_fft[i][cos_phi == 0] = 0
 
-    E_near = [ifftshift(ifft2(ifftshift(Ei), s=padded_size)) for Ei in En_fft]
-    H_near = [ifftshift(ifft2(ifftshift(Hi), s=padded_size)) for Hi in Hn_fft]
+    E_near = [ifftshift(ifft2(ifftshift(Ei), s=padded_shape)) for Ei in En_fft]
+    H_near = [ifftshift(ifft2(ifftshift(Hi), s=padded_shape)) for Hi in Hn_fft]
 
     dx = 2 * pi / (s[0] * dkx)
     dy = 2 * pi / (s[0] * dky)

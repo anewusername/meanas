@@ -1,7 +1,7 @@
-from typing import Optional, Tuple, Iterable, List
+from typing import Iterable
 import pytest       # type: ignore
 import numpy
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 from numpy.testing import assert_allclose
 
 from .. import fdfd
@@ -49,19 +49,19 @@ def omega(request: FixtureRequest) -> Iterable[float]:
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
+def pec(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
     yield request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[Optional[NDArray[numpy.float64]]]:
+def pmc(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
     yield request.param
 
 
 @pytest.fixture(params=[(30, 1, 1),
                         (1, 30, 1),
                         (1, 1, 30)])
-def shape(request: FixtureRequest) -> Iterable[Tuple[int, ...]]:
+def shape(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
     yield (3, *request.param)
 
 
@@ -73,7 +73,7 @@ def src_polarity(request: FixtureRequest) -> Iterable[int]:
 @pytest.fixture()
 def j_distribution(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon: NDArray[numpy.float64],
         dxes: dx_lists_mut,
         omega: float,
@@ -86,7 +86,7 @@ def j_distribution(
     other_dims.remove(dim)
 
     dx_prop = (dxes[0][dim][shape[dim + 1] // 2]
-             + dxes[1][dim][shape[dim + 1] // 2]) / 2       # TODO is this right for nonuniform dxes?
+             + dxes[1][dim][shape[dim + 1] // 2]) / 2   # noqa: E128   # TODO is this right for nonuniform dxes?
 
     # Mask only contains components orthogonal to propagation direction
     center_mask = numpy.zeros(shape, dtype=bool)
@@ -112,7 +112,7 @@ def j_distribution(
 @pytest.fixture()
 def epsilon(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon_bg: float,
         epsilon_fg: float,
         ) -> Iterable[NDArray[numpy.float64]]:
@@ -123,11 +123,11 @@ def epsilon(
 @pytest.fixture(params=['uniform'])
 def dxes(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         dx: float,
         omega: float,
         epsilon_fg: float,
-        ) -> Iterable[List[List[NDArray[numpy.float64]]]]:
+        ) -> Iterable[list[list[NDArray[numpy.float64]]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -147,13 +147,13 @@ def dxes(
 @pytest.fixture()
 def sim(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon: NDArray[numpy.float64],
         dxes: dx_lists_mut,
         j_distribution: NDArray[numpy.complex128],
         omega: float,
-        pec: Optional[NDArray[numpy.float64]],
-        pmc: Optional[NDArray[numpy.float64]],
+        pec: NDArray[numpy.float64] | None,
+        pmc: NDArray[numpy.float64] | None,
         ) -> FDResult:
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)

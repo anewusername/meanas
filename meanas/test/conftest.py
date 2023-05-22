@@ -3,9 +3,9 @@
 Test fixtures
 
 """
-from typing import Tuple, Iterable, List, Any
+from typing import Iterable, Any
 import numpy
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 import pytest       # type: ignore
 
 from .utils import PRNG
@@ -20,7 +20,7 @@ FixtureRequest = Any
                         (5, 5, 5),
                         # (7, 7, 7),
                        ])
-def shape(request: FixtureRequest) -> Iterable[Tuple[int, ...]]:
+def shape(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
     yield (3, *request.param)
 
 
@@ -37,7 +37,7 @@ def epsilon_fg(request: FixtureRequest) -> Iterable[float]:
 @pytest.fixture(scope='module', params=['center', '000', 'random'])
 def epsilon(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         epsilon_bg: float,
         epsilon_fg: float,
         ) -> Iterable[NDArray[numpy.float64]]:
@@ -76,9 +76,9 @@ def dx(request: FixtureRequest) -> Iterable[float]:
 @pytest.fixture(scope='module', params=['uniform', 'centerbig'])
 def dxes(
         request: FixtureRequest,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         dx: float,
-        ) -> Iterable[List[List[NDArray[numpy.float64]]]]:
+        ) -> Iterable[list[list[NDArray[numpy.float64]]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     elif request.param == 'centerbig':
