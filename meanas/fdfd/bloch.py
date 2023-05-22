@@ -576,11 +576,14 @@ def eigsolve(
             continue
         break
 
+    Zt = numpy.empty(Z.shape[::-1])
+    AZ = numpy.empty(Z.shape)
+
     for i in range(max_iters):
-        Zt = Z.conj().T
+        Zt = numpy.conj(Z.T, out=Zt)
         ZtZ = Zt @ Z
         U = numpy.linalg.inv(ZtZ)
-        AZ = scipy_op @ Z
+        AZ = scipy_op @ Z.copy()
         ZtAZ = Zt @ AZ
         ZtAZU = ZtAZ @ U
         E_signed = real(trace(ZtAZU))
