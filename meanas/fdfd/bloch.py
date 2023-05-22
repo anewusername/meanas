@@ -225,9 +225,11 @@ def maxwell_operator(
 
         Args:
             h: Raveled h_mn; size `2 * epsilon[0].size`.
+                Altered in-place.
 
         Returns:
-            Raveled conv(1/mu_k, ik x conv(1/eps_k, ik x h_mn)).
+            Raveled conv(1/mu_k, ik x conv(1/eps_k, ik x h_mn)), returned
+            and overwritten in-place of `h`.
         """
         hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
 
@@ -238,7 +240,9 @@ def maxwell_operator(
                - m * hin_n) * k_mag
 
         # divide by epsilon
-        e_xyz = fftn(ifftn(d_xyz, axes=range(3)) / epsilon, axes=range(3))
+        temp = ifftn(d_xyz, axes=range(3))   # reuses d_xyz if using pyfftw
+        temp /= epsilon
+        e_xyz = fftn(temp, axes=range(3))
 
         # cross product and transform into mn basis
         b_m = numpy.sum(e_xyz * n, axis=3, keepdims=True) * -k_mag
@@ -252,7 +256,9 @@ def maxwell_operator(
                    + n * b_n[:, :, :, None])
 
             # divide by mu
-            h_xyz = fftn(ifftn(b_xyz, axes=range(3)) / mu, axes=range(3))
+            temp = ifftn(b_xyz, axes=range(3))
+            temp /= mu
+            h_xyz = fftn(temp, axes=range(3))
 
             # transform back to mn
             h_m = numpy.sum(h_xyz * m, axis=3)
@@ -397,7 +403,9 @@ def inverse_maxwell_operator_approx(
                    + n * hin_n[:, :, :, None])
 
             # multiply by mu
-            b_xyz = fftn(ifftn(h_xyz, axes=range(3)) * mu, axes=range(3))
+            temp = ifftn(h_xyz, axes=range(3))
+            temp *= mu
+            b_xyz = fftn(temp, axes=range(3))
 
             # transform back to mn
             b_m = numpy.sum(b_xyz * m, axis=3)
@@ -408,7 +416,9 @@ def inverse_maxwell_operator_approx(
                - m * b_n) / k_mag
 
         # multiply by epsilon
-        d_xyz = fftn(ifftn(e_xyz, axes=range(3)) * epsilon, axes=range(3))
+        temp = ifftn(e_xyz, axes=range(3))
+        temp *= epsilon
+        d_xyz = fftn(temp, axes=range(3))
 
         # cross product and transform into mn basis   crossinv_t2c
         h_m = numpy.sum(d_xyz * n, axis=3, keepdims=True) / +k_mag
