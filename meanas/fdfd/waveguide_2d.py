@@ -747,7 +747,8 @@ def solve_modes(
     Solve for the largest-magnitude eigenvalue of the real operator
     '''
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
-    A_r = operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), numpy.real(mu))
+    mu_real = None if mu is None else numpy.real(mu)
+    A_r = operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), mu_real)
 
     eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
     e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)]
