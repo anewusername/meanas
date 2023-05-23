@@ -578,7 +578,7 @@ def eigsolve(
 
         trace_U = real(trace(U))
         if trace_U > 1e8 * num_modes:
-            Z = Z @ scipy.linalg.sqrtm(U).conj().T
+            Z = Z @ scipy.linalg.sqrtm(U).astype(numpy.complex128).conj().T
             prev_traceGtKG = 0
             continue
         break
@@ -741,7 +741,7 @@ def eigsolve(
     # Recover eigenvectors from Z
     #
     U = numpy.linalg.inv(ZtZ)
-    Y = Z @ scipy.linalg.sqrtm(U)
+    Y = Z @ scipy.linalg.sqrtm(U).astype(numpy.complex128)
     W = Y.conj().T @ (scipy_op @ Y.copy())
 
     eigvals, W_eigvecs = numpy.linalg.eig(W)
