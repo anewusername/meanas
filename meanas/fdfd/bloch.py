@@ -554,7 +554,7 @@ def eigsolve(
     prev_E = 0.0
     d_scale = 1.0
     prev_traceGtKG = 0.0
-    #prev_theta = 0.5
+    prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
     Z: NDArray[numpy.complex128]
@@ -674,39 +674,49 @@ def eigsolve(
             trace = _rtrace_AtB(R, Qi)
             return numpy.abs(trace)
 
-        '''
-        def trace_deriv(theta):
-            Qi = Qi_func(theta)
-            c2 = numpy.cos(2 * theta)
-            s2 = numpy.sin(2 * theta)
-            F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
-            trace_deriv = _rtrace_AtB(Qi, F)
+        if False:
+            def trace_deriv(theta):
+                Qi = Qi_func(theta)
+                c2 = numpy.cos(2 * theta)
+                s2 = numpy.sin(2 * theta)
+                F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
+                trace_deriv = _rtrace_AtB(Qi, F)
 
-            G = Qi @ F.conj().T @ Qi.conj().T
-            H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
-            trace_deriv -= _rtrace_AtB(G, H)
+                G = Qi @ F.conj().T @ Qi.conj().T
+                H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
+                trace_deriv -= _rtrace_AtB(G, H)
 
-            trace_deriv *= 2
-            return trace_deriv * sgn
+                trace_deriv *= 2
+                return trace_deriv * sgn
 
-        U_sZtD = U @ symZtD
+            U_sZtD = U @ symZtD
 
-        dE = 2.0 * (_rtrace_AtB(U, symZtAD) -
-                    _rtrace_AtB(ZtAZU, U_sZtD))
+            dE = 2.0 * (_rtrace_AtB(U, symZtAD) -
+                        _rtrace_AtB(ZtAZU, U_sZtD))
 
-        d2E = 2 * (_rtrace_AtB(U, DtAD) -
-                   _rtrace_AtB(ZtAZU, U @ (DtD - 4 * symZtD @ U_sZtD)) -
-               4 * _rtrace_AtB(U, symZtAD @ U_sZtD))
+            d2E = 2 * (_rtrace_AtB(U, DtAD) -
+                       _rtrace_AtB(ZtAZU, U @ (DtD - 4 * symZtD @ U_sZtD)) -
+                   4 * _rtrace_AtB(U, symZtAD @ U_sZtD))
 
-        # Newton-Raphson to find a root of the first derivative:
-        theta = -dE/d2E
+            # Newton-Raphson to find a root of the first derivative:
+            theta = -dE / d2E
 
-        if d2E < 0 or abs(theta) >= pi:
-            theta = -abs(prev_theta) * numpy.sign(dE)
+            if d2E < 0 or abs(theta) >= pi:
+                theta = -abs(prev_theta) * numpy.sign(dE)
 
-        # theta, new_E, new_dE = linmin(theta, E, dE, 0.1, min(tolerance, 1e-6), 1e-14, 0, -numpy.sign(dE) * K_PI, trace_func)
-        theta, n, _, new_E, _, _new_dE = scipy.optimize.line_search(trace_func, trace_deriv, xk=theta, pk=numpy.ones((1,1)), gfk=dE, old_fval=E, c1=min(tolerance, 1e-6), c2=0.1, amax=pi)
-        '''
+            # theta, new_E, new_dE = linmin(theta, E, dE, 0.1, min(tolerance, 1e-6), 1e-14, 0, -numpy.sign(dE) * K_PI, trace_func)
+            theta, n, _, new_E, _, _new_dE = scipy.optimize.line_search(
+                trace_func,
+                trace_deriv,
+                xk=theta,
+                pk=numpy.ones((1, 1)),
+                gfk=dE,
+                old_fval=E,
+                c1=min(tolerance, 1e-6),
+                c2=0.1,
+                amax=pi,
+                )
+
         result = scipy.optimize.minimize_scalar(trace_func, bounds=(0, pi), tol=tolerance)
         new_E = result.fun
         theta = result.x
@@ -716,7 +726,7 @@ def eigsolve(
         Z *= numpy.cos(theta)
         Z += D * numpy.sin(theta)
 
-        #prev_theta = theta
+        prev_theta = theta
         prev_E = E
 
         if callback:
