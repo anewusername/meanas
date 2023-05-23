@@ -506,7 +506,7 @@ def eigsolve(
         G_matrix: ArrayLike,
         epsilon: fdfield_t,
         mu: fdfield_t | None = None,
-        tolerance: float = 1e-20,
+        tolerance: float = 1e-7,
         max_iters: int = 10000,
         reset_iters: int = 100,
         y0: ArrayLike | None = None,
