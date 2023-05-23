@@ -561,7 +561,7 @@ def eigsolve(
     if y0 is None:
         Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
     else:
-        Z = numpy.array(y0, copy=False)
+        Z = numpy.array(y0, copy=False).T
 
     while True:
         Z *= num_modes / norm(Z)
