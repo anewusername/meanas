@@ -754,7 +754,7 @@ def eigsolve(
         Av = (scipy_op @ v.copy())[:, 0]
         eigness = norm(Av - (v.conj() @ Av) * v)
         f = numpy.sqrt(-numpy.real(n))
-        df = numpy.sqrt(-numpy.real(n + eigness))
+        df = numpy.sqrt(-numpy.real(n) + eigness)
         neff_err = kmag * (1 / df - 1 / f)
         logger.info(f'eigness {i}: {eigness}\n neff_err: {neff_err}')
 
