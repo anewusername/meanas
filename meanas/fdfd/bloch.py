@@ -596,8 +596,9 @@ def eigsolve(
         E_signed = real(trace(ZtAZU))
         sgn = numpy.sign(E_signed)
         E = numpy.abs(E_signed)
-        G = (AZ @ U - Z @ U @ ZtAZU) * sgn      # G = AZU projected onto the space orthonormal to Z
-                                                #  via (1 - ZUZt)
+
+        # G = AZU projected onto the space orthonormal to Z via (1 - ZUZt)
+        G = (AZ @ U - Z @ U @ ZtAZU) * sgn
 
         if i > 0 and abs(E - prev_E) < tolerance * 0.5 * (E + prev_E + 1e-7):
             logger.info(
@@ -608,7 +609,7 @@ def eigsolve(
             break
 
         KG = scipy_iop @ G          # Preconditioned steepest descent direction
-        traceGtKG = _rtrace_AtB(G, KG)      #
+        traceGtKG = _rtrace_AtB(G, KG)
 
         if prev_traceGtKG == 0 or i % reset_iters == 0:
             logger.info('CG reset')
