@@ -1,4 +1,4 @@
-'''
+"""
 Bloch eigenmode solver/operators
 
 This module contains functions for generating and solving the
@@ -92,7 +92,7 @@ This module contains functions for generating and solving the
                   epsilon=epsilon,
                   band=0)
 
-'''
+"""
 
 from typing import Callable, Any, cast, Sequence
 import logging
@@ -540,9 +540,9 @@ def eigsolve(
 
     kmag = norm(G_matrix @ k0)
 
-    '''
-    Generate the operators
-    '''
+    #
+    # Generate the operators
+    #
     mop = maxwell_operator(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
     imop = inverse_maxwell_operator_approx(k0=k0, G_matrix=G_matrix, epsilon=epsilon, mu=mu)
 
@@ -722,9 +722,9 @@ def eigsolve(
         if callback:
             callback()
 
-    '''
-    Recover eigenvectors from Z
-    '''
+    #
+    # Recover eigenvectors from Z
+    #
     U = numpy.linalg.inv(ZtZ)
     Y = Z @ scipy.linalg.sqrtm(U)
     W = Y.conj().T @ (scipy_op @ Y)
