@@ -20,6 +20,7 @@ def pyfftw_save_wisdom(path):
         pass
 
     path.parent.mkdir(parents=True, exist_ok=True)
+    wisdom = pyfftw.export_wisdom()
     with open(path, 'wb') as f:
         pickle.dump(wisdom, f)
 
@@ -42,11 +43,13 @@ logger.info('Drawing grid...')
 dx = 40
 x_period = 400
 y_period = z_period = 2000
-g = gridlock.Grid([numpy.arange(-x_period/2, x_period/2, dx),
-                   numpy.arange(-1000, 1000, dx),
-                   numpy.arange(-1000, 1000, dx)],
-                  shifts=numpy.array([[0,0,0]]),
-                  periodic=True)
+g = gridlock.Grid([
+    numpy.arange(-x_period/2, x_period/2, dx),
+    numpy.arange(-1000, 1000, dx),
+    numpy.arange(-1000, 1000, dx)],
+    shifts=numpy.array([[0,0,0]]),
+    periodic=True,
+    )
 gdata = g.allocate(1.445**2)
 
 g.draw_cuboid(gdata, [0,0,0], [200e8, 220, 220], foreground=3.47**2)
@@ -74,7 +77,8 @@ pyfftw_load_wisdom(WISDOM_FILEPATH)
 #                    epsilon=epsilon,
 #                    band=0)
 #
-#print("k={}, f={}, 1/f={}, k/f={}".format(k, f, 1/f, norm(reciprocal_lattice @ k) / f ))
+#kf = norm(reciprocal_lattice @ k) / f)
+#print(f'{k=}, {f=}, 1/f={1/f}, k/f={kf}')
 
 logger.info('Finding f at [0.25, 0, 0]')
 for k0x in [.25]:
@@ -82,7 +86,7 @@ for k0x in [.25]:
 
     kmag = norm(reciprocal_lattice @ k0)
     tolerance = (1000/1550) * 1e-4/1.5  # df = f * dn_eff / n
-    logger.info('tolerance {}'.format(tolerance))
+    logger.info(f'tolerance {tolerance}')
 
     n, v = bloch.eigsolve(4, k0, G_matrix=reciprocal_lattice, epsilon=epsilon, tolerance=tolerance**2)
     v2e = bloch.hmn_2_exyz(k0, G_matrix=reciprocal_lattice, epsilon=epsilon)
@@ -96,8 +100,11 @@ for k0x in [.25]:
         g2data[i+3] += numpy.imag(e[i])
 
     f = numpy.sqrt(numpy.real(numpy.abs(n))) # TODO
-    print('k0x = {:3g}\n eigval = {}\n f = {}\n'.format(k0x, n, f))
+    print(f'{k0x=:3g}')
+    print(f'eigval={n}')
+    print(f'{f=}')
     n_eff = norm(reciprocal_lattice @ k0) / f
-    print('kmag/f = n_eff =  {} \n wl = {}\n'.format(n_eff, 1/f ))
+    print(f'kmag/f = n_eff = {n_eff}')
+    print(f'wl={1/f}\n')
 
 pyfftw_save_wisdom(WISDOM_FILEPATH)
