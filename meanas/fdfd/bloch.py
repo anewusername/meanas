@@ -265,7 +265,9 @@ def maxwell_operator(
             h_m = numpy.sum(h_xyz * m, axis=3)
             h_n = numpy.sum(h_xyz * n, axis=3)
 
-        h = numpy.concatenate((h_m, h_n), axis=None, out=h)     # ravel and merge
+        h.shape = (h.size,)
+        h = numpy.concatenate((h_m.ravel(), h_n.ravel()), axis=None, out=h)     # ravel and merge
+        h.shape = (h.size, 1)
         return h
 
     return operator
@@ -425,7 +427,9 @@ def inverse_maxwell_operator_approx(
         h_m = numpy.sum(d_xyz * n, axis=3, keepdims=True) / +k_mag
         h_n = numpy.sum(d_xyz * m, axis=3, keepdims=True) / -k_mag
 
+        h.shape = (h.size,)
         h = numpy.concatenate((h_m, h_n), axis=None, out=h)
+        h.shape = (h.size, 1)
         return h
 
     return operator
@@ -579,8 +583,8 @@ def eigsolve(
             continue
         break
 
-    Zt = numpy.empty(Z.shape[::-1])
-    AZ = numpy.empty(Z.shape)
+    Zt = numpy.empty(Z.shape[::-1], dtype=numpy.complex128)
+    AZ = numpy.empty(Z.shape, dtype=numpy.complex128)
 
     for i in range(max_iters):
         Zt = numpy.conj(Z.T, out=Zt)
@@ -632,7 +636,7 @@ def eigsolve(
         #
         #   Qi = inv(Q) = U'
 
-        AD = scipy_op @ D
+        AD = scipy_op @ D.copy()
         DtD = D.conj().T @ D
         DtAD = D.conj().T @ AD
 
@@ -737,7 +741,7 @@ def eigsolve(
     #
     U = numpy.linalg.inv(ZtZ)
     Y = Z @ scipy.linalg.sqrtm(U)
-    W = Y.conj().T @ (scipy_op @ Y)
+    W = Y.conj().T @ (scipy_op @ Y.copy())
 
     eigvals, W_eigvecs = numpy.linalg.eig(W)
     eigvecs = Y @ W_eigvecs
@@ -746,7 +750,8 @@ def eigsolve(
         v = eigvecs[:, i]
         n = eigvals[i]
         v /= norm(v)
-        eigness = norm(scipy_op @ v - (v.conj() @ (scipy_op @ v)) * v)
+        Av = (scipy_op @ v.copy())[:, 0]
+        eigness = norm(Av - (v.conj() @ Av) * v)
         f = numpy.sqrt(-numpy.real(n))
         df = numpy.sqrt(-numpy.real(n + eigness))
         neff_err = kmag * (1 / df - 1 / f)
