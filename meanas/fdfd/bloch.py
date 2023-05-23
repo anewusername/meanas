@@ -443,6 +443,7 @@ def find_k(
         k_guess: float | None = None,
         solve_callback: Callable[..., None] | None = None,
         iter_callback: Callable[..., None] | None = None,
+        v0: NDArray[numpy.complex128] | None = None,
         ) -> tuple[float, float, NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Search for a bloch vector that has a given frequency.
@@ -475,7 +476,7 @@ def find_k(
         k_guess = sum(k_bounds) / 2
 
     n = None
-    v = None
+    v = v0
 
     def get_f(k0_mag: float, band: int = 0) -> float:
         nonlocal n, v
