@@ -48,12 +48,12 @@ $$
       \\tilde{E}_{l, \\vec{r}} \\cdot \\hat{\\nabla} \\times \\hat{H}_{l', \\vec{r} + \\frac{1}{2}} \\\\
    &= \\hat{H}_{l', \\vec{r} + \\frac{1}{2}} \\cdot
             (-\\tilde{\\partial}_t \\mu_{\\vec{r} + \\frac{1}{2}} \\hat{H}_{l - \\frac{1}{2}, \\vec{r} + \\frac{1}{2}} -
-                \\hat{M}_{l-1, \\vec{r} + \\frac{1}{2}}) -
+                \\hat{M}_{l, \\vec{r} + \\frac{1}{2}}) -
       \\tilde{E}_{l, \\vec{r}} \\cdot (\\hat{\\partial}_t \\tilde{\\epsilon}_{\\vec{r}} \\tilde{E}_{l'+\\frac{1}{2}, \\vec{r}} +
                 \\tilde{J}_{l', \\vec{r}}) \\\\
    &= \\hat{H}_{l'} \\cdot (-\\mu / \\Delta_t)(\\hat{H}_{l + \\frac{1}{2}} - \\hat{H}_{l - \\frac{1}{2}}) -
       \\tilde{E}_l \\cdot (\\epsilon / \\Delta_t )(\\tilde{E}_{l'+\\frac{1}{2}} - \\tilde{E}_{l'-\\frac{1}{2}})
-      - \\hat{H}_{l'} \\cdot \\hat{M}_{l-1} - \\tilde{E}_l \\cdot \\tilde{J}_{l'} \\\\
+      - \\hat{H}_{l'} \\cdot \\hat{M}_{l} - \\tilde{E}_l \\cdot \\tilde{J}_{l'} \\\\
   \\end{aligned}
 $$
 
