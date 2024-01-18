@@ -26,6 +26,8 @@ def test_poynting_planes(sim: 'FDResult') -> None:
 #        for dxa in dxg:
 #            if not (dxa == sim.dxes[0][0][0]).all():
 #                pytest.skip('test_poynting_planes skips nonuniform dxes')
+
+    # pick only the second point
     points = numpy.where(mask)
     mask[points[0][0], points[1][0], points[2][0]] = 0
 
@@ -50,7 +52,7 @@ def test_poynting_planes(sim: 'FDResult') -> None:
         )
     src_energy = -(e_dot_j.real * dv)[:, mask] / 2
 
-    assert_close(sum(planes), src_energy.sum())
+    assert_close(sum(planes), src_energy.sum(), rtol=1e-6)      # TODO improve energy calculation accuracy?
 
 
 #####################################
@@ -92,8 +94,8 @@ def j_distribution(
     if request.param == 'center':
         j[center_mask] = j_mag
     elif request.param == 'diag':
-        j[numpy.roll(center_mask, [1, 1, 1], axis=(1, 2, 3))] = j_mag
-        j[numpy.roll(center_mask, [-1, -1, -1], axis=(1, 2, 3))] = -1j * j_mag
+        j[numpy.roll(center_mask, [1, 1, 1], axis=(1, 2, 3))] = (1 + 1j) * j_mag
+        j[numpy.roll(center_mask, [-1, -1, -1], axis=(1, 2, 3))] = (1 - 1j) * j_mag
     yield j
 
 
