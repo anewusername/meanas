@@ -426,7 +426,7 @@ This gives the frequency-domain wave equation,
 
 $$
  \\hat{\\nabla} \\times (\\mu^{-1}_{\\vec{r} + \\frac{1}{2}} \\cdot \\tilde{\\nabla} \\times \\tilde{E}_{\\vec{r}})
-    -\\Omega^2 \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{\\vec{r}} = \\imath \\Omega \\tilde{J}_{\\vec{r}}
+    -\\Omega^2 \\epsilon_{\\vec{r}} \\cdot \\tilde{E}_{\\vec{r}} = -\\imath \\Omega \\tilde{J}_{\\vec{r}} e^{\\imath \\omega \\Delta_t / 2} \\\\
 $$
 
 
