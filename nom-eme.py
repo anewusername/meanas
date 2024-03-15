@@ -225,10 +225,18 @@ def connect_s(
         ) -> NDArray[numpy.complex128]:
     """
     TODO
-    connect two n-port networks' s-matrices together.
-    specifically, connect port `k` on network `A` to port `l` on network
+    freq x ...  x n x n
+
+    Based on skrf implementation
+
+    Connect two n-port networks' s-matrices together.
+
+    Specifically, connect port `k` on network `A` to port `l` on network
     `B`. The resultant network has nports = (A.rank + B.rank-2); first
     (A.rank - 1) ports are from `A`, remainder are from B.
+
+    Assumes same reference impedance for both `k` and `l`; may need to
+    connect an "impedance mismatch" thru element first!
 
     Args:
         A: S-parameter matrix of `A`, shape is fxnxn
@@ -237,7 +245,7 @@ def connect_s(
         l: port index on `B`
 
     Returns:
-        C: new S-parameter matrix
+        new S-parameter matrix
     """
     if k > A.shape[-1] - 1 or l > B.shape[-1] - 1:
         raise ValueError("port indices are out of range")
@@ -253,10 +261,17 @@ def innerconnect_s(
         ) -> NDArray[numpy.complex128]:
     """
     TODO
-    n x n x freq
-    connect two ports of a single n-port network's s-matrix.
+    freq x ...  x n x n
+
+    Based on skrf implementation
+
+
+    Connect two ports of a single n-port network's s-matrix.
     Specifically, connect port `k`  to port `l` on `S`. This results in
     a (n-2)-port network.
+
+    Assumes same reference impedance for both `k` and `l`; may need to
+    connect an "impedance mismatch" thru element first!
 
     Args:
         S: S-parameter matrix of `S`, shape is fxnxn
@@ -276,18 +291,18 @@ def innerconnect_s(
     if k > S.shape[-1] - 1 or l > S.shape[-1] - 1:
         raise ValueError("port indices are out of range")
 
-    l = [l]
-    k = [k]
+    ll = slice(l, l + 1)
+    kk = slice(k, k + 1)
 
-    mkl = 1 - S[k, l]
-    mlk = 1 - S[l, k]
+    mkl = 1 - S[..., kk, ll]
+    mlk = 1 - S[..., ll, kk]
     C = S + (
-              S[k, :] * S[:, l] * mlk
-            + S[l, :] * S[:, k] * mkl
-            + S[k, :] * S[l, l] * S[:, k]
-            + S[l, :] * S[k, k] * S[:, l]
+              S[..., kk, :] * S[..., :, l] * mlk
+            + S[..., ll, :] * S[..., :, k] * mkl
+            + S[..., kk, :] * S[..., l, l] * S[..., :, kk]
+            + S[..., ll, :] * S[..., k, k] * S[..., :, ll]
         ) / (
-            mlk * mkl - S[k, k] * S[l, l]
+            mlk * mkl - S[..., kk, kk] * S[..., ll, ll]
         )
 
     # remove connected ports
