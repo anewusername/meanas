@@ -364,7 +364,7 @@ def generalize_S(
     g = (z0 - r0) / (z0 + r0)
     D = numpy.diag((1 - g) / numpy.abs(1 - g.conj()) * numpy.sqrt(1 - numpy.abs(g * g.conj())))
     G = numpy.diag(g)
-    U = numpy.eye(S.shape[0])
+    U = numpy.eye(S.shape[-1]).reshape((S.ndim - 2) * (1,) + (S.shape[-2], S.shape[-1]))
     S_gen = pinv(D.conj()) @ (S - G.conj()) @ pinv(U - G @ S) @ D
     return S_gen
 
@@ -375,7 +375,7 @@ def change_R0(
         r2: float,
         ) -> NDArray[numpy.complex128]:
     g = (r2 - r1) / (r2 + r1)
-    U = numpy.eye(S.shape[0])
+    U = numpy.eye(S.shape[-1]).reshape((S.ndim - 2) * (1,) + (S.shape[-2], S.shape[-1]))
     G = U * g
     S_r2 = (S - G) @ pinv(U - G @ S)
     return S_r2
