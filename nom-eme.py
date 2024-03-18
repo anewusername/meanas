@@ -268,10 +268,10 @@ def connect_s(
     denom = 1 - A[..., kk, kk] * B[..., ll, ll]
     Anew = A + A[..., kk, :] * B[..., ll, ll] * A[..., :, kk] / denom
     Bnew = A[..., kk, :] * B[..., :, ll] / denom
-    Anew = npy.delete(Anew, (k,), 1)
-    Anew = npy.delete(Anew, (k,), 2)
-    Bnew = npy.delete(Bnew, (l,), 1)
-    Bnew = npy.delete(Bnew, (l,), 2)
+    Anew = numpy.delete(Anew, (k,), 1)
+    Anew = numpy.delete(Anew, (k,), 2)
+    Bnew = numpy.delete(Bnew, (l,), 1)
+    Bnew = numpy.delete(Bnew, (l,), 2)
 
     dtype = (A[0, 0] * B[0, 0]).dtype
     C = numpy.zeros(tuple(A.shape[:-2]) + (nn, nn), dtype=dtype)
@@ -332,8 +332,8 @@ def innerconnect_s(
         )
 
     # remove connected ports
-    C = npy.delete(C, (k, l), 1)
-    C = npy.delete(C, (k, l), 2)
+    C = numpy.delete(C, (k, l), 1)
+    C = numpy.delete(C, (k, l), 2)
 
     return C
 
