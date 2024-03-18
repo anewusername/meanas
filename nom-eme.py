@@ -1,6 +1,6 @@
 import scipy
 import numpy
-from numpy.typing import ArrayLike, NDarray
+from numpy.typing import ArrayLike, NDArray
 
 
 #from simphony.elements import Model
@@ -262,9 +262,12 @@ def connect_s(
     nC = nA + nB - 2
     assert numpy.array_equal(A.shape[:-2], B.shape[:-2])
 
-    denom = 1 - A[..., k, k] * B[..., l, l]
-    Anew = A + A[..., k, :] * B[..., l, l] * A[..., :, k] / denom
-    Bnew = A[..., k, :] * B[..., :, l] / denom
+    ll = slice(l, l + 1)
+    kk = slice(k, k + 1)
+
+    denom = 1 - A[..., kk, kk] * B[..., ll, ll]
+    Anew = A + A[..., kk, :] * B[..., ll, ll] * A[..., :, kk] / denom
+    Bnew = A[..., kk, :] * B[..., :, ll] / denom
     Anew = npy.delete(Anew, (k,), 1)
     Anew = npy.delete(Anew, (k,), 2)
     Bnew = npy.delete(Bnew, (l,), 1)
