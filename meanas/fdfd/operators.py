@@ -324,6 +324,7 @@ def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     fx, fy, fz = [shift_circ(i, shape, 1) for i in range(3)]
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
+    dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
     Ex, Ey, Ez = [ei * da for ei, da in zip(numpy.split(e, 3), dxag)]
 
     block_diags = [[ None,     fx @ -Ez, fx @  Ey],
@@ -331,7 +332,7 @@ def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
                    [ fz @ -Ey, fz @  Ex, None]]
     block_matrix = sparse.bmat([[sparse.diags(x) if x is not None else None for x in row]
                                 for row in block_diags])
-    P = block_matrix @ sparse.diags(numpy.concatenate(dxag))
+    P = block_matrix @ sparse.diags(numpy.concatenate(dxbg))
     return P
 
 
