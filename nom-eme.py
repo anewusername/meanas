@@ -274,7 +274,7 @@ def connect_s(
     Bnew = numpy.delete(Bnew, (l,), 2)
 
     dtype = (A[0, 0] * B[0, 0]).dtype
-    C = numpy.zeros(tuple(A.shape[:-2]) + (nn, nn), dtype=dtype)
+    C = numpy.zeros(tuple(A.shape[:-2]) + (nC, nC), dtype=dtype)
     C[..., :nA - 1, :nA - 1] = Anew
     C[..., nA - 1:, nA - 1:] = Bnew
     return C
