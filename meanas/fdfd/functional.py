@@ -200,7 +200,7 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], c
 
     Note:
         If `E` and `H` are peak amplitudes as assumed elsewhere in this code,
-        the time-average of the poynting vector is `<S> = Re(S)/2 = Re(E x H) / 2`.
+        the time-average of the poynting vector is `<S> = Re(S)/2 = Re(E x H*) / 2`.
         The factor of `1/2` can be omitted if root-mean-square quantities are used
         instead.
 
