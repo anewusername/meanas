@@ -6,7 +6,7 @@ See the readme or `import meanas; help(meanas)` for more info.
 
 import pathlib
 
-__version__ = '0.8'
+__version__ = '0.9'
 __author__ = 'Jan Petykiewicz'
 
 
