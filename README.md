@@ -41,7 +41,8 @@ solver will need the ability to solve complex symmetric (non-Hermitian)
 linear systems, ideally with double precision.
 
 - [Source repository](https://mpxd.net/code/jan/meanas)
-- PyPI *TBD*
+- [PyPI](https://pypi.org/project/meanas)
+- [Github mirror](https://github.com/anewusername/meanas)
 
 
 ## Installation
