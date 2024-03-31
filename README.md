@@ -48,7 +48,7 @@ linear systems, ideally with double precision.
 
 **Requirements:**
 
-* python >=3.8
+* python >=3.11
 * numpy
 * scipy
 
