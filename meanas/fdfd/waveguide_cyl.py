@@ -73,8 +73,10 @@ def cylindrical_operator(
 
     omega2 = omega * omega
 
-    op = (omega2 * diag((Tx, Ty)) + pa) @ diag((a0, a1)) + \
+    op = (
+        (omega2 * diag((Tx, Ty)) + pa) @ diag((a0, a1))
         - (sparse.bmat(((None, Ty), (Tx, None))) + pb / omega2) @ diag((b0, b1))
+        )
     return op
 
 
