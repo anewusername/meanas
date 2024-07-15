@@ -253,9 +253,10 @@ def operator_e(
     mu_yx = sparse.diags(numpy.hstack((mu_parts[1], mu_parts[0])))
     mu_z_inv = sparse.diags(1 / mu_parts[2])
 
-    op = omega * omega * mu_yx @ eps_xy + \
-        mu_yx @ sparse.vstack((-Dby, Dbx)) @ mu_z_inv @ sparse.hstack((-Dfy, Dfx)) + \
-        sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby)) @ eps_xy
+    op = (omega * omega * mu_yx @ eps_xy
+        + mu_yx @ sparse.vstack((-Dby, Dbx)) @ mu_z_inv @ sparse.hstack((-Dfy, Dfx))
+        + sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby)) @ eps_xy
+        )
     return op
 
 
@@ -320,10 +321,10 @@ def operator_h(
     mu_xy = sparse.diags(numpy.hstack((mu_parts[0], mu_parts[1])))
     mu_z_inv = sparse.diags(1 / mu_parts[2])
 
-    op = omega * omega * eps_yx @ mu_xy + \
-        eps_yx @ sparse.vstack((-Dfy, Dfx)) @ eps_z_inv @ sparse.hstack((-Dby, Dbx)) + \
-        sparse.vstack((Dbx, Dby)) @ mu_z_inv @ sparse.hstack((Dfx, Dfy)) @ mu_xy
-
+    op = (omega * omega * eps_yx @ mu_xy
+        + eps_yx @ sparse.vstack((-Dfy, Dfx)) @ eps_z_inv @ sparse.hstack((-Dby, Dbx))
+        + sparse.vstack((Dbx, Dby)) @ mu_z_inv @ sparse.hstack((Dfx, Dfy)) @ mu_xy
+        )
     return op
 
 
