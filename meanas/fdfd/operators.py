@@ -45,14 +45,14 @@ def e_full(
         pec: vfdfield_t | None = None,
         pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
-    """
+    r"""
     Wave operator
-     $$ \\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\Omega^2 \\epsilon $$
+     $$ \nabla \times (\frac{1}{\mu} \nabla \times) - \Omega^2 \epsilon $$
 
         del x (1/mu * del x) - omega**2 * epsilon
 
      for use with the E-field, with wave equation
-     $$ (\\nabla \\times (\\frac{1}{\\mu} \\nabla \\times) - \\Omega^2 \\epsilon) E = -\\imath \\omega J $$
+     $$ (\nabla \times (\frac{1}{\mu} \nabla \times) - \Omega^2 \epsilon) E = -\imath \omega J $$
 
         (del x (1/mu * del x) - omega**2 * epsilon) E = -i * omega * J
 
@@ -131,14 +131,14 @@ def h_full(
         pec: vfdfield_t | None = None,
         pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
-    """
+    r"""
     Wave operator
-     $$ \\nabla \\times (\\frac{1}{\\epsilon} \\nabla \\times) - \\omega^2 \\mu $$
+     $$ \nabla \times (\frac{1}{\epsilon} \nabla \times) - \omega^2 \mu $$
 
         del x (1/epsilon * del x) - omega**2 * mu
 
      for use with the H-field, with wave equation
-     $$ (\\nabla \\times (\\frac{1}{\\epsilon} \\nabla \\times) - \\omega^2 \\mu) E = \\imath \\omega M $$
+     $$ (\nabla \times (\frac{1}{\epsilon} \nabla \times) - \omega^2 \mu) E = \imath \omega M $$
 
         (del x (1/epsilon * del x) - omega**2 * mu) E = i * omega * M
 
@@ -188,28 +188,28 @@ def eh_full(
         pec: vfdfield_t | None = None,
         pmc: vfdfield_t | None = None,
         ) -> sparse.spmatrix:
-    """
+    r"""
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
-    $$  \\begin{bmatrix}
-        -\\imath \\omega \\epsilon  &  \\nabla \\times      \\\\
-        \\nabla \\times             &  \\imath \\omega \\mu
-        \\end{bmatrix} $$
+    $$  \begin{bmatrix}
+        -\imath \omega \epsilon  &  \nabla \times      \\
+        \nabla \times            &  \imath \omega \mu
+        \end{bmatrix} $$
 
         [[-i * omega * epsilon,  del x         ],
          [del x,                 i * omega * mu]]
 
     for use with a field vector of the form `cat(vec(E), vec(H))`:
-    $$  \\begin{bmatrix}
-        -\\imath \\omega \\epsilon  &  \\nabla \\times      \\\\
-        \\nabla \\times             &  \\imath \\omega \\mu
-        \\end{bmatrix}
-        \\begin{bmatrix} E \\\\
-                         H
-        \\end{bmatrix}
-        = \\begin{bmatrix} J \\\\
-                          -M
-          \\end{bmatrix} $$
+    $$  \begin{bmatrix}
+        -\imath \omega \epsilon  &  \nabla \times      \\
+        \nabla \times            &  \imath \omega \mu
+        \end{bmatrix}
+        \begin{bmatrix} E \\
+                        H
+        \end{bmatrix}
+        = \begin{bmatrix} J \\
+                         -M
+          \end{bmatrix} $$
 
     Args:
         omega: Angular frequency of the simulation

@@ -189,10 +189,10 @@ def e_tfsf_source(
 
 
 def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], cfdfield_t]:
-    """
+    r"""
     Generates a function that takes the single-frequency `E` and `H` fields
-    and calculates the cross product `E` x `H` = $E \\times H$ as required
-    for the Poynting vector, $S = E \\times H$
+    and calculates the cross product `E` x `H` = $E \times H$ as required
+    for the Poynting vector, $S = E \times H$
 
     Note:
         This function also shifts the input `E` field by one cell as required

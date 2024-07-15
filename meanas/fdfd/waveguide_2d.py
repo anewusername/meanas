@@ -211,7 +211,7 @@ def operator_e(
 
     $$
     \omega^2 \begin{bmatrix} \mu_{yy} \epsilon_{xx} & 0 \\
-                                                       0 & \mu_{xx} \epsilon_{yy} \end{bmatrix} +
+                                                      0 & \mu_{xx} \epsilon_{yy} \end{bmatrix} +
                  \begin{bmatrix} -\mu_{yy} \hat{\partial}_y \\
                                    \mu_{xx} \hat{\partial}_x \end{bmatrix} \mu_{zz}^{-1}
                  \begin{bmatrix} -\tilde{\partial}_y & \tilde{\partial}_x \end{bmatrix} +

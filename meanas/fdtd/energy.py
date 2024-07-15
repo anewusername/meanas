@@ -12,7 +12,7 @@ def poynting(
         h: fdfield_t,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
-    """
+    r"""
     Calculate the poynting vector `S` ($S$).
 
     This is the energy transfer rate (amount of energy `U` per `dt` transferred
@@ -44,16 +44,16 @@ def poynting(
 
     The full relationship is
     $$
-      \\begin{aligned}
-      (U_{l+\\frac{1}{2}} - U_l) / \\Delta_t
-       &= -\\hat{\\nabla} \\cdot \\tilde{S}_{l, l + \\frac{1}{2}} \\ \\
-          - \\hat{H}_{l+\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
-          - \\tilde{E}_l \\cdot \\tilde{J}_{l+\\frac{1}{2}} \\\\
-      (U_l - U_{l-\\frac{1}{2}}) / \\Delta_t
-       &= -\\hat{\\nabla} \\cdot \\tilde{S}_{l, l - \\frac{1}{2}} \\ \\
-          - \\hat{H}_{l-\\frac{1}{2}} \\cdot \\hat{M}_l \\ \\
-          - \\tilde{E}_l \\cdot \\tilde{J}_{l-\\frac{1}{2}} \\\\
-     \\end{aligned}
+      \begin{aligned}
+      (U_{l+\frac{1}{2}} - U_l) / \Delta_t
+       &= -\hat{\nabla} \cdot \tilde{S}_{l, l + \frac{1}{2}} \\
+          - \hat{H}_{l+\frac{1}{2}} \cdot \hat{M}_l \\
+          - \tilde{E}_l \cdot \tilde{J}_{l+\frac{1}{2}} \\
+      (U_l - U_{l-\frac{1}{2}}) / \Delta_t
+       &= -\hat{\nabla} \cdot \tilde{S}_{l, l - \frac{1}{2}} \\
+          - \hat{H}_{l-\frac{1}{2}} \cdot \hat{M}_l \\
+          - \tilde{E}_l \cdot \tilde{J}_{l-\frac{1}{2}} \\
+     \end{aligned}
     $$
 
     These equalities are exact and should practically hold to within numerical precision.

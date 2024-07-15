@@ -62,7 +62,7 @@ def deriv_back(
 def curl_forward(
         dx_e: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> fdfield_updater_t:
-    """
+    r"""
     Curl operator for use with the E field.
 
     Args:
@@ -71,7 +71,7 @@ def curl_forward(
 
     Returns:
         Function `f` for taking the discrete forward curl of a field,
-        `f(E)` -> curlE $= \\nabla_f \\times E$
+        `f(E)` -> curlE $= \nabla_f \times E$
     """
     Dx, Dy, Dz = deriv_forward(dx_e)
 
@@ -91,7 +91,7 @@ def curl_forward(
 def curl_back(
         dx_h: Sequence[NDArray[numpy.float_]] | None = None,
         ) -> fdfield_updater_t:
-    """
+    r"""
     Create a function which takes the backward curl of a field.
 
     Args:
@@ -100,7 +100,7 @@ def curl_back(
 
     Returns:
         Function `f` for taking the discrete backward curl of a field,
-        `f(H)` -> curlH $= \\nabla_b \\times H$
+        `f(H)` -> curlH $= \nabla_b \times H$
     """
     Dx, Dy, Dz = deriv_back(dx_h)
 
