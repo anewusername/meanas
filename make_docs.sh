@@ -12,7 +12,7 @@ cd ~/projects/meanas
 rm -rf _doc_mathimg
 pdoc --pdf --force --template-dir pdoc_templates -o doc . > doc.md
 pandoc --metadata=title:"meanas" --from=markdown+abbreviations --to=html --output=doc.htex --gladtex -s --css pdoc_templates/pdoc.css doc.md
-gladtex -a -n -d _doc_mathimg -c white doc.htex
+gladtex -a -n -d _doc_mathimg -c white -b black doc.htex
 
 # Approach 3: html with gladtex
 #pdoc3 --html --force --template-dir pdoc_templates -o doc .
