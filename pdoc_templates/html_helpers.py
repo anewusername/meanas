@@ -321,7 +321,6 @@ class _ToMarkdown:
         """Wrap URLs in Python-Markdown-compatible <angle brackets>."""
         return re.sub(r'(?<![<"\'])(\s*)((?:http|ftp)s?://[^>)\s]+)(\s*)', r'\1<\2>\3', text)
 
-import subprocess
 
 class _MathPattern(InlineProcessor):
     NAME = 'pdoc-math'
