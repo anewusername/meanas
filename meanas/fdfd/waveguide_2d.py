@@ -253,7 +253,8 @@ def operator_e(
     mu_yx = sparse.diags(numpy.hstack((mu_parts[1], mu_parts[0])))
     mu_z_inv = sparse.diags(1 / mu_parts[2])
 
-    op = (omega * omega * mu_yx @ eps_xy
+    op = (
+        omega * omega * mu_yx @ eps_xy
         + mu_yx @ sparse.vstack((-Dby, Dbx)) @ mu_z_inv @ sparse.hstack((-Dfy, Dfx))
         + sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby)) @ eps_xy
         )
@@ -321,7 +322,8 @@ def operator_h(
     mu_xy = sparse.diags(numpy.hstack((mu_parts[0], mu_parts[1])))
     mu_z_inv = sparse.diags(1 / mu_parts[2])
 
-    op = (omega * omega * eps_yx @ mu_xy
+    op = (
+        omega * omega * eps_yx @ mu_xy
         + eps_yx @ sparse.vstack((-Dfy, Dfx)) @ eps_z_inv @ sparse.hstack((-Dby, Dbx))
         + sparse.vstack((Dbx, Dby)) @ mu_z_inv @ sparse.hstack((Dfx, Dfy)) @ mu_xy
         )
@@ -799,14 +801,12 @@ def sensitivity(
     Dfx, Dfy = deriv_forward(dxes[0])
     Dbx, Dby = deriv_back(dxes[1])
 
-
     eps_x, eps_y, eps_z = numpy.split(epsilon, 3)
     eps_xy = sparse.diags(numpy.hstack((eps_x, eps_y)))
     eps_z_inv = sparse.diags(1 / eps_z)
 
-    mu_x, mu_y, mu_z = numpy.split(mu, 3)
+    mu_x, mu_y, _mu_z = numpy.split(mu, 3)
     mu_yx = sparse.diags(numpy.hstack((mu_y, mu_x)))
-    mu_z_inv = sparse.diags(1 / mu_z)
 
     dv_e = dxes[0][0][:, None, None] * dxes[0][1][None, :, None] * dxes[0][2][None, None, :]
     dv_h = dxes[1][0][:, None, None] * dxes[1][1][None, :, None] * dxes[1][2][None, None, :]
@@ -816,7 +816,7 @@ def sensitivity(
 
     sens_xy1 = (hv_yx_conj @ (omega * omega @ mu_yx)) * ev_xy
     sens_xy2 = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby))) * ev_xy
-    sens_z =   (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ (-eps_z_inv * eps_z_inv)) * (sparse.hstack((Dbx, Dby)) @ eps_xy @ ev_xy)
+    sens_z   = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ (-eps_z_inv * eps_z_inv)) * (sparse.hstack((Dbx, Dby)) @ eps_xy @ ev_xy)
     norm = hv_yx_conj @ ev_xy
 
     sens_tot = numpy.concatenate([sens_xy1 + sens_xy2, sens_z]) / (2 * wavenumber * norm)
