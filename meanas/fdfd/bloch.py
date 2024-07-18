@@ -684,11 +684,11 @@ def eigsolve(
                 Qi = Qi_func(theta)
                 c2 = numpy.cos(2 * theta)
                 s2 = numpy.sin(2 * theta)
-                F = -0.5*s2 *  (ZtAZ - DtAD) + c2 * symZtAD
+                F = -0.5 * s2 * (ZtAZ - DtAD) + c2 * symZtAD
                 trace_deriv = _rtrace_AtB(Qi, F)
 
                 G = Qi @ F.conj().T @ Qi.conj().T
-                H = -0.5*s2 * (ZtZ - DtD) + c2 * symZtD
+                H = -0.5 * s2 * (ZtZ - DtD) + c2 * symZtD
                 trace_deriv -= _rtrace_AtB(G, H)
 
                 trace_deriv *= 2
@@ -696,12 +696,12 @@ def eigsolve(
 
             U_sZtD = U @ symZtD
 
-            dE = 2.0 * (_rtrace_AtB(U, symZtAD) -
-                        _rtrace_AtB(ZtAZU, U_sZtD))
+            dE = 2.0 * (_rtrace_AtB(U, symZtAD)
+                        - _rtrace_AtB(ZtAZU, U_sZtD))
 
-            d2E = 2 * (_rtrace_AtB(U, DtAD) -
-                       _rtrace_AtB(ZtAZU, U @ (DtD - 4 * symZtD @ U_sZtD)) -
-                   4 * _rtrace_AtB(U, symZtAD @ U_sZtD))
+            d2E = 2 * (_rtrace_AtB(U, DtAD)
+                       - _rtrace_AtB(ZtAZU, U @ (DtD - 4 * symZtD @ U_sZtD))
+                       - 4 * _rtrace_AtB(U, symZtAD @ U_sZtD))
 
             # Newton-Raphson to find a root of the first derivative:
             theta = -dE / d2E

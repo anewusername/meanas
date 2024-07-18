@@ -19,9 +19,13 @@ def conducting_boundary(
     dirs.remove(direction)
     u, v = dirs
 
+    boundary_slice: list[Any]
+    shifted1_slice: list[Any]
+    shifted2_slice: list[Any]
+
     if polarity < 0:
-        boundary_slice = [slice(None)] * 3      # type: list[Any]
-        shifted1_slice = [slice(None)] * 3      # type: list[Any]
+        boundary_slice = [slice(None)] * 3
+        shifted1_slice = [slice(None)] * 3
         boundary_slice[direction] = 0
         shifted1_slice[direction] = 1
 
@@ -42,7 +46,7 @@ def conducting_boundary(
     if polarity > 0:
         boundary_slice = [slice(None)] * 3
         shifted1_slice = [slice(None)] * 3
-        shifted2_slice = [slice(None)] * 3      # type: list[Any]
+        shifted2_slice = [slice(None)] * 3
         boundary_slice[direction] = -1
         shifted1_slice[direction] = -2
         shifted2_slice[direction] = -3
