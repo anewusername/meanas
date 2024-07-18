@@ -420,7 +420,7 @@ def _normalized_fields(
     Sz_a = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
     Sz_b = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
     Sz_tavg = numpy.real(Sz_a.sum() - Sz_b.sum()) * 0.5       # 0.5 since E, H are assumed to be peak (not RMS) amplitudes
-    assert Sz_tavg > 0, 'Found a mode propagating in the wrong direction! Sz_tavg={}'.format(Sz_tavg)
+    assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 
     energy = epsilon * e.conj() * e
 

@@ -29,9 +29,9 @@ def shift_circ(
         Sparse matrix for performing the circular shift.
     """
     if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
+        raise Exception(f'Invalid shape: {shape}')
     if axis not in range(len(shape)):
-        raise Exception('Invalid direction: {}, shape is {}'.format(axis, shape))
+        raise Exception(f'Invalid direction: {axis}, shape is {shape}')
 
     shifts = [abs(shift_distance) if a == axis else 0 for a in range(3)]
     shifted_diags = [(numpy.arange(n) + s) % n for n, s in zip(shape, shifts)]
@@ -69,12 +69,11 @@ def shift_with_mirror(
         Sparse matrix for performing the shift-with-mirror.
     """
     if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
+        raise Exception(f'Invalid shape: {shape}')
     if axis not in range(len(shape)):
-        raise Exception('Invalid direction: {}, shape is {}'.format(axis, shape))
+        raise Exception(f'Invalid direction: {axis}, shape is {shape}')
     if shift_distance >= shape[axis]:
-        raise Exception('Shift ({}) is too large for axis {} of size {}'.format(
-                        shift_distance, axis, shape[axis]))
+        raise Exception(f'Shift ({shift_distance}) is too large for axis {axis} of size {shape[axis]}')
 
     def mirrored_range(n: int, s: int) -> NDArray[numpy.int_]:
         v = numpy.arange(n) + s
@@ -198,7 +197,7 @@ def avg_forward(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
         Sparse matrix for forward average operation.
     """
     if len(shape) not in (2, 3):
-        raise Exception('Invalid shape: {}'.format(shape))
+        raise Exception(f'Invalid shape: {shape}')
 
     n = numpy.prod(shape)
     return 0.5 * (sparse.eye(n) + shift_circ(axis, shape))
