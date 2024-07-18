@@ -15,7 +15,7 @@ def conducting_boundary(
         ) -> tuple[fdfield_updater_t, fdfield_updater_t]:
     dirs = [0, 1, 2]
     if direction not in dirs:
-        raise Exception('Invalid direction: {}'.format(direction))
+        raise Exception(f'Invalid direction: {direction}')
     dirs.remove(direction)
     u, v = dirs
 
@@ -64,4 +64,4 @@ def conducting_boundary(
 
         return ep, hp
 
-    raise Exception('Bad polarity: {}'.format(polarity))
+    raise Exception(f'Bad polarity: {polarity}')

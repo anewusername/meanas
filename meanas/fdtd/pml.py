@@ -33,10 +33,10 @@ def cpml_params(
         ) -> dict[str, Any]:
 
     if axis not in range(3):
-        raise Exception('Invalid axis: {}'.format(axis))
+        raise Exception(f'Invalid axis: {axis}')
 
     if polarity not in (-1, 1):
-        raise Exception('Invalid polarity: {}'.format(polarity))
+        raise Exception(f'Invalid polarity: {polarity}')
 
     if thickness <= 2:
         raise Exception('It would be wise to have a pml with 4+ cells of thickness')

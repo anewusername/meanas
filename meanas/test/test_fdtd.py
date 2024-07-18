@@ -101,7 +101,7 @@ def test_poynting_divergence(sim: 'TDResult') -> None:
 def test_poynting_planes(sim: 'TDResult') -> None:
     mask = (sim.js[0] != 0).any(axis=0)
     if mask.sum() > 1:
-        pytest.skip('test_poynting_planes can only test single point sources, got {}'.format(mask.sum()))
+        pytest.skip(f'test_poynting_planes can only test single point sources, got {mask.sum()}')
 
     args: dict[str, Any] = {
         'dxes': sim.dxes,

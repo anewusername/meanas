@@ -157,7 +157,8 @@ def main():
         e[1][tuple(grid.shape//2)] += field_source(t)
         update_H(e, h)
 
-        print('iteration {}: average {} iterations per sec'.format(t, (t+1)/(time.perf_counter()-start)))
+        avg_rate = (t + 1)/(time.perf_counter() - start))
+        print(f'iteration {t}: average {avg_rate} iterations per sec')
         sys.stdout.flush()
 
         if t % 20 == 0:

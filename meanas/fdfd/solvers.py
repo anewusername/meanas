@@ -43,7 +43,8 @@ def _scipy_qmr(
         nonlocal ii
         ii += 1
         if ii % 100 == 0:
-            logger.info('Solver residual at iteration {} : {}'.format(ii, norm(A @ xk - b)))
+            cur_norm = norm(A @ xk - b)
+            logger.info(f'Solver residual at iteration {ii} : {cur_norm}')
 
     if 'callback' in kwargs:
         def augmented_callback(xk: ArrayLike) -> None:

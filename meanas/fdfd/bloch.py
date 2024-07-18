@@ -781,7 +781,7 @@ def linmin(x_guess, f0, df0, x_max, f_tol=0.1, df_tol=min(tolerance, 1e-6), x_to
                                           x_min, x_max, isave, dsave)
         for i in range(int(1e6)):
             if task != 'F':
-                logging.info('search converged in {} iterations'.format(i))
+                logging.info(f'search converged in {i} iterations')
                 break
             fx = f(x, dfx)
             x, fx, dfx, task = minpack2.dsrch(x, fx, dfx, f_tol, df_tol, x_tol, task,
