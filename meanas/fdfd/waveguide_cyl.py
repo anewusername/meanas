@@ -25,6 +25,9 @@ def cylindrical_operator(
     """
     Cylindrical coordinate waveguide operator of the form
 
+    (NOTE: See 10.1364/OL.33.001848)
+    TODO: consider 10.1364/OE.20.021583
+
     TODO
 
     for use with a field vector of the form `[E_r, E_y]`.
