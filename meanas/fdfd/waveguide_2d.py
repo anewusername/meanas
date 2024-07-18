@@ -185,7 +185,7 @@ from numpy.linalg import norm
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
-from ..fdmath import unvec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
@@ -716,6 +716,111 @@ def e_err(
         op = ch @ mu_inv @ ce @ e - omega ** 2 * (epsilon * e)
 
     return float(norm(op) / norm(e))
+
+
+def sensitivity(
+        e_norm: vcfdfield_t,
+        h_norm: vcfdfield_t,
+        wavenumber: complex,
+        omega: complex,
+        dxes: dx_lists_t,
+        epsilon: vfdfield_t,
+        mu: vfdfield_t | None = None,
+        ) -> vcfdfield_t:
+    r"""
+      Given a waveguide structure (`dxes`, `epsilon`, `mu`) and mode fields
+    (`e_norm`, `h_norm`, `wavenumber`, `omega`), calculates the sensitivity of the wavenumber
+    $\beta$ to changes in the dielectric structure $\epsilon$.
+
+    The output is a vector of the same size as `vec(epsilon)`, with each element specifying the
+    sensitivity of `wavenumber` to changes in the corresponding element in `vec(epsilon)`, i.e.
+
+    $$sens_{i} = \frac{\partial\beta}{\partial\epsilon_i}$$
+
+    An adjoint approach is used to calculate the sensitivity; the derivation is provided here:
+
+    Starting with the eigenvalue equation
+
+    $$\beta^2 E_{xy} = A_E E_{xy}$$
+
+    where $A_E$ is the waveguide operator from `operator_e()`, and $E_{xy} = \begin{bmatrix} E_x \\
+                                                                                             E_y \end{bmatrix}$,
+    we can differentiate with respect to one of the $\epsilon$ elements (i.e. at one Yee grid point), $\epsilon_i$:
+
+    $$
+    (2 \beta) \partial_{\epsilon_i}(\beta) E_{xy} + \beta^2 \partial_{\epsilon_i} E_{xy}
+        = \partial_{\epsilon_i}(A_E) E_{xy} + A_E \partial_{\epsilon_i} E_{xy}
+    $$
+
+    We then multiply by $H_{yx}^\star = \begin{bmatrix}H_y^\star \\ -H_x^\star \end{bmatrix}$ from the left:
+
+    $$
+    (2 \beta) \partial_{\epsilon_i}(\beta) H_{yx}^\star E_{xy} + \beta^2 H_{yx}^\star \partial_{\epsilon_i} E_{xy}
+        = H_{yx}^\star \partial_{\epsilon_i}(A_E) E_{xy} + H_{yx}^\star A_E \partial_{\epsilon_i} E_{xy}
+    $$
+
+    However, $H_{yx}^\star$ is actually a left-eigenvector of $A_E$. This can be verified by inspecting
+    the form of `operator_h` ($A_H$) and comparing its conjugate transpose to `operator_e` ($A_E$). Also, note
+    $H_{yx}^\star \cdot E_{xy} = H^\star \times E$ recalls the mode orthogonality relation. See doi:10.5194/ars-9-85-201
+    for a similar approach. Therefore,
+
+    $$
+    H_{yx}^\star A_E \partial_{\epsilon_i} E_{xy} = \beta^2 H_{yx}^\star \partial_{\epsilon_i} E_{xy}
+    $$
+
+    and we can simplify to
+
+    $$
+    \partial_{\epsilon_i}(\beta)
+        = \frac{1}{2 \beta} \frac{H_{yx}^\star \partial_{\epsilon_i}(A_E) E_{xy} }{H_{yx}^\star E_{xy}}
+    $$
+
+    This expression can be quickly calculated for all $i$ by writing out the various terms of
+    $\partial_{\epsilon_i} A_E$ and recognizing that the vector-matrix-vector products (i.e. scalars)
+    $sens_i = \vec{v}_{left} \partial_{\epsilon_i} (\epsilon_{xyz}) \vec{v}_{right}$, indexed by $i$, can be expressed as
+    elementwise multiplications $\vec{sens} = \vec{v}_{left} \star \vec{v}_{right}$
+
+
+    Args:
+        e_norm: Normalized, vectorized E_xyz field for the mode. E.g. as returned by `normalized_fields_e`.
+        h_norm: Normalized, vectorized H_xyz field for the mode. E.g. as returned by `normalized_fields_e`.
+        wavenumber: Propagation constant for the mode. The z-axis is assumed to be continuous (i.e. without numerical dispersion).
+        omega: The angular frequency of the system.
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
+        epsilon: Vectorized dielectric constant grid
+        mu: Vectorized magnetic permeability grid (default 1 everywhere)
+
+    Returns:
+        Sparse matrix representation of the operator.
+    """
+    if mu is None:
+        mu = numpy.ones_like(epsilon)
+
+    Dfx, Dfy = deriv_forward(dxes[0])
+    Dbx, Dby = deriv_back(dxes[1])
+
+
+    eps_x, eps_y, eps_z = numpy.split(epsilon, 3)
+    eps_xy = sparse.diags(numpy.hstack((eps_x, eps_y)))
+    eps_z_inv = sparse.diags(1 / eps_z)
+
+    mu_x, mu_y, mu_z = numpy.split(mu, 3)
+    mu_yx = sparse.diags(numpy.hstack((mu_y, mu_x)))
+    mu_z_inv = sparse.diags(1 / mu_z)
+
+    da_exxhyy = vec(dxes[1][0][:, None] * dxes[0][1][None, :])
+    da_eyyhxx = vec(dxes[1][1][None, :] * dxes[0][0][:, None])
+    ev_xy = numpy.concatenate(numpy.split(e_norm, 3)[:2]) * numpy.concatenate([da_exxhyy, da_eyyhxx])
+    hx, hy, hz = numpy.split(h_norm, 3)
+    hv_yx_conj = numpy.conj(numpy.concatenate([hy, -hx]))
+
+    sens_xy1 = (hv_yx_conj @ (omega * omega * mu_yx)) * ev_xy
+    sens_xy2 = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby))) * ev_xy
+    sens_z =   (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ (-eps_z_inv * eps_z_inv)) * (sparse.hstack((Dbx, Dby)) @ eps_xy @ ev_xy)
+    norm = hv_yx_conj @ ev_xy
+
+    sens_tot = numpy.concatenate([sens_xy1 + sens_xy2, sens_z]) / (2 * wavenumber * norm)
+    return sens_tot
 
 
 def solve_modes(
