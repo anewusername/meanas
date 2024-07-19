@@ -185,7 +185,7 @@ from numpy.linalg import norm
 import scipy.sparse as sparse       # type: ignore
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
-from ..fdmath import unvec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
@@ -808,13 +808,11 @@ def sensitivity(
     mu_x, mu_y, _mu_z = numpy.split(mu, 3)
     mu_yx = sparse.diags(numpy.hstack((mu_y, mu_x)))
 
-    dx_ex = dxes[1][0][:, None, None]
-    dy_ey = dxes[1][1][:, None, None]
-    dx_hx = dxes[0][0][:, None, None]
-    dy_hy = dxes[0][1][:, None, None]
-    ev_xy = numpy.concatenate(numpy.split(e_norm, 3)[:2]) * numpy.concatenate([dx_ex, dy_ey])
+    da_exxhyy = vec(dxes[1][0][:, None] * dxes[0][1][None, :])
+    da_eyyhxx = vec(dxes[1][1][None, :] * dxes[0][0][:, None])
+    ev_xy = numpy.concatenate(numpy.split(e_norm, 3)[:2]) * numpy.concatenate([da_exxhyy, da_eyyhxx])
     hx, hy, hz = numpy.split(h_norm, 3)
-    hv_yx_conj = numpy.conj(numpy.concatenate([hy, -hx])) * numpy.concatenate([dy_hy, dx_hx])
+    hv_yx_conj = numpy.conj(numpy.concatenate([hy, -hx]))
 
     sens_xy1 = (hv_yx_conj @ (omega * omega * mu_yx)) * ev_xy
     sens_xy2 = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby))) * ev_xy
