@@ -808,13 +808,15 @@ def sensitivity(
     mu_x, mu_y, _mu_z = numpy.split(mu, 3)
     mu_yx = sparse.diags(numpy.hstack((mu_y, mu_x)))
 
-    dv_e = dxes[0][0][:, None, None] * dxes[0][1][None, :, None] * dxes[0][2][None, None, :]
-    dv_h = dxes[1][0][:, None, None] * dxes[1][1][None, :, None] * dxes[1][2][None, None, :]
-    ev_xy = numpy.concatenate(numpy.split(e_norm, 3)[:2]) * dv_e
+    dx_ex = dxes[1][0][:, None, None]
+    dy_ey = dxes[1][1][:, None, None]
+    dx_hx = dxes[0][0][:, None, None]
+    dy_hy = dxes[0][1][:, None, None]
+    ev_xy = numpy.concatenate(numpy.split(e_norm, 3)[:2]) * numpy.concatenate([dx_ex, dy_ey])
     hx, hy, hz = numpy.split(h_norm, 3)
-    hv_yx_conj = numpy.conj(numpy.concatenate([hy, -hx])) * dv_h
+    hv_yx_conj = numpy.conj(numpy.concatenate([hy, -hx])) * numpy.concatenate([dy_hy, dx_hx])
 
-    sens_xy1 = (hv_yx_conj @ (omega * omega @ mu_yx)) * ev_xy
+    sens_xy1 = (hv_yx_conj @ (omega * omega * mu_yx)) * ev_xy
     sens_xy2 = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby))) * ev_xy
     sens_z   = (hv_yx_conj @ sparse.vstack((Dfx, Dfy)) @ (-eps_z_inv * eps_z_inv)) * (sparse.hstack((Dbx, Dby)) @ eps_xy @ ev_xy)
     norm = hv_yx_conj @ ev_xy
