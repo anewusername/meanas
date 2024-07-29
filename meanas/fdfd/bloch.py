@@ -657,7 +657,7 @@ def eigsolve(
             Q = c * c * ZtZ + s * s * DtD + 2 * s * c * symZtD
             try:
                 Qi = numpy.linalg.inv(Q)
-            except numpy.linalg.LinAlgError:
+            except numpy.linalg.LinAlgError as err:
                 logger.info('taylor Qi')
                 # if c or s small, taylor expand
                 if c < 1e-4 * s and c != 0:
@@ -667,7 +667,7 @@ def eigsolve(
                     ZtZi = numpy.linalg.inv(ZtZ)
                     Qi = ZtZi / (c * c) - 2 * s / (c * c * c) * (ZtZi @ (ZtZi @ symZtD).conj().T)
                 else:
-                    raise Exception('Inexplicable singularity in trace_func')
+                    raise Exception('Inexplicable singularity in trace_func') from err
             Qi_memo[0] = theta
             Qi_memo[1] = cast(float, Qi)
             return cast(float, Qi)
