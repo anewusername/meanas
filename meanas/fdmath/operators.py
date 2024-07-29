@@ -35,7 +35,7 @@ def shift_circ(
         raise Exception(f'Invalid direction: {axis}, shape is {shape}')
 
     shifts = [abs(shift_distance) if a == axis else 0 for a in range(3)]
-    shifted_diags = [(numpy.arange(n) + s) % n for n, s in zip(shape, shifts)]
+    shifted_diags = [(numpy.arange(n) + s) % n for n, s in zip(shape, shifts, strict=True)]
     ijk = numpy.meshgrid(*shifted_diags, indexing='ij')
 
     n = numpy.prod(shape)
@@ -83,7 +83,7 @@ def shift_with_mirror(
         return v
 
     shifts = [shift_distance if a == axis else 0 for a in range(3)]
-    shifted_diags = [mirrored_range(n, s) for n, s in zip(shape, shifts)]
+    shifted_diags = [mirrored_range(n, s) for n, s in zip(shape, shifts, strict=True)]
     ijk = numpy.meshgrid(*shifted_diags, indexing='ij')
 
     n = numpy.prod(shape)
