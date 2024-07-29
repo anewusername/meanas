@@ -561,9 +561,10 @@ def eigsolve(
     prev_theta = 0.5
     D = numpy.zeros(shape=y_shape, dtype=complex)
 
+    rng = numpy.random.default_rng()
     Z: NDArray[numpy.complex128]
     if y0 is None:
-        Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
+        Z = rng.random(y_shape) + 1j * rng.random(y_shape)
     else:
         Z = numpy.array(y0, copy=False).T
 
@@ -573,7 +574,7 @@ def eigsolve(
         try:
             U = numpy.linalg.inv(ZtZ)
         except numpy.linalg.LinAlgError:
-            Z = numpy.random.rand(*y_shape) + 1j * numpy.random.rand(*y_shape)
+            Z = rng.random(y_shape) + 1j * rng.random(y_shape)
             continue
 
         trace_U = real(trace(U))
