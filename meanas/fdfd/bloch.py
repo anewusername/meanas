@@ -308,7 +308,7 @@ def hmn_2_exyz(
                - m * hin_n) * k_mag         # noqa: E128
 
         # divide by epsilon
-        return numpy.array([ei for ei in numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)])         # TODO avoid copy
+        return numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)
 
     return operator
 
