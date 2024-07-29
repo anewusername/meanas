@@ -155,7 +155,7 @@ def generate_kmn(
             All are given in the xyz basis (e.g. `|k|[0,0,0] = norm(G_matrix @ k0)`).
     """
     k0 = numpy.array(k0)
-    G_matrix = numpy.array(G_matrix, copy=False)
+    G_matrix = numpy.asarray(G_matrix)
 
     Gi_grids = numpy.array(numpy.meshgrid(*(fftfreq(n, 1 / n) for n in shape[:3]), indexing='ij'))
     Gi = numpy.moveaxis(Gi_grids, 0, -1)
@@ -538,7 +538,7 @@ def eigsolve(
         `(eigenvalues, eigenvectors)` where `eigenvalues[i]` corresponds to the
         vector `eigenvectors[i, :]`
     """
-    k0 = numpy.array(k0, copy=False)
+    k0 = numpy.asarray(k0)
 
     h_size = 2 * epsilon[0].size
 
@@ -566,7 +566,7 @@ def eigsolve(
     if y0 is None:
         Z = rng.random(y_shape) + 1j * rng.random(y_shape)
     else:
-        Z = numpy.array(y0, copy=False).T
+        Z = numpy.asarray(y0).T
 
     while True:
         Z *= num_modes / norm(Z)

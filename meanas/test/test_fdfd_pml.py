@@ -162,7 +162,7 @@ def sim(
         omega=omega,
         dxes=dxes,
         epsilon=eps_vec,
-        matrix_solver_opts={'atol': 1e-15, 'tol': 1e-11},
+        matrix_solver_opts={'atol': 1e-15, 'rtol': 1e-11},
         )
     e = unvec(e_vec, shape[1:])
 
