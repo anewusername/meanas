@@ -112,7 +112,7 @@ def updates_with_cpml(
     params_H: list[list[tuple[Any, Any, Any, Any]]] = deepcopy(params_E)
 
     for axis in range(3):
-        for pp, polarity in enumerate((-1, 1)):
+        for pp, _polarity in enumerate((-1, 1)):
             cpml_param = cpml_params[axis][pp]
             if cpml_param is None:
                 psi_E[axis][pp] = (None, None)
