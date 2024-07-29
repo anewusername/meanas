@@ -5,8 +5,8 @@ from typing import Callable
 import numpy
 from numpy.typing import NDArray, ArrayLike
 from numpy.linalg import norm
-from scipy import sparse              # type: ignore
-import scipy.sparse.linalg as spalg   # type: ignore
+from scipy import sparse
+import scipy.sparse.linalg as spalg
 
 
 def power_iteration(

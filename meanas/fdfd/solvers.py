@@ -8,7 +8,7 @@ import logging
 import numpy
 from numpy.typing import ArrayLike, NDArray
 from numpy.linalg import norm
-import scipy.sparse.linalg          # type: ignore
+import scipy.sparse.linalg
 
 from ..fdmath import dx_lists_t, vfdfield_t, vcfdfield_t
 from . import operators

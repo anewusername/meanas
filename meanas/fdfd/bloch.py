@@ -100,10 +100,10 @@ import numpy
 from numpy import pi, real, trace
 from numpy.fft import fftfreq
 from numpy.typing import NDArray, ArrayLike
-import scipy                            # type: ignore
-import scipy.optimize                   # type: ignore
-from scipy.linalg import norm           # type: ignore
-import scipy.sparse.linalg as spalg     # type: ignore
+import scipy
+import scipy.optimize
+from scipy.linalg import norm
+import scipy.sparse.linalg as spalg
 
 from ..fdmath import fdfield_t, cfdfield_t
 

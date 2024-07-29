@@ -7,7 +7,7 @@ from typing import Sequence
 import numpy
 from numpy.typing import NDArray
 from numpy import floating
-import scipy.sparse as sparse   # type: ignore
+from scipy import sparse
 
 from .types import vfdfield_t
 

@@ -28,7 +28,7 @@ The following operators are included:
 """
 
 import numpy
-import scipy.sparse as sparse       # type: ignore
+from scipy import sparse
 
 from ..fdmath import vec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..fdmath.operators import shift_with_mirror, shift_circ, curl_forward, curl_back

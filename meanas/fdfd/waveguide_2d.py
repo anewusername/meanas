@@ -182,7 +182,7 @@ from typing import Any
 import numpy
 from numpy.typing import NDArray, ArrayLike
 from numpy.linalg import norm
-import scipy.sparse as sparse       # type: ignore
+from scipy import sparse
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
 from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
