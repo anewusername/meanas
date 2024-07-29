@@ -11,7 +11,8 @@ __author__ = 'Jan Petykiewicz'
 
 
 try:
-    with open(pathlib.Path(__file__).parent / 'README.md', 'r') as f:
+    readme_path = pathlib.Path(__file__).parent / 'README.md'
+    with readme_path.open('r') as f:
         __doc__ = f.read()
 except Exception:
     pass
