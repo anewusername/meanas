@@ -1,7 +1,7 @@
 """
 Solvers for eigenvalue / eigenvector problems
 """
-from typing import Callable
+from collections.abc import Callable
 import numpy
 from numpy.typing import NDArray, ArrayLike
 from numpy.linalg import norm

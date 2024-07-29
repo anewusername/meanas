@@ -5,7 +5,7 @@ Functional versions of many FDFD operators. These can be useful for performing
 The functions generated here expect `cfdfield_t` inputs with shape (3, X, Y, Z),
 e.g. E = [E_x, E_y, E_z] where each (complex) component has shape (X, Y, Z)
 """
-from typing import Callable
+from collections.abc import Callable
 import numpy
 
 from ..fdmath import dx_lists_t, fdfield_t, cfdfield_t, cfdfield_updater_t

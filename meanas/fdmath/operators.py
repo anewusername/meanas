@@ -3,7 +3,7 @@ Matrix operators for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence
+from collections.abc import Sequence
 import numpy
 from numpy.typing import NDArray
 from numpy import floating

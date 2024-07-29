@@ -4,7 +4,8 @@ and a 1D array representation of that field `[f_x0, f_x1, f_x2,... f_y0,... f_z0
 Vectorized versions of the field use row-major (ie., C-style) ordering.
 """
 
-from typing import overload, Sequence
+from typing import overload
+from collections.abc import Sequence
 import numpy
 from numpy.typing import ArrayLike
 

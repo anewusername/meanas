@@ -1,7 +1,7 @@
 """
 Types shared across multiple submodules
 """
-from typing import Sequence, Callable, MutableSequence
+from collections.abc import Sequence, Callable, MutableSequence
 from numpy.typing import NDArray
 from numpy import floating, complexfloating
 

@@ -94,7 +94,8 @@ This module contains functions for generating and solving the
 
 """
 
-from typing import Callable, Any, cast, Sequence
+from typing import Any, cast
+from collections.abc import Callable, Sequence
 import logging
 import numpy
 from numpy import pi, real, trace

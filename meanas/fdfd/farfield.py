@@ -1,7 +1,8 @@
 """
 Functions for performing near-to-farfield transformation (and the reverse).
 """
-from typing import Any, Sequence, cast
+from typing import Any, cast
+from collections.abc import Sequence
 import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi

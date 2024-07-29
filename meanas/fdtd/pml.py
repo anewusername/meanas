@@ -7,7 +7,8 @@ PML implementations
 """
 # TODO retest pmls!
 
-from typing import Callable, Sequence, Any
+from typing import Any
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 import numpy
 from numpy.typing import NDArray, DTypeLike

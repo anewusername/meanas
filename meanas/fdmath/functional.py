@@ -3,7 +3,8 @@ Math functions for finite difference simulations
 
 Basic discrete calculus etc.
 """
-from typing import Sequence, Callable
+from typing import TypeVar
+from collections.abc import Sequence, Callable
 
 import numpy
 from numpy.typing import NDArray

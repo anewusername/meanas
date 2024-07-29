@@ -2,7 +2,7 @@
 Functions for creating stretched coordinate perfectly matched layer (PML) absorbers.
 """
 
-from typing import Sequence, Callable
+from collections.abc import Sequence, Callable
 
 import numpy
 from numpy.typing import NDArray

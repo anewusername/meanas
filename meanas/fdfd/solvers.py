@@ -2,7 +2,8 @@
 Solvers and solver interface for FDFD problems.
 """
 
-from typing import Callable, Dict, Any, Optional
+from typing import Any
+from collections.abc import Callable
 import logging
 
 import numpy
@@ -68,12 +69,12 @@ def generic(
         dxes: dx_lists_t,
         J: vcfdfield_t,
         epsilon: vfdfield_t,
-        mu: Optional[vfdfield_t] = None,
-        pec: Optional[vfdfield_t] = None,
-        pmc: Optional[vfdfield_t] = None,
+        mu: vfdfield_t | None = None,
+        pec: vfdfield_t | None = None,
+        pmc: vfdfield_t | None = None,
         adjoint: bool = False,
         matrix_solver: Callable[..., ArrayLike] = _scipy_qmr,
-        matrix_solver_opts: Optional[Dict[str, Any]] = None,
+        matrix_solver_opts: dict[str, Any] | None = None,
         ) -> vcfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.

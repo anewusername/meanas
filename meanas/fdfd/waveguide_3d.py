@@ -4,7 +4,8 @@ Tools for working with waveguide modes in 3D domains.
 This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
-from typing import Sequence, Any
+from typing import Any
+from collections.abc import Sequence
 import numpy
 from numpy.typing import NDArray
 from numpy import complexfloating
