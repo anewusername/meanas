@@ -7,12 +7,13 @@ from typing import Sequence, Callable
 
 import numpy
 from numpy.typing import NDArray
+from numpy import floating
 
 from .types import fdfield_t, fdfield_updater_t
 
 
 def deriv_forward(
-        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_e: Sequence[NDArray[floating]] | None = None,
         ) -> tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (backward variant).
@@ -36,7 +37,7 @@ def deriv_forward(
 
 
 def deriv_back(
-        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_h: Sequence[NDArray[floating]] | None = None,
         ) -> tuple[fdfield_updater_t, fdfield_updater_t, fdfield_updater_t]:
     """
     Utility operators for taking discretized derivatives (forward variant).
@@ -60,7 +61,7 @@ def deriv_back(
 
 
 def curl_forward(
-        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_e: Sequence[NDArray[floating]] | None = None,
         ) -> fdfield_updater_t:
     r"""
     Curl operator for use with the E field.
@@ -89,7 +90,7 @@ def curl_forward(
 
 
 def curl_back(
-        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_h: Sequence[NDArray[floating]] | None = None,
         ) -> fdfield_updater_t:
     r"""
     Create a function which takes the backward curl of a field.
@@ -118,7 +119,7 @@ def curl_back(
 
 
 def curl_forward_parts(
-        dx_e: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_e: Sequence[NDArray[floating]] | None = None,
         ) -> Callable:
     Dx, Dy, Dz = deriv_forward(dx_e)
 
@@ -131,7 +132,7 @@ def curl_forward_parts(
 
 
 def curl_back_parts(
-        dx_h: Sequence[NDArray[numpy.float_]] | None = None,
+        dx_h: Sequence[NDArray[floating]] | None = None,
         ) -> Callable:
     Dx, Dy, Dz = deriv_back(dx_h)
 

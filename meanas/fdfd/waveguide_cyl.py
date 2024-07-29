@@ -11,7 +11,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 import numpy
 import scipy.sparse as sparse       # type: ignore
 
-from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, vfdfield_t, cfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, cfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 

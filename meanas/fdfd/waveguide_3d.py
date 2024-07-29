@@ -7,6 +7,7 @@ its parameters into 2D equivalents and expands the results back into 3D.
 from typing import Sequence, Any
 import numpy
 from numpy.typing import NDArray
+from numpy import complexfloating
 
 from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, cfdfield_t
 from . import operators, waveguide_2d
@@ -21,7 +22,7 @@ def solve_mode(
         slices: Sequence[slice],
         epsilon: fdfield_t,
         mu: fdfield_t | None = None,
-        ) -> dict[str, complex | NDArray[numpy.float_]]:
+        ) -> dict[str, complex | NDArray[complexfloating]]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
      solve for an eigenmode propagating through that slice.
@@ -40,8 +41,8 @@ def solve_mode(
     Returns:
         ```
         {
-            'E': list[NDArray[numpy.float_]],
-            'H': list[NDArray[numpy.float_]],
+            'E': NDArray[complexfloating],
+            'H': NDArray[complexfloating],
             'wavenumber': complex,
         }
         ```

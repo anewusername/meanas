@@ -2,25 +2,25 @@
 Types shared across multiple submodules
 """
 from typing import Sequence, Callable, MutableSequence
-import numpy
 from numpy.typing import NDArray
+from numpy import floating, complexfloating
 
 
 # Field types
-fdfield_t = NDArray[numpy.float_]
+fdfield_t = NDArray[floating]
 """Vector field with shape (3, X, Y, Z) (e.g. `[E_x, E_y, E_z]`)"""
 
-vfdfield_t = NDArray[numpy.float_]
+vfdfield_t = NDArray[floating]
 """Linearized vector field (single vector of length 3*X*Y*Z)"""
 
-cfdfield_t = NDArray[numpy.complex_]
+cfdfield_t = NDArray[complexfloating]
 """Complex vector field with shape (3, X, Y, Z) (e.g. `[E_x, E_y, E_z]`)"""
 
-vcfdfield_t = NDArray[numpy.complex_]
+vcfdfield_t = NDArray[complexfloating]
 """Linearized complex vector field (single vector of length 3*X*Y*Z)"""
 
 
-dx_lists_t = Sequence[Sequence[NDArray[numpy.float_]]]
+dx_lists_t = Sequence[Sequence[NDArray[floating]]]
 """
  'dxes' datastructure which contains grid cell width information in the following format:
 
@@ -31,7 +31,7 @@ dx_lists_t = Sequence[Sequence[NDArray[numpy.float_]]]
    and `dy_h[0]` is the y-width of the `y=0` cells, as used when calculating dH/dy, etc.
 """
 
-dx_lists_mut = MutableSequence[MutableSequence[NDArray[numpy.float_]]]
+dx_lists_mut = MutableSequence[MutableSequence[NDArray[floating]]]
 """Mutable version of `dx_lists_t`"""
 
 

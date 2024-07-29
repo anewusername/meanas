@@ -6,6 +6,7 @@ Basic discrete calculus etc.
 from typing import Sequence
 import numpy
 from numpy.typing import NDArray
+from numpy import floating
 import scipy.sparse as sparse   # type: ignore
 
 from .types import vfdfield_t
@@ -96,7 +97,7 @@ def shift_with_mirror(
 
 
 def deriv_forward(
-        dx_e: Sequence[NDArray[numpy.float_]],
+        dx_e: Sequence[NDArray[floating]],
         ) -> list[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (forward variant).
@@ -123,7 +124,7 @@ def deriv_forward(
 
 
 def deriv_back(
-        dx_h: Sequence[NDArray[numpy.float_]],
+        dx_h: Sequence[NDArray[floating]],
         ) -> list[sparse.spmatrix]:
     """
     Utility operators for taking discretized derivatives (backward variant).
@@ -218,7 +219,7 @@ def avg_back(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
 
 
 def curl_forward(
-        dx_e: Sequence[NDArray[numpy.float_]],
+        dx_e: Sequence[NDArray[floating]],
         ) -> sparse.spmatrix:
     """
     Curl operator for use with the E field.
@@ -234,7 +235,7 @@ def curl_forward(
 
 
 def curl_back(
-        dx_h: Sequence[NDArray[numpy.float_]],
+        dx_h: Sequence[NDArray[floating]],
         ) -> sparse.spmatrix:
     """
     Curl operator for use with the H field.
