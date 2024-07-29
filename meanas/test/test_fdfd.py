@@ -1,4 +1,4 @@
-from typing import Iterable
+# ruff: noqa: ARG001
 import dataclasses
 import pytest       # type: ignore
 import numpy
@@ -61,24 +61,24 @@ def test_poynting_planes(sim: 'FDResult') -> None:
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def omega(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
-    yield request.param
+def pec(request: FixtureRequest) -> NDArray[numpy.float64] | None:
+    return request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
-    yield request.param
+def pmc(request: FixtureRequest) -> NDArray[numpy.float64] | None:
+    return request.param
 
 
 #@pytest.fixture(scope='module',
 #                params=[(25, 5, 5)])
-#def shape(request):
-#    yield (3, *request.param)
+#def shape(request: FixtureRequest):
+#    return (3, *request.param)
 
 
 @pytest.fixture(params=['diag'])        # 'center'
@@ -86,7 +86,7 @@ def j_distribution(
         request: FixtureRequest,
         shape: tuple[int, ...],
         j_mag: float,
-        ) -> Iterable[NDArray[numpy.float64]]:
+        ) -> NDArray[numpy.float64]:
     j = numpy.zeros(shape, dtype=complex)
     center_mask = numpy.zeros(shape, dtype=bool)
     center_mask[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = True
@@ -96,7 +96,7 @@ def j_distribution(
     elif request.param == 'diag':
         j[numpy.roll(center_mask, [1, 1, 1], axis=(1, 2, 3))] = (1 + 1j) * j_mag
         j[numpy.roll(center_mask, [-1, -1, -1], axis=(1, 2, 3))] = (1 - 1j) * j_mag
-    yield j
+    return j
 
 
 @dataclasses.dataclass()

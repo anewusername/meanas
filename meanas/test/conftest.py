@@ -3,7 +3,8 @@
 Test fixtures
 
 """
-from typing import Iterable, Any
+# ruff: noqa: ARG001
+from typing import Any
 import numpy
 from numpy.typing import NDArray
 import pytest       # type: ignore
@@ -20,18 +21,18 @@ FixtureRequest = Any
                         (5, 5, 5),
                         # (7, 7, 7),
                        ])
-def shape(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
-    yield (3, *request.param)
+def shape(request: FixtureRequest) -> tuple[int, ...]:
+    return (3, *request.param)
 
 
 @pytest.fixture(scope='module', params=[1.0, 1.5])
-def epsilon_bg(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def epsilon_bg(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(scope='module', params=[1.0, 2.5])
-def epsilon_fg(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def epsilon_fg(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(scope='module', params=['center', '000', 'random'])
@@ -40,7 +41,7 @@ def epsilon(
         shape: tuple[int, ...],
         epsilon_bg: float,
         epsilon_fg: float,
-        ) -> Iterable[NDArray[numpy.float64]]:
+        ) -> NDArray[numpy.float64]:
     is3d = (numpy.array(shape) == 1).sum() == 0
     if is3d:
         if request.param == '000':
@@ -60,17 +61,17 @@ def epsilon(
                                   high=max(epsilon_bg, epsilon_fg),
                                   size=shape)
 
-    yield epsilon
+    return epsilon
 
 
 @pytest.fixture(scope='module', params=[1.0])  # 1.5
-def j_mag(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def j_mag(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(scope='module', params=[1.0, 1.5])
-def dx(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def dx(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(scope='module', params=['uniform', 'centerbig'])
@@ -78,7 +79,7 @@ def dxes(
         request: FixtureRequest,
         shape: tuple[int, ...],
         dx: float,
-        ) -> Iterable[list[list[NDArray[numpy.float64]]]]:
+        ) -> list[list[NDArray[numpy.float64]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     elif request.param == 'centerbig':
@@ -90,5 +91,5 @@ def dxes(
         dxe = [PRNG.uniform(low=1.0 * dx, high=1.1 * dx, size=s) for s in shape[1:]]
         dxh = [(d + numpy.roll(d, -1)) / 2 for d in dxe]
         dxes = [dxe, dxh]
-    yield dxes
+    return dxes
 

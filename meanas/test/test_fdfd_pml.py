@@ -1,4 +1,4 @@
-from typing import Iterable
+# ruff: noqa: ARG001
 import pytest       # type: ignore
 import numpy
 from numpy.typing import NDArray
@@ -44,30 +44,30 @@ def test_pml(sim: FDResult, src_polarity: int) -> None:
 # Also see conftest.py
 
 @pytest.fixture(params=[1 / 1500])
-def omega(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def omega(request: FixtureRequest) -> float:
+    return request.param
 
 
 @pytest.fixture(params=[None])
-def pec(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
-    yield request.param
+def pec(request: FixtureRequest) -> NDArray[numpy.float64] | None:
+    return request.param
 
 
 @pytest.fixture(params=[None])
-def pmc(request: FixtureRequest) -> Iterable[NDArray[numpy.float64] | None]:
-    yield request.param
+def pmc(request: FixtureRequest) -> NDArray[numpy.float64] | None:
+    return request.param
 
 
 @pytest.fixture(params=[(30, 1, 1),
                         (1, 30, 1),
                         (1, 1, 30)])
-def shape(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
-    yield (3, *request.param)
+def shape(request: FixtureRequest) -> tuple[int, int, int]:
+    return (3, *request.param)
 
 
 @pytest.fixture(params=[+1, -1])
-def src_polarity(request: FixtureRequest) -> Iterable[int]:
-    yield request.param
+def src_polarity(request: FixtureRequest) -> int:
+    return request.param
 
 
 @pytest.fixture()
@@ -78,7 +78,7 @@ def j_distribution(
         dxes: dx_lists_mut,
         omega: float,
         src_polarity: int,
-        ) -> Iterable[NDArray[numpy.complex128]]:
+        ) -> NDArray[numpy.complex128]:
     j = numpy.zeros(shape, dtype=complex)
 
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -106,7 +106,7 @@ def j_distribution(
 
     j = fdfd.waveguide_3d.compute_source(E=e, wavenumber=wavenumber_corrected, omega=omega, dxes=dxes,
                                          axis=dim, polarity=src_polarity, slices=slices, epsilon=epsilon)
-    yield j
+    return j
 
 
 @pytest.fixture()
@@ -115,9 +115,9 @@ def epsilon(
         shape: tuple[int, ...],
         epsilon_bg: float,
         epsilon_fg: float,
-        ) -> Iterable[NDArray[numpy.float64]]:
+        ) -> NDArray[numpy.float64]:
     epsilon = numpy.full(shape, epsilon_fg, dtype=float)
-    yield epsilon
+    return epsilon
 
 
 @pytest.fixture(params=['uniform'])
@@ -127,7 +127,7 @@ def dxes(
         dx: float,
         omega: float,
         epsilon_fg: float,
-        ) -> Iterable[list[list[NDArray[numpy.float64]]]]:
+        ) -> list[list[NDArray[numpy.float64]]]:
     if request.param == 'uniform':
         dxes = [[numpy.full(s, dx) for s in shape[1:]] for _ in range(2)]
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -141,7 +141,7 @@ def dxes(
                 epsilon_effective=epsilon_fg,
                 thickness=10,
                 )
-    yield dxes
+    return dxes
 
 
 @pytest.fixture()

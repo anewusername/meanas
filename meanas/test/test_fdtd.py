@@ -1,4 +1,5 @@
-from typing import Iterable, Any
+# ruff: noqa: ARG001
+from typing import Any
 import dataclasses
 import pytest       # type: ignore
 import numpy
@@ -150,8 +151,8 @@ def test_poynting_planes(sim: 'TDResult') -> None:
 
 
 @pytest.fixture(params=[0.3])
-def dt(request: FixtureRequest) -> Iterable[float]:
-    yield request.param
+def dt(request: FixtureRequest) -> float:
+    return request.param
 
 
 @dataclasses.dataclass()
@@ -168,8 +169,8 @@ class TDResult:
 
 
 @pytest.fixture(params=[(0, 4, 8)])  # (0,)
-def j_steps(request: FixtureRequest) -> Iterable[tuple[int, ...]]:
-    yield request.param
+def j_steps(request: FixtureRequest) -> tuple[int, ...]:
+    return request.param
 
 
 @pytest.fixture(params=['center', 'random'])
@@ -177,7 +178,7 @@ def j_distribution(
         request: FixtureRequest,
         shape: tuple[int, ...],
         j_mag: float,
-        ) -> Iterable[NDArray[numpy.float64]]:
+        ) -> NDArray[numpy.float64]:
     j = numpy.zeros(shape)
     if request.param == 'center':
         j[:, shape[1] // 2, shape[2] // 2, shape[3] // 2] = j_mag
@@ -185,7 +186,7 @@ def j_distribution(
         j[:, 0, 0, 0] = j_mag
     elif request.param == 'random':
         j[:] = PRNG.uniform(low=-j_mag, high=j_mag, size=shape)
-    yield j
+    return j
 
 
 @pytest.fixture()
@@ -199,9 +200,8 @@ def sim(
         j_steps: tuple[int, ...],
         ) -> TDResult:
     is3d = (numpy.array(shape) == 1).sum() == 0
-    if is3d:
-        if dt != 0.3:
-            pytest.skip('Skipping dt != 0.3 because test is 3D (for speed)')
+    if is3d and dt != 0.3:
+        pytest.skip('Skipping dt != 0.3 because test is 3D (for speed)')
 
     sim = TDResult(
         shape=shape,
