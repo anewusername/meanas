@@ -321,11 +321,11 @@ def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [shift_circ(i, shape, 1) for i in range(3)]
+    fx, fy, fz = (shift_circ(i, shape, 1) for i in range(3))
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    Ex, Ey, Ez = [ei * da for ei, da in zip(numpy.split(e, 3), dxag)]
+    Ex, Ey, Ez = (ei * da for ei, da in zip(numpy.split(e, 3), dxag, strict=True))
 
     block_diags = [[ None,     fx @ -Ez, fx @  Ey],
                    [ fy @  Ez, None,     fy @ -Ex],
@@ -349,11 +349,11 @@ def poynting_h_cross(h: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     """
     shape = [len(dx) for dx in dxes[0]]
 
-    fx, fy, fz = [shift_circ(i, shape, 1) for i in range(3)]
+    fx, fy, fz = (shift_circ(i, shape, 1) for i in range(3))
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    Hx, Hy, Hz = [sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg)]
+    Hx, Hy, Hz = (sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg, strict=True))
 
     P = (sparse.bmat(
         [[ None,    -Hz @ fx,   Hy @ fx],

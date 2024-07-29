@@ -232,7 +232,7 @@ def maxwell_operator(
             Raveled conv(1/mu_k, ik x conv(1/eps_k, ik x h_mn)), returned
             and overwritten in-place of `h`.
         """
-        hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
+        hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
 
         #{d,e,h}_xyz fields are complex 3-fields in (1/x, 1/y, 1/z) basis
 
@@ -303,7 +303,7 @@ def hmn_2_exyz(
     k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
-        hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
+        hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
         d_xyz = (n * hin_m
                - m * hin_n) * k_mag         # noqa: E128
 
@@ -341,7 +341,7 @@ def hmn_2_hxyz(
     _k_mag, m, n = generate_kmn(k0, G_matrix, shape)
 
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
-        hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
+        hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
         h_xyz = (m * hin_m
                + n * hin_n)     # noqa: E128
         return numpy.array([ifftn(hi) for hi in numpy.moveaxis(h_xyz, 3, 0)])
@@ -394,7 +394,7 @@ def inverse_maxwell_operator_approx(
         Returns:
             Raveled ik x conv(eps_k, ik x conv(mu_k, h_mn))
         """
-        hin_m, hin_n = [hi.reshape(shape) for hi in numpy.split(h, 2)]
+        hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
 
         #{d,e,h}_xyz fields are complex 3-fields in (1/x, 1/y, 1/z) basis
 
