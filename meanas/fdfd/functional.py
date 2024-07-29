@@ -47,8 +47,7 @@ def e_full(
 
     if mu is None:
         return op_1
-    else:
-        return op_mu
+    return op_mu
 
 
 def eh_full(
@@ -84,8 +83,7 @@ def eh_full(
 
     if mu is None:
         return op_1
-    else:
-        return op_mu
+    return op_mu
 
 
 def e2h(
@@ -116,8 +114,7 @@ def e2h(
 
     if mu is None:
         return e2h_1_1
-    else:
-        return e2h_mu
+    return e2h_mu
 
 
 def m2j(
@@ -151,8 +148,7 @@ def m2j(
 
     if mu is None:
         return m2j_1
-    else:
-        return m2j_mu
+    return m2j_mu
 
 
 def e_tfsf_source(
