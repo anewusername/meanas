@@ -741,8 +741,24 @@ the true values can be multiplied back in after the simulation is complete if no
 normalized results are needed.
 """
 
-from .types import fdfield_t, vfdfield_t, cfdfield_t, vcfdfield_t, dx_lists_t, dx_lists_mut
-from .types import fdfield_updater_t, cfdfield_updater_t
-from .vectorization import vec, unvec
-from . import operators, functional, types, vectorization
+from .types import (
+    fdfield_t as fdfield_t,
+    vfdfield_t as vfdfield_t,
+    cfdfield_t as cfdfield_t,
+    vcfdfield_t as vcfdfield_t,
+    dx_lists_t as dx_lists_t,
+    dx_lists_mut as dx_lists_mut,
+    fdfield_updater_t as fdfield_updater_t,
+    cfdfield_updater_t as cfdfield_updater_t,
+    )
+from .vectorization import (
+    vec as vec,
+    unvec as unvec,
+    )
+from . import (
+    operators as operators,
+    functional as functional,
+    types as types,
+    vectorization as vectorization,
+    )
 

@@ -159,8 +159,22 @@ Boundary conditions
 # TODO notes about boundaries / PMLs
 """
 
-from .base import maxwell_e, maxwell_h
-from .pml import cpml_params, updates_with_cpml
-from .energy import (poynting, poynting_divergence, energy_hstep, energy_estep,
-                     delta_energy_h2e, delta_energy_j)
-from .boundaries import conducting_boundary
+from .base import (
+    maxwell_e as maxwell_e,
+    maxwell_h as maxwell_h,
+    )
+from .pml import (
+    cpml_params as cpml_params,
+    updates_with_cpml as updates_with_cpml,
+    )
+from .energy import (
+    poynting as poynting,
+    poynting_divergence as poynting_divergence,
+    energy_hstep as energy_hstep,
+    energy_estep as energy_estep,
+    delta_energy_h2e as delta_energy_h2e,
+    delta_energy_j as delta_energy_j,
+    )
+from .boundaries import (
+    conducting_boundary as conducting_boundary,
+    )

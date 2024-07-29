@@ -91,5 +91,12 @@ $$
 
 
 """
-from . import solvers, operators, functional, scpml, waveguide_2d, waveguide_3d
+from . import (
+    solvers as solvers,
+    operators as operators,
+    functional as functional,
+    scpml as scpml,
+    waveguide_2d as waveguide_2d,
+    waveguide_3d as waveguide_3d,
+    )
 # from . import farfield, bloch TODO
