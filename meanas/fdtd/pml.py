@@ -185,7 +185,7 @@ def updates_with_cpml(
     def update_H(
             e: fdfield_t,
             h: fdfield_t,
-            mu: fdfield_t = numpy.ones(3),
+            mu: fdfield_t | tuple[int, int, int] = (1, 1, 1),
             ) -> None:
         dyEx = Dfy(e[0])
         dzEx = Dfz(e[0])
