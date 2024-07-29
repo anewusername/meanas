@@ -114,7 +114,6 @@ logger = logging.getLogger(__name__)
 try:
     import pyfftw.interfaces.numpy_fft  # type: ignore
     import pyfftw.interfaces            # type: ignore
-    import multiprocessing
     logger.info('Using pyfftw')
 
     pyfftw.interfaces.cache.enable()
