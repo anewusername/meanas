@@ -39,7 +39,7 @@ include = [
     ]
 dynamic = ["version"]
 dependencies = [
-    "numpy~=1.21",
+    "numpy~=1.26",
     "scipy",
     ]
 
