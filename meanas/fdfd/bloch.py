@@ -647,8 +647,7 @@ def eigsolve(
 
         Qi_memo: list[float | None] = [None, None]
 
-        def Qi_func(theta: float) -> float:
-            nonlocal Qi_memo
+        def Qi_func(theta: float, Qi_memo=Qi_memo, ZtZ=ZtZ, DtD=DtD, symZtD=symZtD) -> float:   # noqa: ANN001
             if Qi_memo[0] == theta:
                 return cast(float, Qi_memo[1])
 
@@ -672,7 +671,7 @@ def eigsolve(
             Qi_memo[1] = cast(float, Qi)
             return cast(float, Qi)
 
-        def trace_func(theta: float) -> float:
+        def trace_func(theta: float, ZtAZ=ZtAZ, DtAD=DtAD, symZtAD=symZtAD) -> float:           # noqa: ANN001
             c = numpy.cos(theta)
             s = numpy.sin(theta)
             Qi = Qi_func(theta)
@@ -681,7 +680,7 @@ def eigsolve(
             return numpy.abs(trace)
 
         if False:
-            def trace_deriv(theta):
+            def trace_deriv(theta, sgn: int = sgn, ZtAZ=ZtAZ, DtAD=DtAD, symZtD=symZtD, symZtAD=symZtAD, ZtZ=ZtZ, DtD=DtD):     # noqa: ANN001
                 Qi = Qi_func(theta)
                 c2 = numpy.cos(2 * theta)
                 s2 = numpy.sin(2 * theta)
