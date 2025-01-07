@@ -845,13 +845,13 @@ def solve_modes(
             ability to find the correct mode. Default 2.
 
     Returns:
-        e_xys: list of vfdfield_t specifying fields
+        e_xys: NDArray of vfdfield_t specifying fields. First dimension is mode number.
         wavenumbers: list of wavenumbers
     """
 
-    '''
-    Solve for the largest-magnitude eigenvalue of the real operator
-    '''
+    #
+    # Solve for the largest-magnitude eigenvalue of the real operator
+    #
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
     mu_real = None if mu is None else numpy.real(mu)
     A_r = operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), mu_real)
@@ -859,10 +859,10 @@ def solve_modes(
     eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
     e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)]
 
-    '''
-    Now solve for the eigenvector of the full operator, using the real operator's
-     eigenvector as an initial guess for Rayleigh quotient iteration.
-    '''
+    #
+    # Now solve for the eigenvector of the full operator, using the real operator's
+    #  eigenvector as an initial guess for Rayleigh quotient iteration.
+    #
     A = operator_e(omega, dxes, epsilon, mu)
     for nn in range(len(mode_numbers)):
         eigvals[nn], e_xys[:, nn] = rayleigh_quotient_iteration(A, e_xys[:, nn])

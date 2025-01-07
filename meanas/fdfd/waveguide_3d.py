@@ -53,9 +53,9 @@ def solve_mode(
 
     slices = tuple(slices)
 
-    '''
-    Solve the 2D problem in the specified plane
-    '''
+    #
+    # Solve the 2D problem in the specified plane
+    #
     # Define rotation to set z as propagation direction
     order = numpy.roll(range(3), 2 - axis)
     reverse_order = numpy.roll(range(3), axis - 2)
@@ -73,9 +73,10 @@ def solve_mode(
     }
     e_xy, wavenumber_2d = waveguide_2d.solve_mode(mode_number, **args_2d)
 
-    '''
-    Apply corrections and expand to 3D
-    '''
+    #
+    # Apply corrections and expand to 3D
+    #
+
     # Correct wavenumber to account for numerical dispersion.
     wavenumber = 2 / dx_prop * numpy.arcsin(wavenumber_2d * dx_prop / 2)
 

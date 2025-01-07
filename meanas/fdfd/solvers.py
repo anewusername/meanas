@@ -35,9 +35,9 @@ def _scipy_qmr(
         Guess for solution (returned even if didn't converge)
     """
 
-    '''
-    Report on our progress
-    '''
+    #
+    #Report on our progress
+    #
     ii = 0
 
     def log_residual(xk: ArrayLike) -> None:
@@ -56,10 +56,9 @@ def _scipy_qmr(
     else:
         kwargs['callback'] = log_residual
 
-    '''
-    Run the actual solve
-    '''
-
+    #
+    # Run the actual solve
+    #
     x, _ = scipy.sparse.linalg.qmr(A, b, **kwargs)
     return x
 

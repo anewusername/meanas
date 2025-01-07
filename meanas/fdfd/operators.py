@@ -40,7 +40,7 @@ __author__ = 'Jan Petykiewicz'
 def e_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t,
+        epsilon: vfdfield_t | vcfdfield_t,
         mu: vfdfield_t | None = None,
         pec: vfdfield_t | None = None,
         pmc: vfdfield_t | None = None,

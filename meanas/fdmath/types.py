@@ -20,7 +20,7 @@ vcfdfield_t = NDArray[complexfloating]
 """Linearized complex vector field (single vector of length 3*X*Y*Z)"""
 
 
-dx_lists_t = Sequence[Sequence[NDArray[floating]]]
+dx_lists_t = Sequence[Sequence[NDArray[floating | complexfloating]]]
 """
  'dxes' datastructure which contains grid cell width information in the following format:
 
@@ -31,7 +31,7 @@ dx_lists_t = Sequence[Sequence[NDArray[floating]]]
    and `dy_h[0]` is the y-width of the `y=0` cells, as used when calculating dH/dy, etc.
 """
 
-dx_lists_mut = MutableSequence[MutableSequence[NDArray[floating]]]
+dx_lists_mut = MutableSequence[MutableSequence[NDArray[floating | complexfloating]]]
 """Mutable version of `dx_lists_t`"""
 
 
