@@ -8,10 +8,14 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 """
 # TODO update module docs
 
+from typing import Any
+from collections.abc import Sequence
+
 import numpy
+from numpy.typing import NDArray, ArrayLike
 from scipy import sparse
 
-from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, cfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
@@ -21,6 +25,7 @@ def cylindrical_operator(
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         r0: float,
+        rmin: float,
         ) -> sparse.spmatrix:
     """
     Cylindrical coordinate waveguide operator of the form
@@ -42,8 +47,8 @@ def cylindrical_operator(
         omega: The angular frequency of the system
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
-        r0: Radius of curvature for the simulation. This should be the minimum value of
-            r within the simulation domain.
+        r0: Radius of curvature at x=0
+        rmin: Radius at the left edge of the simulation domain
 
     Returns:
         Sparse matrix representation of the operator
@@ -52,44 +57,52 @@ def cylindrical_operator(
     Dfx, Dfy = deriv_forward(dxes[0])
     Dbx, Dby = deriv_back(dxes[1])
 
-    rx = r0 + numpy.cumsum(dxes[0][0])
-    ry = r0 + dxes[0][0] / 2.0 + numpy.cumsum(dxes[1][0])
-    tx = rx / r0
-    ty = ry / r0
+    ra = rmin + dxes[0][0] / 2.0 + numpy.cumsum(dxes[1][0])   # Radius at Ex points
+    rb = rmin + numpy.cumsum(dxes[0][0])                      # Radius at Ey points
+    ta = ra / r0
+    tb = rb / r0
 
-    Tx = sparse.diags(vec(tx[:, None].repeat(dxes[0][1].size, axis=1)))
-    Ty = sparse.diags(vec(ty[:, None].repeat(dxes[1][1].size, axis=1)))
+    Ta = sparse.diags(vec(ta[:, None].repeat(dxes[0][1].size, axis=1)))
+    Tb = sparse.diags(vec(tb[:, None].repeat(dxes[1][1].size, axis=1)))
 
     eps_parts = numpy.split(epsilon, 3)
     eps_x = sparse.diags(eps_parts[0])
     eps_y = sparse.diags(eps_parts[1])
     eps_z_inv = sparse.diags(1 / eps_parts[2])
 
-    pa = sparse.vstack((Dfx, Dfy)) @ Tx @ eps_z_inv @ sparse.hstack((Dbx, Dby))
-    pb = sparse.vstack((Dfx, Dfy)) @ Tx @ eps_z_inv @ sparse.hstack((Dby, Dbx))
-    a0 = Ty @ eps_x + omega**-2 * Dby @ Ty @ Dfy
-    a1 = Tx @ eps_y + omega**-2 * Dbx @ Ty @ Dfx
-    b0 = Dbx @ Ty @ Dfy
-    b1 = Dby @ Ty @ Dfx
-
+    omega2 = omega * omega
     diag = sparse.block_diag
 
-    omega2 = omega * omega
+    sq0 = omega2 * diag((Tb @ Tb @ eps_x,
+                         Ta @ Ta @ eps_y))
+    lin0 = sparse.vstack((-Tb @ Dby, Ta @ Dbx)) @ Tb @ sparse.hstack((-Dfy, Dfx))
+    lin1 = sparse.vstack((Dfx, Dfy)) @ Ta @ eps_z_inv @ sparse.hstack((Dbx @ Tb @ eps_x,
+                                                                       Dby @ Ta @ eps_y))
+    # op = (
+    #     # E
+    #     omega * omega * mu_yx @ eps_xy
+    #     + mu_yx @ sparse.vstack((-Dby, Dbx)) @ mu_z_inv @ sparse.hstack((-Dfy, Dfx))
+    #     + sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby)) @ eps_xy
 
-    op = (
-        (omega2 * diag((Tx, Ty)) + pa) @ diag((a0, a1))
-        - (sparse.bmat(((None, Ty), (Tx, None))) + pb / omega2) @ diag((b0, b1))
-        )
+    #     # H
+    #     omega * omega * eps_yx @ mu_xy
+    #     + eps_yx @ sparse.vstack((-Dfy, Dfx)) @ eps_z_inv @ sparse.hstack((-Dby, Dbx))
+    #     + sparse.vstack((Dbx, Dby)) @ mu_z_inv @ sparse.hstack((Dfx, Dfy)) @ mu_xy
+    #     )
+
+    op = sq0 + lin0 + lin1
     return op
 
 
-def solve_mode(
-        mode_number: int,
+def solve_modes(
+        mode_numbers: Sequence[int],
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         r0: float,
-        ) -> dict[str, complex | cfdfield_t]:
+        rmin: float,
+        mode_margin: int = 2,
+        ) -> tuple[vcfdfield_t, NDArray[numpy.complex64]]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
@@ -105,44 +118,50 @@ def solve_mode(
             r within the simulation domain.
 
     Returns:
-        ```
-        {
-            'E': list[NDArray[numpy.complex_]],
-            'H': list[NDArray[numpy.complex_]],
-            'wavenumber': complex,
-        }
-        ```
+        e_xys: NDArray of vfdfield_t specifying fields. First dimension is mode number.
+        wavenumbers: list of wavenumbers
     """
 
-    '''
-    Solve for the largest-magnitude eigenvalue of the real operator
-    '''
+    #
+    # Solve for the largest-magnitude eigenvalue of the real operator
+    #
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
 
-    A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0)
-    eigvals, eigvecs = signed_eigensolve(A_r, mode_number + 3)
-    e_xy = eigvecs[:, -(mode_number + 1)]
+    A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0=r0, rmin=rmin)
+    eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
+    e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)].T
 
-    '''
-    Now solve for the eigenvector of the full operator, using the real operator's
-     eigenvector as an initial guess for Rayleigh quotient iteration.
-    '''
-    A = cylindrical_operator(omega, dxes, epsilon, r0)
-    eigval, e_xy = rayleigh_quotient_iteration(A, e_xy)
+    #
+    # Now solve for the eigenvector of the full operator, using the real operator's
+    #  eigenvector as an initial guess for Rayleigh quotient iteration.
+    #
+    A = cylindrical_operator(omega, dxes, epsilon, r0=r0, rmin=rmin)
+    for nn in range(len(mode_numbers)):
+        eigvals[nn], e_xys[nn, :] = rayleigh_quotient_iteration(A, e_xys[nn, :])
 
     # Calculate the wave-vector (force the real part to be positive)
-    wavenumber = numpy.sqrt(eigval)
-    wavenumber *= numpy.sign(numpy.real(wavenumber))
+    wavenumbers = numpy.sqrt(eigvals)
+    wavenumbers *= numpy.sign(numpy.real(wavenumbers))
 
-    # TODO: Perform correction on wavenumber to account for numerical dispersion.
+    return e_xys, wavenumbers
 
-    shape = [d.size for d in dxes[0]]
-    e_xy = numpy.hstack((e_xy, numpy.zeros(shape[0] * shape[1])))
-    fields = {
-        'wavenumber': wavenumber,
-        'E': unvec(e_xy, shape),
-        # 'E': unvec(e, shape),
-        # 'H': unvec(h, shape),
-    }
 
-    return fields
+def solve_mode(
+        mode_number: int,
+        *args: Any,
+        **kwargs: Any,
+        ) -> tuple[vcfdfield_t, complex]:
+    """
+    Wrapper around `solve_modes()` that solves for a single mode.
+
+    Args:
+       mode_number: 0-indexed mode number to solve for
+       *args: passed to `solve_modes()`
+       **kwargs: passed to `solve_modes()`
+
+    Returns:
+        (e_xy, wavenumber)
+    """
+    kwargs['mode_numbers'] = [mode_number]
+    e_xys, wavenumbers = solve_modes(*args, **kwargs)
+    return e_xys[0], wavenumbers[0]
