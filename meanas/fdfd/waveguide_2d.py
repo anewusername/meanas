@@ -179,6 +179,7 @@ to account for numerical dispersion if the result is introduced into a space wit
 # TODO update module docs
 
 from typing import Any
+from collections.abc import Sequence
 import numpy
 from numpy.typing import NDArray, ArrayLike
 from numpy.linalg import norm
@@ -871,7 +872,7 @@ def solve_modes(
     wavenumbers = numpy.sqrt(eigvals)
     wavenumbers *= numpy.sign(numpy.real(wavenumbers))
 
-    return e_xys, wavenumbers
+    return e_xys.T, wavenumbers
 
 
 def solve_mode(
@@ -892,4 +893,4 @@ def solve_mode(
     """
     kwargs['mode_numbers'] = [mode_number]
     e_xys, wavenumbers = solve_modes(*args, **kwargs)
-    return e_xys[:, 0], wavenumbers[0]
+    return e_xys[0], wavenumbers[0]
