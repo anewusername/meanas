@@ -171,3 +171,43 @@ def solve_mode(
     e_xys, wavenumbers = solve_modes(*args, **kwargs)
     return e_xys[0], angular_wavenumbers[0]
 
+
+def linear_wavenumbers(
+        e_xys: vcfdfield_t,
+        angular_wavenumbers: ArrayLike,
+        epsilon: vfdfield_t,
+        dxes: dx_lists_t,
+        rmin: float,
+        ) -> NDArray[numpy.complex128]:
+    """
+    Calculate linear wavenumbers (1/distance) based on angular wavenumbers (1/rad)
+      and the mode's energy distribution.
+
+    Args:
+        e_xys: Vectorized mode fields with shape [num_modes, 2 * x *y)
+        angular_wavenumbers: Angular wavenumbers corresponding to the fields in `e_xys`
+        epsilon: Vectorized dielectric constant grid with shape (3, x, y)
+        dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
+        rmin: Radius at the left edge of the simulation domain (minimum 'x')
+
+    Returns:
+        NDArray containing the calculated linear (1/distance) wavenumbers
+    """
+    angular_wavenumbers = numpy.asarray(angular_wavenumbers)
+    mode_radii = numpy.empty_like(angular_wavenumbers, dtype=float)
+
+    wavenumbers = numpy.empty_like(angular_wavenumbers)
+    shape2d = (len(dxes[0][0]), len(dxes[0][1]))
+    epsilon2d = unvec(epsilon, shape2d)[:2]
+    grid_radii = rmin + numpy.cumsum(dxes[0][0])
+    for ii in range(angular_wavenumbers.size):
+        efield = unvec(e_xys[ii], shape2d, 2)
+        energy = numpy.real((efield * efield.conj()) * epsilon2d)
+        energy_vs_x = energy.sum(axis=(0, 2))
+        mode_radii[ii] = (grid_radii * energy_vs_x).sum() / energy_vs_x.sum()
+
+    logger.info(f'{mode_radii=}')
+    lin_wavenumbers = angular_wavenumbers / mode_radii
+    return lin_wavenumbers
+
+
