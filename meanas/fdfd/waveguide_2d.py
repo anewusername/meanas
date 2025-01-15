@@ -535,6 +535,33 @@ def exy2e(
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized E containing all three E components
 
+    From the operator derivation (see module docs), we have
+
+    $$
+    \imath \omega \epsilon_{zz} E_z &= \hat{\partial}_x H_y - \hat{\partial}_y H_x \\
+    $$
+
+    as well as the intermediate equations
+
+    $$
+    \begin{aligned}
+    \gamma H_y &=  \imath \omega \epsilon_{xx} E_x - \hat{\partial}_y H_z \\
+    \gamma H_x &= -\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z \\
+    \end{aligned}
+    $$
+
+    Combining these, we get
+
+    $$
+    \begin{aligned}
+    E_z &= \frac{1}{\imath \omega \gamma \epsilon_{zz}} ((
+             \hat{\partial}_y \hat{\partial}_x H_z
+            -\hat{\partial}_x \hat{\partial}_y H_z)
+          + \imath \omega (\hat{\partial}_x \epsilon_{xx} E_x + \hat{\partial}_y \epsilon{yy} E_y))
+        &= \frac{1}{\gamma \epsilon_{zz}} (\hat{\partial}_x \epsilon_{xx} E_x + \hat{\partial}_y \epsilon{yy} E_y)
+    \end{aligned}
+    $$
+
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
                     It should satisfy `operator_e() @ e_xy == wavenumber**2 * e_xy`
