@@ -126,7 +126,7 @@ def test1(solver=generic_solver):
     # #### Create the grid and draw the device ####
     grid = gridlock.Grid(edge_coords)
     epsilon = grid.allocate(n_air**2, dtype=numpy.float32)
-    grid.draw_cuboid(epsilon, center=center, dimensions=[8e3, w, th], eps=n_wg**2)
+    grid.draw_cuboid(epsilon, center=center, dimensions=[8e3, w, th], foreground=n_wg**2)
 
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
