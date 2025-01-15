@@ -435,6 +435,7 @@ def _normalized_fields(
     sign = numpy.sign(E_weighted[:,
                                  :max(shape[0] // 2, 1),
                                  :max(shape[1] // 2, 1)].real.sum())
+    assert sign != 0
 
     norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 
