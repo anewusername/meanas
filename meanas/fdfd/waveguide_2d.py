@@ -18,8 +18,8 @@ $$
 \begin{aligned}
 \nabla \times \vec{E}(x, y, z) &= -\imath \omega \mu \vec{H} \\
 \nabla \times \vec{H}(x, y, z) &=  \imath \omega \epsilon \vec{E} \\
-\vec{E}(x,y,z) &= (\vec{E}_t(x, y) + E_z(x, y)\vec{z}) e^{-\gamma z} \\
-\vec{H}(x,y,z) &= (\vec{H}_t(x, y) + H_z(x, y)\vec{z}) e^{-\gamma z} \\
+\vec{E}(x,y,z) &= (\vec{E}_t(x, y) + E_z(x, y)\vec{z}) e^{-\imath \beta z} \\
+\vec{H}(x,y,z) &= (\vec{H}_t(x, y) + H_z(x, y)\vec{z}) e^{-\imath \beta z} \\
 \end{aligned}
 $$
 
@@ -40,56 +40,57 @@ Substituting in our expressions for $\vec{E}$, $\vec{H}$ and discretizing:
 
 $$
 \begin{aligned}
--\imath \omega \mu_{xx} H_x &= \tilde{\partial}_y E_z + \gamma E_y \\
--\imath \omega \mu_{yy} H_y &= -\gamma E_x - \tilde{\partial}_x E_z \\
+-\imath \omega \mu_{xx} H_x &= \tilde{\partial}_y E_z + \imath \beta E_y \\
+-\imath \omega \mu_{yy} H_y &= -\imath \beta E_x - \tilde{\partial}_x E_z \\
 -\imath \omega \mu_{zz} H_z &= \tilde{\partial}_x E_y - \tilde{\partial}_y E_x \\
-\imath \omega \epsilon_{xx} E_x &= \hat{\partial}_y H_z + \gamma H_y \\
-\imath \omega \epsilon_{yy} E_y &= -\gamma H_x - \hat{\partial}_x H_z \\
+\imath \omega \epsilon_{xx} E_x &= \hat{\partial}_y H_z + \imath \beta H_y \\
+\imath \omega \epsilon_{yy} E_y &= -\imath \beta H_x - \hat{\partial}_x H_z \\
 \imath \omega \epsilon_{zz} E_z &= \hat{\partial}_x H_y - \hat{\partial}_y H_x \\
 \end{aligned}
 $$
 
 Rewrite the last three equations as
+
 $$
 \begin{aligned}
-\gamma H_y &=  \imath \omega \epsilon_{xx} E_x - \hat{\partial}_y H_z \\
-\gamma H_x &= -\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z \\
+\imath \beta H_y &=  \imath \omega \epsilon_{xx} E_x - \hat{\partial}_y H_z \\
+\imath \beta H_x &= -\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z \\
 \imath \omega E_z &= \frac{1}{\epsilon_{zz}} \hat{\partial}_x H_y - \frac{1}{\epsilon_{zz}} \hat{\partial}_y H_x \\
 \end{aligned}
 $$
 
-Now apply $\gamma \tilde{\partial}_x$ to the last equation,
-then substitute in for $\gamma H_x$ and $\gamma H_y$:
+Now apply $\imath \beta \tilde{\partial}_x$ to the last equation,
+then substitute in for $\imath \beta H_x$ and $\imath \beta H_y$:
 
 $$
 \begin{aligned}
-\gamma \tilde{\partial}_x \imath \omega E_z &= \gamma \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x H_y
-                                             - \gamma \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y H_x \\
+\imath \beta \tilde{\partial}_x \imath \omega E_z &= \imath \beta \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x H_y
+                                                   - \imath \beta \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y H_x \\
         &= \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x ( \imath \omega \epsilon_{xx} E_x - \hat{\partial}_y H_z)
          - \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y (-\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z)  \\
         &= \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x ( \imath \omega \epsilon_{xx} E_x)
          - \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y (-\imath \omega \epsilon_{yy} E_y)  \\
-\gamma \tilde{\partial}_x E_z &= \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
-                               + \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y) \\
+\imath \beta \tilde{\partial}_x E_z &= \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
+                                     + \tilde{\partial}_x \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y) \\
 \end{aligned}
 $$
 
-With a similar approach (but using $\gamma \tilde{\partial}_y$ instead), we can get
+With a similar approach (but using $\imath \beta \tilde{\partial}_y$ instead), we can get
 
 $$
 \begin{aligned}
-\gamma \tilde{\partial}_y E_z &= \tilde{\partial}_y \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
-                               + \tilde{\partial}_y \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y) \\
+\imath \beta \tilde{\partial}_y E_z &= \tilde{\partial}_y \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
+                                     + \tilde{\partial}_y \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y) \\
 \end{aligned}
 $$
 
-We can combine this equation for $\gamma \tilde{\partial}_y E_z$ with
+We can combine this equation for $\imath \beta \tilde{\partial}_y E_z$ with
 the unused $\imath \omega \mu_{xx} H_x$ and $\imath \omega \mu_{yy} H_y$ equations to get
 
 $$
 \begin{aligned}
--\imath \omega \mu_{xx} \gamma H_x &=  \gamma^2 E_y + \gamma \tilde{\partial}_y E_z \\
--\imath \omega \mu_{xx} \gamma H_x &=  \gamma^2 E_y + \tilde{\partial}_y (
+-\imath \omega \mu_{xx} \imath \beta H_x &=  -\beta^2 E_y + \imath \beta \tilde{\partial}_y E_z \\
+-\imath \omega \mu_{xx} \imath \beta H_x &=  -\beta^2 E_y + \tilde{\partial}_y (
                                       \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
                                     + \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y)
                                     )\\
@@ -100,25 +101,24 @@ and
 
 $$
 \begin{aligned}
--\imath \omega \mu_{yy} \gamma H_y &= -\gamma^2 E_x - \gamma \tilde{\partial}_x E_z \\
--\imath \omega \mu_{yy} \gamma H_y &= -\gamma^2 E_x - \tilde{\partial}_x (
+-\imath \omega \mu_{yy} \imath \beta H_y &= \beta^2 E_x - \imath \beta \tilde{\partial}_x E_z \\
+-\imath \omega \mu_{yy} \imath \beta H_y &= \beta^2 E_x - \tilde{\partial}_x (
                                       \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
                                     + \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y)
                                     )\\
 \end{aligned}
 $$
 
-However, based on our rewritten equation for $\gamma H_x$ and the so-far unused
+However, based on our rewritten equation for $\imath \beta H_x$ and the so-far unused
 equation for $\imath \omega \mu_{zz} H_z$ we can also write
 
 $$
 \begin{aligned}
--\imath \omega \mu_{xx} (\gamma H_x) &= -\imath \omega \mu_{xx} (-\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z) \\
-                                     &= -\omega^2 \mu_{xx} \epsilon_{yy} E_y
-                                        +\imath \omega \mu_{xx} \hat{\partial}_x (
-                                           \frac{1}{-\imath \omega \mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x)) \\
-                                     &= -\omega^2 \mu_{xx} \epsilon_{yy} E_y
-                                        -\mu_{xx} \hat{\partial}_x \frac{1}{\mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x) \\
+-\imath \omega \mu_{xx} (\imath \beta H_x) &= -\imath \omega \mu_{xx} (-\imath \omega \epsilon_{yy} E_y - \hat{\partial}_x H_z) \\
+                 &= -\omega^2 \mu_{xx} \epsilon_{yy} E_y + \imath \omega \mu_{xx} \hat{\partial}_x (
+                         \frac{1}{-\imath \omega \mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x)) \\
+                 &= -\omega^2 \mu_{xx} \epsilon_{yy} E_y
+                         -\mu_{xx} \hat{\partial}_x \frac{1}{\mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x) \\
 \end{aligned}
 $$
 
@@ -126,7 +126,7 @@ and, similarly,
 
 $$
 \begin{aligned}
--\imath \omega \mu_{yy} (\gamma H_y) &= \omega^2 \mu_{yy} \epsilon_{xx} E_x
+-\imath \omega \mu_{yy} (\imath \beta H_y) &= \omega^2 \mu_{yy} \epsilon_{xx} E_x
                                            +\mu_{yy} \hat{\partial}_y \frac{1}{\mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x) \\
 \end{aligned}
 $$
@@ -135,12 +135,12 @@ By combining both pairs of expressions, we get
 
 $$
 \begin{aligned}
--\gamma^2 E_x - \tilde{\partial}_x (
+\beta^2 E_x - \tilde{\partial}_x (
     \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
   + \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y)
     ) &= \omega^2 \mu_{yy} \epsilon_{xx} E_x
         +\mu_{yy} \hat{\partial}_y \frac{1}{\mu_{zz}} (\tilde{\partial}_x E_y - \tilde{\partial}_y E_x) \\
-\gamma^2 E_y + \tilde{\partial}_y (
+-\beta^2 E_y + \tilde{\partial}_y (
     \frac{1}{\epsilon_{zz}} \hat{\partial}_x (\epsilon_{xx} E_x)
   + \frac{1}{\epsilon_{zz}} \hat{\partial}_y (\epsilon_{yy} E_y)
     ) &= -\omega^2 \mu_{xx} \epsilon_{yy} E_y
@@ -165,14 +165,13 @@ $$
                     E_y \end{bmatrix}
 $$
 
-where $\gamma = \imath\beta$. In the literature, $\beta$ is usually used to denote
-the lossless/real part of the propagation constant, but in `meanas` it is allowed to
-be complex.
+In the literature, $\beta$ is usually used to denote the lossless/real part of the propagation constant,
+but in `meanas` it is allowed to be complex.
 
 An equivalent eigenvalue problem can be formed using the $H_x$ and $H_y$ fields, if those are more convenient.
 
-Note that $E_z$ was never discretized, so $\gamma$ and $\beta$ will need adjustment
-to account for numerical dispersion if the result is introduced into a space with a discretized z-axis.
+Note that $E_z$ was never discretized, so $\beta$ will need adjustment to account for numerical dispersion
+if the result is introduced into a space with a discretized z-axis.
 
 
 """
