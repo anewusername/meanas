@@ -10,6 +10,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 
 from typing import Any
 from collections.abc import Sequence
+import logging
 
 import numpy
 from numpy.typing import NDArray, ArrayLike
@@ -18,6 +19,9 @@ from scipy import sparse
 from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
+
+
+logger = logging.getLogger(__name__)
 
 
 def cylindrical_operator(
