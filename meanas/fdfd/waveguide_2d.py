@@ -425,7 +425,7 @@ def _normalized_fields(
     Sz_tavg = numpy.real(Sz_a.sum() - Sz_b.sum()) * 0.5       # 0.5 since E, H are assumed to be peak (not RMS) amplitudes
     assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 
-    energy = epsilon * e.conj() * e
+    energy = numpy.real(epsilon * e.conj() * e)
 
     norm_amplitude = 1 / numpy.sqrt(Sz_tavg)
     norm_angle = -numpy.angle(e[energy.argmax()])       # Will randomly add a negative sign when mode is symmetric
