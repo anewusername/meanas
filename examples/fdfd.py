@@ -236,7 +236,7 @@ def test1(solver=generic_solver):
     pyplot.grid(alpha=0.6)
     pyplot.title('Overlap with mode')
     pyplot.show()
-    print('Average overlap with mode:', sum(q)/len(q))
+    print('Average overlap with mode:', sum(q[8:32])/len(q[8:32]))
 
 
 def module_available(name):
