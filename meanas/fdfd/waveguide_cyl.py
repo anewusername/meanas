@@ -28,7 +28,6 @@ def cylindrical_operator(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        r0: float,
         rmin: float,
         ) -> sparse.spmatrix:
     """
@@ -51,8 +50,7 @@ def cylindrical_operator(
         omega: The angular frequency of the system
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types` (2D)
         epsilon: Vectorized dielectric constant grid
-        r0: Radius of curvature at x=0
-        rmin: Radius at the left edge of the simulation domain
+        rmin: Radius at the left edge of the simulation domain (minimum 'x')
 
     Returns:
         Sparse matrix representation of the operator
@@ -61,13 +59,7 @@ def cylindrical_operator(
     Dfx, Dfy = deriv_forward(dxes[0])
     Dbx, Dby = deriv_back(dxes[1])
 
-    ra = rmin + dxes[0][0] / 2.0 + numpy.cumsum(dxes[1][0])   # Radius at Ex points
-    rb = rmin + numpy.cumsum(dxes[0][0])                      # Radius at Ey points
-    ta = ra / r0
-    tb = rb / r0
-
-    Ta = sparse.diags(vec(ta[:, None].repeat(dxes[0][1].size, axis=1)))
-    Tb = sparse.diags(vec(tb[:, None].repeat(dxes[1][1].size, axis=1)))
+    Ta, Tb = dxes2T(dxes=dxes, rmin=rmin)
 
     eps_parts = numpy.split(epsilon, 3)
     eps_x = sparse.diags(eps_parts[0])
@@ -103,10 +95,9 @@ def solve_modes(
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
-        r0: float,
         rmin: float,
         mode_margin: int = 2,
-        ) -> tuple[vcfdfield_t, NDArray[numpy.complex64]]:
+        ) -> tuple[vcfdfield_t, NDArray[numpy.complex128]]:
     """
     TODO: fixup
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
@@ -118,12 +109,12 @@ def solve_modes(
         dxes: Grid parameters [dx_e, dx_h] as described in meanas.fdmath.types.
               The first coordinate is assumed to be r, the second is y.
         epsilon: Dielectric constant
-        r0: Radius of curvature for the simulation. This should be the minimum value of
-            r within the simulation domain.
+        rmin: Radius of curvature for the simulation. This should be the minimum value of
+               r within the simulation domain.
 
     Returns:
         e_xys: NDArray of vfdfield_t specifying fields. First dimension is mode number.
-        wavenumbers: list of wavenumbers
+        angular_wavenumbers: list of wavenumbers in 1/rad units.
     """
 
     #
@@ -131,15 +122,17 @@ def solve_modes(
     #
     dxes_real = [[numpy.real(dx) for dx in dxi] for dxi in dxes]
 
-    A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), r0=r0, rmin=rmin)
+    A_r = cylindrical_operator(numpy.real(omega), dxes_real, numpy.real(epsilon), rmin=rmin)
     eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
-    e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)].T
+    keep_inds = -(numpy.array(mode_numbers) + 1)
+    e_xys = eigvecs[:, keep_inds].T
+    eigvals = eigvals[keep_inds]
 
     #
     # Now solve for the eigenvector of the full operator, using the real operator's
     #  eigenvector as an initial guess for Rayleigh quotient iteration.
     #
-    A = cylindrical_operator(omega, dxes, epsilon, r0=r0, rmin=rmin)
+    A = cylindrical_operator(omega, dxes, epsilon, rmin=rmin)
     for nn in range(len(mode_numbers)):
         eigvals[nn], e_xys[nn, :] = rayleigh_quotient_iteration(A, e_xys[nn, :])
 
@@ -147,7 +140,15 @@ def solve_modes(
     wavenumbers = numpy.sqrt(eigvals)
     wavenumbers *= numpy.sign(numpy.real(wavenumbers))
 
-    return e_xys, wavenumbers
+    # Wavenumbers assume the mode is at rmin, which is unlikely
+    # Instead, return the wavenumber in inverse radians
+    angular_wavenumbers = wavenumbers * rmin
+
+    order = angular_wavenumbers.argsort()[::-1]
+    e_xys = e_xys[order]
+    angular_wavenumbers = angular_wavenumbers[order]
+
+    return e_xys, angular_wavenumbers
 
 
 def solve_mode(
@@ -164,8 +165,9 @@ def solve_mode(
        **kwargs: passed to `solve_modes()`
 
     Returns:
-        (e_xy, wavenumber)
+        (e_xy, angular_wavenumber)
     """
     kwargs['mode_numbers'] = [mode_number]
     e_xys, wavenumbers = solve_modes(*args, **kwargs)
-    return e_xys[0], wavenumbers[0]
+    return e_xys[0], angular_wavenumbers[0]
+
