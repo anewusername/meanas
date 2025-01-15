@@ -414,15 +414,10 @@ def _normalized_fields(
     shape = [s.size for s in dxes[0]]
     dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
 
-    E = unvec(e, shape)
-    H = unvec(h, shape)
-
     # Find time-averaged Sz and normalize to it
     # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
     phase = numpy.exp(-1j * -prop_phase / 2)
-    Sz_a = E[0] * numpy.conj(H[1] * phase) * dxes_real[0][1] * dxes_real[1][0]
-    Sz_b = E[1] * numpy.conj(H[0] * phase) * dxes_real[0][0] * dxes_real[1][1]
-    Sz_tavg = numpy.real(Sz_a.sum() - Sz_b.sum()) * 0.5       # 0.5 since E, H are assumed to be peak (not RMS) amplitudes
+    Sz_tavg = inner_product(e, h, dxes=dxes, prop_phase=prop_phase, conj_h=True).real
     assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 
     energy = numpy.real(epsilon * e.conj() * e)
@@ -901,3 +896,37 @@ def solve_mode(
     kwargs['mode_numbers'] = [mode_number]
     e_xys, wavenumbers = solve_modes(*args, **kwargs)
     return e_xys[0], wavenumbers[0]
+
+
+def inner_product(    # TODO documentation
+        e1: vcfdfield_t,
+        h2: vcfdfield_t,
+        dxes: dx_lists_t,
+        prop_phase: float = 0,
+        conj_h: bool = False,
+        trapezoid: bool = False,
+        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+
+    shape = [s.size for s in dxes[0]]
+
+    # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
+    phase = numpy.exp(-1j * -prop_phase / 2)
+
+    E1 = unvec(e1, shape)
+    H2 = unvec(h2, shape) * phase
+
+    if conj_h:
+        H2 = numpy.conj(H2)
+
+    # Find time-averaged Sz and normalize to it
+    dxes_real = [[numpy.real(dxyz) for dxyz in dxeh] for dxeh in dxes]
+    if integrate:
+        Sz_a = numpy.trapezoid(numpy.trapezoid(E1[0] * H2[1], numpy.cumsum(dxes_real[0][1])), numpy.cumsum(dxes_real[1][0]))
+        Sz_b = numpy.trapezoid(numpy.trapezoid(E1[1] * H2[0], numpy.cumsum(dxes_real[0][0])), numpy.cumsum(dxes_real[1][1]))
+    else:
+        Sz_a = E1[0] * H2[1] * dxes_real[1][0][:, None] * dxes_real[0][1][None, :]
+        Sz_b = E1[1] * H2[0] * dxes_real[0][0][:, None] * dxes_real[1][1][None, :]
+    Sz = 0.5 * (Sz_a.sum() - Sz_b.sum())
+    return Sz
+
+
