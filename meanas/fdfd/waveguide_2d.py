@@ -826,7 +826,7 @@ def sensitivity(
 
 
 def solve_modes(
-        mode_numbers: list[int],
+        mode_numbers: Sequence[int],
         omega: complex,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
