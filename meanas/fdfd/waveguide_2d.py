@@ -859,7 +859,9 @@ def solve_modes(
     A_r = operator_e(numpy.real(omega), dxes_real, numpy.real(epsilon), mu_real)
 
     eigvals, eigvecs = signed_eigensolve(A_r, max(mode_numbers) + mode_margin)
-    e_xys = eigvecs[:, -(numpy.array(mode_numbers) + 1)]
+    keep_inds = -(numpy.array(mode_numbers) + 1)
+    e_xys = eigvecs[:, keep_inds].T
+    eigvals = eigvals[keep_inds]
 
     #
     # Now solve for the eigenvector of the full operator, using the real operator's
@@ -867,13 +869,17 @@ def solve_modes(
     #
     A = operator_e(omega, dxes, epsilon, mu)
     for nn in range(len(mode_numbers)):
-        eigvals[nn], e_xys[:, nn] = rayleigh_quotient_iteration(A, e_xys[:, nn])
+        eigvals[nn], e_xys[nn, :] = rayleigh_quotient_iteration(A, e_xys[nn, :])
 
     # Calculate the wave-vector (force the real part to be positive)
     wavenumbers = numpy.sqrt(eigvals)
     wavenumbers *= numpy.sign(numpy.real(wavenumbers))
 
-    return e_xys.T, wavenumbers
+    order = wavenumbers.argsort()[::-1]
+    e_xys = e_xys[order]
+    wavenumbers = wavenumbers[order]
+
+    return e_xys, wavenumbers
 
 
 def solve_mode(
