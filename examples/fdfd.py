@@ -46,20 +46,24 @@ def test0(solver=generic_solver):
     # #### Create the grid, mask, and draw the device ####
     grid = gridlock.Grid(edge_coords)
     epsilon = grid.allocate(n_air**2, dtype=numpy.float32)
-    grid.draw_cylinder(epsilon,
-                       surface_normal=2,
-                       center=center,
-                       radius=max(radii),
-                       thickness=th,
-                       eps=n_ring**2,
-                       num_points=24)
-    grid.draw_cylinder(epsilon,
-                       surface_normal=2,
-                       center=center,
-                       radius=min(radii),
-                       thickness=th*1.1,
-                       eps=n_air ** 2,
-                       num_points=24)
+    grid.draw_cylinder(
+        epsilon,
+        surface_normal=2,
+        center=center,
+        radius=max(radii),
+        thickness=th,
+        foreground=n_ring**2,
+        num_points=24,
+        )
+    grid.draw_cylinder(
+        epsilon,
+        surface_normal=2,
+        center=center,
+        radius=min(radii),
+        thickness=th*1.1,
+        foreground=n_air ** 2,
+        num_points=24,
+        )
 
     dxes = [grid.dxyz, grid.autoshifted_dxyz()]
     for a in (0, 1, 2):
@@ -71,9 +75,9 @@ def test0(solver=generic_solver):
     J[1][15, grid.shape[1]//2, grid.shape[2]//2] = 1
 
 
-    '''
-    Solve!
-    '''
+    #
+    # Solve!
+    #
     sim_args = {
         'omega': omega,
         'dxes': dxes,
@@ -87,9 +91,9 @@ def test0(solver=generic_solver):
 
     E = unvec(x, grid.shape)
 
-    '''
-    Plot results
-    '''
+    #
+    # Plot results
+    #
     pyplot.figure()
     pyplot.pcolor(numpy.real(E[1][:, :, grid.shape[2]//2]), cmap='seismic')
     pyplot.axis('equal')
@@ -169,9 +173,9 @@ def test1(solver=generic_solver):
 #    pcolor((numpy.abs(J3).sum(axis=2).sum(axis=0) > 0).astype(float).T)
     pyplot.show(block=True)
 
-    '''
-    Solve!
-    '''
+    #
+    # Solve!
+    #
     sim_args = {
         'omega': omega,
         'dxes': dxes,
@@ -188,9 +192,9 @@ def test1(solver=generic_solver):
 
     E = unvec(x, grid.shape)
 
-    '''
-    Plot results
-    '''
+    #
+    # Plot results
+    #
     center = grid.pos2ind([0, 0, 0], None).astype(int)
     pyplot.figure()
     pyplot.subplot(2, 2, 1)
