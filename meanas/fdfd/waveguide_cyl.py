@@ -8,7 +8,7 @@ As the z-dependence is known, all the functions in this file assume a 2D grid
 """
 # TODO update module docs
 
-from typing import Any
+from typing import Any, cast
 from collections.abc import Sequence
 import logging
 
@@ -142,7 +142,7 @@ def solve_modes(
 
     # Wavenumbers assume the mode is at rmin, which is unlikely
     # Instead, return the wavenumber in inverse radians
-    angular_wavenumbers = wavenumbers * rmin
+    angular_wavenumbers = wavenumbers * cast(complex, rmin)
 
     order = angular_wavenumbers.argsort()[::-1]
     e_xys = e_xys[order]

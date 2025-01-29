@@ -49,15 +49,15 @@ def vec(
 
 
 @overload
-def unvec(v: None, shape: Sequence[int], nvdim: int) -> None:
+def unvec(v: None, shape: Sequence[int], nvdim: int = 3) -> None:
     pass
 
 @overload
-def unvec(v: vfdfield_t, shape: Sequence[int], nvdim: int) -> fdfield_t:
+def unvec(v: vfdfield_t, shape: Sequence[int], nvdim: int = 3) -> fdfield_t:
     pass
 
 @overload
-def unvec(v: vcfdfield_t, shape: Sequence[int], nvdim: int) -> cfdfield_t:
+def unvec(v: vcfdfield_t, shape: Sequence[int], nvdim: int = 3) -> cfdfield_t:
     pass
 
 def unvec(

@@ -931,7 +931,7 @@ def inner_product(    # TODO documentation
         prop_phase: float = 0,
         conj_h: bool = False,
         trapezoid: bool = False,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> complex:
 
     shape = [s.size for s in dxes[0]]
 
