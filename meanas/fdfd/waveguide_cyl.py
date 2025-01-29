@@ -79,11 +79,6 @@ def cylindrical_operator(
     #     omega * omega * mu_yx @ eps_xy
     #     + mu_yx @ sparse.vstack((-Dby, Dbx)) @ mu_z_inv @ sparse.hstack((-Dfy, Dfx))
     #     + sparse.vstack((Dfx, Dfy)) @ eps_z_inv @ sparse.hstack((Dbx, Dby)) @ eps_xy
-
-    #     # H
-    #     omega * omega * eps_yx @ mu_xy
-    #     + eps_yx @ sparse.vstack((-Dfy, Dfx)) @ eps_z_inv @ sparse.hstack((-Dby, Dbx))
-    #     + sparse.vstack((Dbx, Dby)) @ mu_z_inv @ sparse.hstack((Dfx, Dfy)) @ mu_xy
     #     )
 
     op = sq0 + lin0 + lin1
