@@ -19,7 +19,7 @@ from scipy import sparse
 from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
-
+from . import waveguide_2d
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,9 @@ def cylindrical_operator(
     Ta, Tb = dxes2T(dxes=dxes, rmin=rmin)
 
     eps_parts = numpy.split(epsilon, 3)
-    eps_x = sparse.diags(eps_parts[0])
-    eps_y = sparse.diags(eps_parts[1])
-    eps_z_inv = sparse.diags(1 / eps_parts[2])
+    eps_x = sparse.diags_array(eps_parts[0])
+    eps_y = sparse.diags_array(eps_parts[1])
+    eps_z_inv = sparse.diags_array(1 / eps_parts[2])
 
     omega2 = omega * omega
     diag = sparse.block_diag
@@ -168,7 +168,7 @@ def solve_mode(
         (e_xy, angular_wavenumber)
     """
     kwargs['mode_numbers'] = [mode_number]
-    e_xys, wavenumbers = solve_modes(*args, **kwargs)
+    e_xys, angular_wavenumbers = solve_modes(*args, **kwargs)
     return e_xys[0], angular_wavenumbers[0]
 
 

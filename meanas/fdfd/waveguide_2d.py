@@ -946,7 +946,7 @@ def inner_product(    # TODO documentation
 
     # Find time-averaged Sz and normalize to it
     dxes_real = [[numpy.real(dxyz) for dxyz in dxeh] for dxeh in dxes]
-    if integrate:
+    if trapezoid:
         Sz_a = numpy.trapezoid(numpy.trapezoid(E1[0] * H2[1], numpy.cumsum(dxes_real[0][1])), numpy.cumsum(dxes_real[1][0]))
         Sz_b = numpy.trapezoid(numpy.trapezoid(E1[1] * H2[0], numpy.cumsum(dxes_real[0][0])), numpy.cumsum(dxes_real[1][1]))
     else:
