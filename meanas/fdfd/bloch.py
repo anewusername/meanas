@@ -799,3 +799,52 @@ def _rtrace_AtB(
 def _symmetrize(A: NDArray[numpy.complex128]) -> NDArray[numpy.complex128]:
     return (A + A.conj().T) * 0.5
 
+
+
+def inner_product(eL, hL, eR, hR) -> complex:
+    # assumes x-axis propagation
+
+    assert numpy.array_equal(eR.shape, hR.shape)
+    assert numpy.array_equal(eL.shape, hL.shape)
+    assert numpy.array_equal(eR.shape, eL.shape)
+
+    # Cross product, times 2 since it's <p | n>, then divide by 4. # TODO might want to abs() this?
+    norm2R = (eR[1] * hR[2] - eR[2] * hR[1]).sum() / 2
+    norm2L = (eL[1] * hL[2] - eL[2] * hL[1]).sum() / 2
+
+    # eRxhR_x = numpy.cross(eR.reshape(3, -1), hR.reshape(3, -1), axis=0).reshape(eR.shape)[0] / normR
+    # logger.info(f'power {eRxhR_x.sum() / 2})
+
+    eR /= numpy.sqrt(norm2R)
+    hR /= numpy.sqrt(norm2R)
+    eL /= numpy.sqrt(norm2L)
+    hL /= numpy.sqrt(norm2L)
+
+    # (eR x hL)[0] and (eL x hR)[0]
+    eRxhL_x = eR[1] * hL[2] - eR[2] - hL[1]
+    eLxhR_x = eL[1] * hR[2] - eL[2] - hR[1]
+
+    #return 1j *  (eRxhL_x - eLxhR_x).sum() / numpy.sqrt(norm2R * norm2L)
+    #return (eRxhL_x.sum() - eLxhR_x.sum()) / numpy.sqrt(norm2R * norm2L)
+    return eRxhL_x.sum() - eLxhR_x.sum()
+
+
+def trq(eI, hI, eO, hO) -> tuple[complex, complex]:
+    pp = inner_product(eO,  hO, eI,  hI)
+    pn = inner_product(eO,  hO, eI, -hI)
+    np = inner_product(eO, -hO, eI,  hI)
+    nn = inner_product(eO, -hO, eI, -hI)
+
+    assert pp == -nn
+    assert pn == -np
+
+    logger.info(f'''
+        {pp=:4g} {pn=:4g}
+        {nn=:4g} {np=:4g}
+            {nn * pp / pn=:4g}    {-np=:4g}
+        ''')
+
+    r = -pp / pn    # -<Pp|Bp>/<Pn/Bp> = -(-pp) / (-pn)
+    t = (np - nn * pp / pn) / 4
+
+    return t, r
