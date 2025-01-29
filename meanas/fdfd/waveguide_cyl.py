@@ -77,7 +77,7 @@ logger = logging.getLogger(__name__)
 
 
 def cylindrical_operator(
-        omega: complex,
+        omega: float,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         rmin: float,
@@ -142,7 +142,7 @@ def cylindrical_operator(
 
 def solve_modes(
         mode_numbers: Sequence[int],
-        omega: complex,
+        omega: float,
         dxes: dx_lists_t,
         epsilon: vfdfield_t,
         rmin: float,
@@ -351,7 +351,7 @@ def exy2e(
 
 def e2h(
         angular_wavenumber: complex,
-        omega: complex,
+        omega: float,
         dxes: dx_lists_t,
         rmin: float,
         mu: vfdfield_t | None = None
@@ -423,7 +423,7 @@ def dxes2T(
 def normalized_fields_e(
         e_xy: ArrayLike,
         angular_wavenumber: complex,
-        omega: complex,
+        omega: float,
         dxes: dx_lists_t,
         rmin: float,
         epsilon: vfdfield_t,
