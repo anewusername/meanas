@@ -44,7 +44,7 @@ def _scipy_qmr(
         nonlocal ii
         ii += 1
         if ii % 100 == 0:
-            cur_norm = norm(A @ xk - b)
+            cur_norm = norm(A @ xk - b) / norm(b)
             logger.info(f'Solver residual at iteration {ii} : {cur_norm}')
 
     if 'callback' in kwargs:
