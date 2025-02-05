@@ -69,11 +69,13 @@ def generic(
         J: vcfdfield_t,
         epsilon: vfdfield_t,
         mu: vfdfield_t | None = None,
+        *,
         pec: vfdfield_t | None = None,
         pmc: vfdfield_t | None = None,
         adjoint: bool = False,
         matrix_solver: Callable[..., ArrayLike] = _scipy_qmr,
         matrix_solver_opts: dict[str, Any] | None = None,
+        E_guess: vcfdfield_t | None = None,
         ) -> vcfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
@@ -100,6 +102,8 @@ def generic(
                  which doesn't return convergence info and logs the residual
                  every 100 iterations.
         matrix_solver_opts: Passed as kwargs to `matrix_solver(...)`
+        E_guess: Guess at the solution E-field. `matrix_solver` must accept an
+                `x0` argument with the same purpose.
 
     Returns:
         E-field which solves the system.
@@ -119,6 +123,13 @@ def generic(
     else:
         A = Pl @ A0 @ Pr
         b = Pl @ b0
+
+    if E_guess is not None:
+        if adjoint:
+            x0 = Pr.H @ E_guess
+        else:
+            x0 = Pl @ E_guess
+        matrix_solver_opts['x0'] = x0
 
     x = matrix_solver(A.tocsr(), b, **matrix_solver_opts)
 
