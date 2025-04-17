@@ -49,7 +49,7 @@ path = "meanas/__init__.py"
 
 [project.optional-dependencies]
 dev = ["pytest", "pdoc", "gridlock"]
-examples = ["gridlock"]
+examples = ["gridlock>=2.0"]
 test = ["pytest"]
 
 
