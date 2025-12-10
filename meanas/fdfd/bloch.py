@@ -238,7 +238,7 @@ def maxwell_operator(
 
         # cross product and transform into xyz basis
         d_xyz = (n * hin_m
-               - m * hin_n) * k_mag         # noqa: E128
+               - m * hin_n) * k_mag
 
         # divide by epsilon
         temp = ifftn(d_xyz, axes=range(3))   # reuses d_xyz if using pyfftw
@@ -254,7 +254,7 @@ def maxwell_operator(
         else:
             # transform from mn to xyz
             b_xyz = (m * b_m[:, :, :, None]
-                   + n * b_n[:, :, :, None])    # noqa: E128
+                   + n * b_n[:, :, :, None])
 
             # divide by mu
             temp = ifftn(b_xyz, axes=range(3))
@@ -305,7 +305,7 @@ def hmn_2_exyz(
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
         d_xyz = (n * hin_m
-               - m * hin_n) * k_mag         # noqa: E128
+               - m * hin_n) * k_mag
 
         # divide by epsilon
         return numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)
@@ -403,7 +403,7 @@ def inverse_maxwell_operator_approx(
         else:
             # transform from mn to xyz
             h_xyz = (m * hin_m[:, :, :, None]
-                   + n * hin_n[:, :, :, None])  # noqa: E128
+                   + n * hin_n[:, :, :, None])
 
             # multiply by mu
             temp = ifftn(h_xyz, axes=range(3))
@@ -416,7 +416,7 @@ def inverse_maxwell_operator_approx(
 
         # cross product and transform into xyz basis
         e_xyz = (n * b_m
-               - m * b_n) / k_mag  # noqa: E128
+               - m * b_n) / k_mag
 
         # multiply by epsilon
         temp = ifftn(e_xyz, axes=range(3))
