@@ -161,25 +161,22 @@ def compute_overlap_e(
         axis: int,
         polarity: int,
         slices: Sequence[slice],
-        ) -> cfdfield_t:                 # TODO DOCS
+        ) -> cfdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, calculates an overlap_e for the
     mode orthogonality relation Integrate(((E x H_mode) + (E_mode x H)) dot dn)
     [assumes reflection symmetry].
 
-    TODO: add reference
+    TODO: add reference or derivation for compute_overlap_e
 
     Args:
         E: E-field of the mode
-        H: H-field of the mode (advanced by half of a Yee cell from E)
         wavenumber: Wavenumber of the mode
-        omega: Angular frequency of the simulation
         dxes: Grid parameters `[dx_e, dx_h]` as described in `meanas.fdmath.types`
         axis: Propagation axis (0=x, 1=y, 2=z)
         polarity: Propagation direction (+1 for +ve, -1 for -ve)
         slices: `epsilon[tuple(slices)]` is used to select the portion of the grid to use
                 as the waveguide cross-section. slices[axis] should select only one item.
-        mu: Magnetic permeability (default 1 everywhere)
 
     Returns:
         overlap_e such that `numpy.sum(overlap_e * other_e.conj())` computes the overlap integral
