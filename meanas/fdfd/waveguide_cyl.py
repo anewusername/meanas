@@ -68,7 +68,7 @@ import numpy
 from numpy.typing import NDArray, ArrayLike
 from scipy import sparse
 
-from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import vec, unvec, dx_lists2_t, vcfdslice_t, vcfdfield2_t, vfdslice, vcfdslice, vcfdfield2
 from ..fdmath.operators import deriv_forward, deriv_back
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 from . import waveguide_2d
@@ -78,10 +78,10 @@ logger = logging.getLogger(__name__)
 
 def cylindrical_operator(
         omega: float,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
         rmin: float,
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     r"""
     Cylindrical coordinate waveguide operator of the form
 
@@ -143,11 +143,11 @@ def cylindrical_operator(
 def solve_modes(
         mode_numbers: Sequence[int],
         omega: float,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
         rmin: float,
         mode_margin: int = 2,
-        ) -> tuple[vcfdfield_t, NDArray[numpy.complex128]]:
+        ) -> tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
     Given a 2d (r, y) slice of epsilon, attempts to solve for the eigenmode
      of the bent waveguide with the specified mode number.
@@ -191,7 +191,7 @@ def solve_modes(
 
     # Wavenumbers assume the mode is at rmin, which is unlikely
     # Instead, return the wavenumber in inverse radians
-    angular_wavenumbers = wavenumbers * cast(complex, rmin)
+    angular_wavenumbers = wavenumbers * cast('complex', rmin)
 
     order = angular_wavenumbers.argsort()[::-1]
     e_xys = e_xys[order]
@@ -204,7 +204,7 @@ def solve_mode(
         mode_number: int,
         *args: Any,
         **kwargs: Any,
-        ) -> tuple[vcfdfield_t, complex]:
+        ) -> tuple[vcfdslice, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.
 
@@ -222,10 +222,10 @@ def solve_mode(
 
 
 def linear_wavenumbers(
-        e_xys: vcfdfield_t,
+        e_xys: list[vcfdfield2_t],
         angular_wavenumbers: ArrayLike,
-        epsilon: vfdfield_t,
-        dxes: dx_lists_t,
+        epsilon: vfdslice,
+        dxes: dx_lists2_t,
         rmin: float,
         ) -> NDArray[numpy.complex128]:
     """
@@ -247,7 +247,6 @@ def linear_wavenumbers(
     angular_wavenumbers = numpy.asarray(angular_wavenumbers)
     mode_radii = numpy.empty_like(angular_wavenumbers, dtype=float)
 
-    wavenumbers = numpy.empty_like(angular_wavenumbers)
     shape2d = (len(dxes[0][0]), len(dxes[0][1]))
     epsilon2d = unvec(epsilon, shape2d)[:2]
     grid_radii = rmin + numpy.cumsum(dxes[0][0])
@@ -265,11 +264,11 @@ def linear_wavenumbers(
 def exy2h(
         angular_wavenumber: complex,
         omega: float,
-        dxes: dx_lists_t,
+        dxes: dx_lists2_t,
         rmin: float,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        epsilon: vfdslice,
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized H containing all three H components
@@ -294,10 +293,10 @@ def exy2h(
 def exy2e(
         angular_wavenumber: complex,
         omega: float,
-        dxes: dx_lists_t,
+        dxes: dx_lists2_t,
         rmin: float,
-        epsilon: vfdfield_t,
-        ) -> sparse.spmatrix:
+        epsilon: vfdslice,
+        ) -> sparse.sparray:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized E containing all three E components
@@ -323,7 +322,7 @@ def exy2e(
 
     Ta, Tb = dxes2T(dxes=dxes, rmin=rmin)
     Tai = sparse.diags_array(1 / Ta.diagonal())
-    Tbi = sparse.diags_array(1 / Tb.diagonal())
+    #Tbi = sparse.diags_array(1 / Tb.diagonal())
 
     epsilon_parts = numpy.split(epsilon, 3)
     epsilon_x, epsilon_y = (sparse.diags_array(epsi) for epsi in epsilon_parts[:2])
@@ -331,8 +330,6 @@ def exy2e(
 
     n_pts = dxes[0][0].size * dxes[0][1].size
     zeros = sparse.coo_array((n_pts, n_pts))
-    keep_x = sparse.block_array([[sparse.eye_array(n_pts), None], [None, zeros]])
-    keep_y = sparse.block_array([[zeros, None], [None, sparse.eye_array(n_pts)]])
 
     mu_z = numpy.ones(n_pts)
     mu_z_inv = sparse.diags_array(1 / mu_z)
@@ -352,10 +349,10 @@ def exy2e(
 def e2h(
         angular_wavenumber: complex,
         omega: float,
-        dxes: dx_lists_t,
+        dxes: dx_lists2_t,
         rmin: float,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     r"""
     Returns an operator which, when applied to a vectorized E eigenfield, produces
      the vectorized H eigenfield.
@@ -396,7 +393,7 @@ def e2h(
 
 
 def dxes2T(
-        dxes: dx_lists_t,
+        dxes: dx_lists2_t,
         rmin: float,
         ) -> tuple[NDArray[numpy.float64], NDArray[numpy.float64]]:
     r"""
@@ -421,15 +418,15 @@ def dxes2T(
 
 
 def normalized_fields_e(
-        e_xy: ArrayLike,
+        e_xy: vcfdfield2,
         angular_wavenumber: complex,
         omega: float,
-        dxes: dx_lists_t,
+        dxes: dx_lists2_t,
         rmin: float,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         prop_phase: float = 0,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> tuple[vcfdslice_t, vcfdslice_t]:
     """
     Given a vector `e_xy` containing the vectorized E_x and E_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -459,23 +456,21 @@ def normalized_fields_e(
 
 
 def _normalized_fields(
-        e: vcfdfield_t,
-        h: vcfdfield_t,
+        e: vcfdslice,
+        h: vcfdslice,
         omega: complex,
-        dxes: dx_lists_t,
-        rmin: float,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        rmin: float,        # Currently unused, but may want to use cylindrical poynting
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         prop_phase: float = 0,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> tuple[vcfdslice_t, vcfdslice_t]:
     h *= -1
     # TODO documentation for normalized_fields
     shape = [s.size for s in dxes[0]]
-    dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
 
     # Find time-averaged Sz and normalize to it
     # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
-    phase = numpy.exp(-1j * -prop_phase / 2)
     Sz_tavg = waveguide_2d.inner_product(e, h, dxes=dxes, prop_phase=prop_phase, conj_h=True).real   # Note, using linear poynting vector
     assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 
@@ -495,4 +490,4 @@ def _normalized_fields(
 
     e *= norm_factor
     h *= norm_factor
-    return e, h
+    return vcfdslice_t(e), vcfdslice_t(h)

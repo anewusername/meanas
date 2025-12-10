@@ -1,7 +1,7 @@
 """
 Sparse matrix operators for use with electromagnetic wave equations.
 
-These functions return sparse-matrix (`scipy.sparse.spmatrix`) representations of
+These functions return sparse-matrix (`scipy.sparse.sparray`) representations of
  a variety of operators, intended for use with E and H fields vectorized using the
  `meanas.fdmath.vectorization.vec()` and `meanas.fdmath.vectorization.unvec()` functions.
 
@@ -30,7 +30,7 @@ The following operators are included:
 import numpy
 from scipy import sparse
 
-from ..fdmath import vec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import vec, dx_lists_t, vfdfield, vcfdfield
 from ..fdmath.operators import shift_with_mirror, shift_circ, curl_forward, curl_back
 
 
@@ -40,11 +40,11 @@ __author__ = 'Jan Petykiewicz'
 def e_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t | vcfdfield_t,
-        mu: vfdfield_t | None = None,
-        pec: vfdfield_t | None = None,
-        pmc: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        epsilon: vfdfield | vcfdfield,
+        mu: vfdfield | None = None,
+        pec: vfdfield | None = None,
+        pmc: vfdfield | None = None,
+        ) -> sparse.sparray:
     r"""
     Wave operator
      $$ \nabla \times (\frac{1}{\mu} \nabla \times) - \Omega^2 \epsilon $$
@@ -77,20 +77,20 @@ def e_full(
     ce = curl_forward(dxes[0])
 
     if pec is None:
-        pe = sparse.eye(epsilon.size)
+        pe = sparse.eye_array(epsilon.size)
     else:
-        pe = sparse.diags(numpy.where(pec, 0, 1))     # Set pe to (not PEC)
+        pe = sparse.diags_array(numpy.where(pec, 0, 1))     # Set pe to (not PEC)
 
     if pmc is None:
-        pm = sparse.eye(epsilon.size)
+        pm = sparse.eye_array(epsilon.size)
     else:
-        pm = sparse.diags(numpy.where(pmc, 0, 1))     # set pm to (not PMC)
+        pm = sparse.diags_array(numpy.where(pmc, 0, 1))     # set pm to (not PMC)
 
-    e = sparse.diags(epsilon)
+    e = sparse.diags_array(epsilon)
     if mu is None:
-        m_div = sparse.eye(epsilon.size)
+        m_div = sparse.eye_array(epsilon.size)
     else:
-        m_div = sparse.diags(1 / mu)
+        m_div = sparse.diags_array(1 / mu)
 
     op = pe @ (ch @ pm @ m_div @ ce - omega**2 * e) @ pe
     return op
@@ -98,7 +98,7 @@ def e_full(
 
 def e_full_preconditioners(
         dxes: dx_lists_t,
-        ) -> tuple[sparse.spmatrix, sparse.spmatrix]:
+        ) -> tuple[sparse.sparray, sparse.sparray]:
     """
     Left and right preconditioners `(Pl, Pr)` for symmetrizing the `e_full` wave operator.
 
@@ -118,19 +118,19 @@ def e_full_preconditioners(
                  dxes[1][0][:, None, None] * dxes[1][1][None, :, None] * dxes[0][2][None, None, :]]
 
     p_vector = numpy.sqrt(vec(p_squared))
-    P_left = sparse.diags(p_vector)
-    P_right = sparse.diags(1 / p_vector)
+    P_left = sparse.diags_array(p_vector)
+    P_right = sparse.diags_array(1 / p_vector)
     return P_left, P_right
 
 
 def h_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        pec: vfdfield_t | None = None,
-        pmc: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        epsilon: vfdfield,
+        mu: vfdfield | None = None,
+        pec: vfdfield | None = None,
+        pmc: vfdfield | None = None,
+        ) -> sparse.sparray:
     r"""
     Wave operator
      $$ \nabla \times (\frac{1}{\epsilon} \nabla \times) - \omega^2 \mu $$
@@ -161,20 +161,20 @@ def h_full(
     ce = curl_forward(dxes[0])
 
     if pec is None:
-        pe = sparse.eye(epsilon.size)
+        pe = sparse.eye_array(epsilon.size)
     else:
-        pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
+        pe = sparse.diags_array(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
     if pmc is None:
-        pm = sparse.eye(epsilon.size)
+        pm = sparse.eye_array(epsilon.size)
     else:
-        pm = sparse.diags(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
+        pm = sparse.diags_array(numpy.where(pmc, 0, 1))    # Set pe to (not PMC)
 
-    e_div = sparse.diags(1 / epsilon)
+    e_div = sparse.diags_array(1 / epsilon)
     if mu is None:
-        m = sparse.eye(epsilon.size)
+        m = sparse.eye_array(epsilon.size)
     else:
-        m = sparse.diags(mu)
+        m = sparse.diags_array(mu)
 
     A = pm @ (ce @ pe @ e_div @ ch - omega**2 * m) @ pm
     return A
@@ -183,11 +183,11 @@ def h_full(
 def eh_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        pec: vfdfield_t | None = None,
-        pmc: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        epsilon: vfdfield,
+        mu: vfdfield | None = None,
+        pec: vfdfield | None = None,
+        pmc: vfdfield | None = None,
+        ) -> sparse.sparray:
     r"""
     Wave operator for `[E, H]` field representation. This operator implements Maxwell's
      equations without cancelling out either E or H. The operator is
@@ -227,35 +227,35 @@ def eh_full(
         Sparse matrix containing the wave operator.
     """
     if pec is None:
-        pe = sparse.eye(epsilon.size)
+        pe = sparse.eye_array(epsilon.size)
     else:
-        pe = sparse.diags(numpy.where(pec, 0, 1))    # set pe to (not PEC)
+        pe = sparse.diags_array(numpy.where(pec, 0, 1))    # set pe to (not PEC)
 
     if pmc is None:
-        pm = sparse.eye(epsilon.size)
+        pm = sparse.eye_array(epsilon.size)
     else:
-        pm = sparse.diags(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
+        pm = sparse.diags_array(numpy.where(pmc, 0, 1))    # set pm to (not PMC)
 
-    iwe = pe @ (1j * omega * sparse.diags(epsilon)) @ pe
+    iwe = pe @ (1j * omega * sparse.diags_array(epsilon)) @ pe
     iwm = 1j * omega
     if mu is not None:
-        iwm *= sparse.diags(mu)
+        iwm *= sparse.diags_array(mu)
     iwm = pm @ iwm @ pm
 
     A1 = pe @ curl_back(dxes[1]) @ pm
     A2 = pm @ curl_forward(dxes[0]) @ pe
 
-    A = sparse.bmat([[-iwe, A1],
-                     [A2,  iwm]])
+    A = sparse.block_array([[-iwe, A1],
+                            [A2,  iwm]])
     return A
 
 
 def e2h(
         omega: complex,
         dxes: dx_lists_t,
-        mu: vfdfield_t | None = None,
-        pmc: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        mu: vfdfield | None = None,
+        pmc: vfdfield | None = None,
+        ) -> sparse.sparray:
     """
     Utility operator for converting the E field into the H field.
     For use with `e_full()` -- assumes that there is no magnetic current M.
@@ -274,10 +274,10 @@ def e2h(
     op = curl_forward(dxes[0]) / (-1j * omega)
 
     if mu is not None:
-        op = sparse.diags(1 / mu) @ op
+        op = sparse.diags_array(1 / mu) @ op
 
     if pmc is not None:
-        op = sparse.diags(numpy.where(pmc, 0, 1)) @ op
+        op = sparse.diags_array(numpy.where(pmc, 0, 1)) @ op
 
     return op
 
@@ -285,8 +285,8 @@ def e2h(
 def m2j(
         omega: complex,
         dxes: dx_lists_t,
-        mu: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        mu: vfdfield | None = None,
+        ) -> sparse.sparray:
     """
     Operator for converting a magnetic current M into an electric current J.
     For use with eg. `e_full()`.
@@ -302,12 +302,12 @@ def m2j(
     op = curl_back(dxes[1]) / (1j * omega)
 
     if mu is not None:
-        op = op @ sparse.diags(1 / mu)
+        op = op @ sparse.diags_array(1 / mu)
 
     return op
 
 
-def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_e_cross(e: vcfdfield, dxes: dx_lists_t) -> sparse.sparray:
     """
     Operator for computing the Poynting vector, containing the
     (E x) portion of the Poynting vector.
@@ -330,13 +330,13 @@ def poynting_e_cross(e: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
     block_diags = [[ None,     fx @ -Ez, fx @  Ey],
                    [ fy @  Ez, None,     fy @ -Ex],
                    [ fz @ -Ey, fz @  Ex, None]]
-    block_matrix = sparse.bmat([[sparse.diags(x) if x is not None else None for x in row]
-                                for row in block_diags])
-    P = block_matrix @ sparse.diags(numpy.concatenate(dxbg))
+    block_matrix = sparse.block_array([[sparse.diags_array(x) if x is not None else None for x in row]
+                                        for row in block_diags])
+    P = block_matrix @ sparse.diags_array(numpy.concatenate(dxbg))
     return P
 
 
-def poynting_h_cross(h: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
+def poynting_h_cross(h: vcfdfield, dxes: dx_lists_t) -> sparse.sparray:
     """
     Operator for computing the Poynting vector, containing the (H x) portion of the Poynting vector.
 
@@ -353,23 +353,23 @@ def poynting_h_cross(h: vcfdfield_t, dxes: dx_lists_t) -> sparse.spmatrix:
 
     dxag = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[0], indexing='ij')]
     dxbg = [dx.ravel(order='C') for dx in numpy.meshgrid(*dxes[1], indexing='ij')]
-    Hx, Hy, Hz = (sparse.diags(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg, strict=True))
+    Hx, Hy, Hz = (sparse.diags_array(hi * db) for hi, db in zip(numpy.split(h, 3), dxbg, strict=True))
 
-    P = (sparse.bmat(
+    P = (sparse.block_array(
         [[ None,    -Hz @ fx,   Hy @ fx],
          [ Hz @ fy,  None,     -Hx @ fy],
          [-Hy @ fz,  Hx @ fz,   None]])
-         @ sparse.diags(numpy.concatenate(dxag)))
+         @ sparse.diags_array(numpy.concatenate(dxag)))
     return P
 
 
 def e_tfsf_source(
-        TF_region: vfdfield_t,
+        TF_region: vfdfield,
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        epsilon: vfdfield,
+        mu: vfdfield | None = None,
+        ) -> sparse.sparray:
     """
     Operator that turns a desired E-field distribution into a
      total-field/scattered-field (TFSF) source.
@@ -390,18 +390,18 @@ def e_tfsf_source(
     """
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
-    Q = sparse.diags(TF_region)
+    Q = sparse.diags_array(TF_region)
     return (A @ Q - Q @ A) / (-1j * omega)
 
 
 def e_boundary_source(
-        mask: vfdfield_t,
+        mask: vfdfield,
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        epsilon: vfdfield,
+        mu: vfdfield | None = None,
         periodic_mask_edges: bool = False,
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     """
     Operator that turns an E-field distrubtion into a current (J) distribution
       along the edges (external and internal) of the provided mask. This is just an
@@ -424,10 +424,10 @@ def e_boundary_source(
     shape = [len(dxe) for dxe in dxes[0]]
     jmask = numpy.zeros_like(mask, dtype=bool)
 
-    def shift_rot(axis: int, polarity: int) -> sparse.spmatrix:
+    def shift_rot(axis: int, polarity: int) -> sparse.sparray:
         return shift_circ(axis=axis, shape=shape, shift_distance=polarity)
 
-    def shift_mir(axis: int, polarity: int) -> sparse.spmatrix:
+    def shift_mir(axis: int, polarity: int) -> sparse.sparray:
         return shift_with_mirror(axis=axis, shape=shape, shift_distance=polarity)
 
     shift = shift_rot if periodic_mask_edges else shift_mir
@@ -436,7 +436,7 @@ def e_boundary_source(
         if shape[axis] == 1:
             continue
         for polarity in (-1, +1):
-            r = shift(axis, polarity) - sparse.eye(numpy.prod(shape))  # shifted minus original
+            r = shift(axis, polarity) - sparse.eye_array(numpy.prod(shape))  # shifted minus original
             r3 = sparse.block_diag((r, r, r))
             jmask = numpy.logical_or(jmask, numpy.abs(r3 @ mask))
 
@@ -447,5 +447,5 @@ def e_boundary_source(
 #             (numpy.roll(mask, -1, axis=2) != mask) |
 #             (numpy.roll(mask, +1, axis=2) != mask))
 
-    return sparse.diags(jmask.astype(int)) @ full
+    return sparse.diags_array(jmask.astype(int)) @ full
 

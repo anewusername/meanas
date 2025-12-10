@@ -8,7 +8,7 @@ e.g. E = [E_x, E_y, E_z] where each (complex) component has shape (X, Y, Z)
 from collections.abc import Callable
 import numpy
 
-from ..fdmath import dx_lists_t, fdfield_t, cfdfield_t, cfdfield_updater_t
+from ..fdmath import dx_lists_t, cfdfield_t, fdfield, cfdfield, cfdfield_updater_t
 from ..fdmath.functional import curl_forward, curl_back
 
 
@@ -18,8 +18,8 @@ __author__ = 'Jan Petykiewicz'
 def e_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         ) -> cfdfield_updater_t:
     """
     Wave operator for use with E-field. See `operators.e_full` for details.
@@ -37,13 +37,13 @@ def e_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e: cfdfield_t) -> cfdfield_t:
+    def op_1(e: cfdfield) -> cfdfield_t:
         curls = ch(ce(e))
-        return curls - omega ** 2 * epsilon * e
+        return cfdfield_t(curls - omega ** 2 * epsilon * e)
 
-    def op_mu(e: cfdfield_t) -> cfdfield_t:
+    def op_mu(e: cfdfield) -> cfdfield_t:
         curls = ch(mu * ce(e))          # type: ignore   # mu = None ok because we don't return the function
-        return curls - omega ** 2 * epsilon * e
+        return cfdfield_t(curls - omega ** 2 * epsilon * e)
 
     if mu is None:
         return op_1
@@ -53,9 +53,9 @@ def e_full(
 def eh_full(
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
-        ) -> Callable[[cfdfield_t, cfdfield_t], tuple[cfdfield_t, cfdfield_t]]:
+        epsilon: fdfield,
+        mu: fdfield | None = None,
+        ) -> Callable[[cfdfield, cfdfield], tuple[cfdfield_t, cfdfield_t]]:
     """
     Wave operator for full (both E and H) field representation.
     See `operators.eh_full`.
@@ -73,13 +73,13 @@ def eh_full(
     ch = curl_back(dxes[1])
     ce = curl_forward(dxes[0])
 
-    def op_1(e: cfdfield_t, h: cfdfield_t) -> tuple[cfdfield_t, cfdfield_t]:
-        return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * h)
+    def op_1(e: cfdfield, h: cfdfield) -> tuple[cfdfield_t, cfdfield_t]:
+        return (cfdfield_t(ch(h) - 1j * omega * epsilon * e),
+                cfdfield_t(ce(e) + 1j * omega * h))
 
-    def op_mu(e: cfdfield_t, h: cfdfield_t) -> tuple[cfdfield_t, cfdfield_t]:
-        return (ch(h) - 1j * omega * epsilon * e,
-                ce(e) + 1j * omega * mu * h)            # type: ignore   # mu=None ok
+    def op_mu(e: cfdfield, h: cfdfield) -> tuple[cfdfield_t, cfdfield_t]:
+        return (cfdfield_t(ch(h) - 1j * omega * epsilon * e),
+                cfdfield_t(ce(e) + 1j * omega * mu * h))            # type: ignore   # mu=None ok
 
     if mu is None:
         return op_1
@@ -89,7 +89,7 @@ def eh_full(
 def e2h(
         omega: complex,
         dxes: dx_lists_t,
-        mu: fdfield_t | None = None,
+        mu: fdfield | None = None,
         ) -> cfdfield_updater_t:
     """
     Utility operator for converting the `E` field into the `H` field.
@@ -106,11 +106,11 @@ def e2h(
     """
     ce = curl_forward(dxes[0])
 
-    def e2h_1_1(e: cfdfield_t) -> cfdfield_t:
-        return ce(e) / (-1j * omega)
+    def e2h_1_1(e: cfdfield) -> cfdfield_t:
+        return cfdfield_t(ce(e) / (-1j * omega))
 
-    def e2h_mu(e: cfdfield_t) -> cfdfield_t:
-        return ce(e) / (-1j * omega * mu)       # type: ignore   # mu=None ok
+    def e2h_mu(e: cfdfield) -> cfdfield_t:
+        return cfdfield_t(ce(e) / (-1j * omega * mu))       # type: ignore   # mu=None ok
 
     if mu is None:
         return e2h_1_1
@@ -120,7 +120,7 @@ def e2h(
 def m2j(
         omega: complex,
         dxes: dx_lists_t,
-        mu: fdfield_t | None = None,
+        mu: fdfield | None = None,
         ) -> cfdfield_updater_t:
     """
     Utility operator for converting magnetic current `M` distribution
@@ -138,13 +138,13 @@ def m2j(
     """
     ch = curl_back(dxes[1])
 
-    def m2j_mu(m: cfdfield_t) -> cfdfield_t:
+    def m2j_mu(m: cfdfield) -> cfdfield_t:
         J = ch(m / mu) / (-1j * omega)          # type: ignore  # mu=None ok
-        return J
+        return cfdfield_t(J)
 
-    def m2j_1(m: cfdfield_t) -> cfdfield_t:
+    def m2j_1(m: cfdfield) -> cfdfield_t:
         J = ch(m) / (-1j * omega)
-        return J
+        return cfdfield_t(J)
 
     if mu is None:
         return m2j_1
@@ -152,11 +152,11 @@ def m2j(
 
 
 def e_tfsf_source(
-        TF_region: fdfield_t,
+        TF_region: fdfield,
         omega: complex,
         dxes: dx_lists_t,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         ) -> cfdfield_updater_t:
     """
     Operator that turns an E-field distribution into a total-field/scattered-field
@@ -178,13 +178,13 @@ def e_tfsf_source(
     # TODO documentation
     A = e_full(omega, dxes, epsilon, mu)
 
-    def op(e: cfdfield_t) -> cfdfield_t:
+    def op(e: cfdfield) -> cfdfield_t:
         neg_iwj = A(TF_region * e) - TF_region * A(e)
-        return neg_iwj / (-1j * omega)
+        return cfdfield_t(neg_iwj / (-1j * omega))
     return op
 
 
-def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], cfdfield_t]:
+def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield, cfdfield], cfdfield_t]:
     r"""
     Generates a function that takes the single-frequency `E` and `H` fields
     and calculates the cross product `E` x `H` = $E \times H$ as required
@@ -206,7 +206,7 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], c
     Returns:
         Function `f` that returns E x H as required for the poynting vector.
     """
-    def exh(e: cfdfield_t, h: cfdfield_t) -> cfdfield_t:
+    def exh(e: cfdfield, h: cfdfield) -> cfdfield_t:
         s = numpy.empty_like(e)
         ex = e[0] * dxes[0][0][:, None, None]
         ey = e[1] * dxes[0][1][None, :, None]
@@ -217,5 +217,5 @@ def poynting_e_cross_h(dxes: dx_lists_t) -> Callable[[cfdfield_t, cfdfield_t], c
         s[0] = numpy.roll(ey, -1, axis=0) * hz - numpy.roll(ez, -1, axis=0) * hy
         s[1] = numpy.roll(ez, -1, axis=1) * hx - numpy.roll(ex, -1, axis=1) * hz
         s[2] = numpy.roll(ex, -1, axis=2) * hy - numpy.roll(ey, -1, axis=2) * hx
-        return s
+        return cfdfield_t(s)
     return exh

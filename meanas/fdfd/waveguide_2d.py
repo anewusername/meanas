@@ -180,12 +180,12 @@ if the result is introduced into a space with a discretized z-axis.
 from typing import Any
 from collections.abc import Sequence
 import numpy
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 from numpy.linalg import norm
 from scipy import sparse
 
 from ..fdmath.operators import deriv_forward, deriv_back, cross
-from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import vec, unvec, dx_lists2_t, vcfdfield2_t, vcfdslice_t, vcfdfield2, vfdslice, vcfdslice
 from ..eigensolvers import signed_eigensolve, rayleigh_quotient_iteration
 
 
@@ -194,10 +194,10 @@ __author__ = 'Jan Petykiewicz'
 
 def operator_e(
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
+        ) -> sparse.sparray:
     r"""
     Waveguide operator of the form
 
@@ -246,12 +246,12 @@ def operator_e(
     Dbx, Dby = deriv_back(dxes[1])
 
     eps_parts = numpy.split(epsilon, 3)
-    eps_xy = sparse.diags(numpy.hstack((eps_parts[0], eps_parts[1])))
-    eps_z_inv = sparse.diags(1 / eps_parts[2])
+    eps_xy = sparse.diags_array(numpy.hstack((eps_parts[0], eps_parts[1])))
+    eps_z_inv = sparse.diags_array(1 / eps_parts[2])
 
     mu_parts = numpy.split(mu, 3)
-    mu_yx = sparse.diags(numpy.hstack((mu_parts[1], mu_parts[0])))
-    mu_z_inv = sparse.diags(1 / mu_parts[2])
+    mu_yx = sparse.diags_array(numpy.hstack((mu_parts[1], mu_parts[0])))
+    mu_z_inv = sparse.diags_array(1 / mu_parts[2])
 
     op = (
         omega * omega * mu_yx @ eps_xy
@@ -263,10 +263,10 @@ def operator_e(
 
 def operator_h(
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
+        ) -> sparse.sparray:
     r"""
     Waveguide operator of the form
 
@@ -315,12 +315,12 @@ def operator_h(
     Dbx, Dby = deriv_back(dxes[1])
 
     eps_parts = numpy.split(epsilon, 3)
-    eps_yx = sparse.diags(numpy.hstack((eps_parts[1], eps_parts[0])))
-    eps_z_inv = sparse.diags(1 / eps_parts[2])
+    eps_yx = sparse.diags_array(numpy.hstack((eps_parts[1], eps_parts[0])))
+    eps_z_inv = sparse.diags_array(1 / eps_parts[2])
 
     mu_parts = numpy.split(mu, 3)
-    mu_xy = sparse.diags(numpy.hstack((mu_parts[0], mu_parts[1])))
-    mu_z_inv = sparse.diags(1 / mu_parts[2])
+    mu_xy = sparse.diags_array(numpy.hstack((mu_parts[0], mu_parts[1])))
+    mu_z_inv = sparse.diags_array(1 / mu_parts[2])
 
     op = (
         omega * omega * eps_yx @ mu_xy
@@ -331,14 +331,14 @@ def operator_h(
 
 
 def normalized_fields_e(
-        e_xy: ArrayLike,
+        e_xy: vcfdfield2,
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         prop_phase: float = 0,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> tuple[vcfdslice_t, vcfdslice_t]:
     """
     Given a vector `e_xy` containing the vectorized E_x and E_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -366,14 +366,14 @@ def normalized_fields_e(
 
 
 def normalized_fields_h(
-        h_xy: ArrayLike,
+        h_xy: vcfdfield2,
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         prop_phase: float = 0,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> tuple[vcfdslice_t, vcfdslice_t]:
     """
     Given a vector `h_xy` containing the vectorized H_x and H_y fields,
      returns normalized, vectorized E and H fields for the system.
@@ -401,21 +401,19 @@ def normalized_fields_h(
 
 
 def _normalized_fields(
-        e: vcfdfield_t,
-        h: vcfdfield_t,
+        e: vcfdslice,
+        h: vcfdslice,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         prop_phase: float = 0,
-        ) -> tuple[vcfdfield_t, vcfdfield_t]:
+        ) -> tuple[vcfdslice_t, vcfdslice_t]:
     # TODO documentation
     shape = [s.size for s in dxes[0]]
-    dxes_real = [[numpy.real(d) for d in numpy.meshgrid(*dxes[v], indexing='ij')] for v in (0, 1)]
 
     # Find time-averaged Sz and normalize to it
     # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
-    phase = numpy.exp(-1j * -prop_phase / 2)
     Sz_tavg = inner_product(e, h, dxes=dxes, prop_phase=prop_phase, conj_h=True).real
     assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 
@@ -436,16 +434,16 @@ def _normalized_fields(
     e *= norm_factor
     h *= norm_factor
 
-    return e, h
+    return vcfdslice_t(e), vcfdslice_t(h)
 
 
 def exy2h(
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     """
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized H containing all three H components
@@ -468,10 +466,10 @@ def exy2h(
 def hxy2e(
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
      into a vectorized E containing all three E components
@@ -493,9 +491,9 @@ def hxy2e(
 
 def hxy2h(
         wavenumber: complex,
-        dxes: dx_lists_t,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     """
     Operator which transforms the vector `h_xy` containing the vectorized H_x and H_y fields,
      into a vectorized H containing all three H components
@@ -514,22 +512,22 @@ def hxy2h(
 
     if mu is not None:
         mu_parts = numpy.split(mu, 3)
-        mu_xy = sparse.diags(numpy.hstack((mu_parts[0], mu_parts[1])))
-        mu_z_inv = sparse.diags(1 / mu_parts[2])
+        mu_xy = sparse.diags_array(numpy.hstack((mu_parts[0], mu_parts[1])))
+        mu_z_inv = sparse.diags_array(1 / mu_parts[2])
 
         hxy2hz = mu_z_inv @ hxy2hz @ mu_xy
 
     n_pts = dxes[1][0].size * dxes[1][1].size
-    op = sparse.vstack((sparse.eye(2 * n_pts),
+    op = sparse.vstack((sparse.eye_array(2 * n_pts),
                         hxy2hz))
     return op
 
 
 def exy2e(
         wavenumber: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        ) -> sparse.sparray:
     r"""
     Operator which transforms the vector `e_xy` containing the vectorized E_x and E_y fields,
      into a vectorized E containing all three E components
@@ -575,13 +573,13 @@ def exy2e(
 
     if epsilon is not None:
         epsilon_parts = numpy.split(epsilon, 3)
-        epsilon_xy = sparse.diags(numpy.hstack((epsilon_parts[0], epsilon_parts[1])))
-        epsilon_z_inv = sparse.diags(1 / epsilon_parts[2])
+        epsilon_xy = sparse.diags_array(numpy.hstack((epsilon_parts[0], epsilon_parts[1])))
+        epsilon_z_inv = sparse.diags_array(1 / epsilon_parts[2])
 
         exy2ez = epsilon_z_inv @ exy2ez @ epsilon_xy
 
     n_pts = dxes[0][0].size * dxes[0][1].size
-    op = sparse.vstack((sparse.eye(2 * n_pts),
+    op = sparse.vstack((sparse.eye_array(2 * n_pts),
                         exy2ez))
     return op
 
@@ -589,12 +587,12 @@ def exy2e(
 def e2h(
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        mu: vfdfield_t | None = None
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        mu: vfdslice | None = None
+        ) -> sparse.sparray:
     """
     Returns an operator which, when applied to a vectorized E eigenfield, produces
-     the vectorized H eigenfield.
+     the vectorized H eigenfield slice.
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
@@ -607,19 +605,19 @@ def e2h(
     """
     op = curl_e(wavenumber, dxes) / (-1j * omega)
     if mu is not None:
-        op = sparse.diags(1 / mu) @ op
+        op = sparse.diags_array(1 / mu) @ op
     return op
 
 
 def h2e(
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t
-        ) -> sparse.spmatrix:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        ) -> sparse.sparray:
     """
     Returns an operator which, when applied to a vectorized H eigenfield, produces
-     the vectorized E eigenfield.
+     the vectorized E eigenfield slice.
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
@@ -630,13 +628,13 @@ def h2e(
     Returns:
         Sparse matrix representation of the operator.
     """
-    op = sparse.diags(1 / (1j * omega * epsilon)) @ curl_h(wavenumber, dxes)
+    op = sparse.diags_array(1 / (1j * omega * epsilon)) @ curl_h(wavenumber, dxes)
     return op
 
 
-def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
+def curl_e(wavenumber: complex, dxes: dx_lists2_t) -> sparse.sparray:
     """
-    Discretized curl operator for use with the waveguide E field.
+    Discretized curl operator for use with the waveguide E field slice.
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
@@ -645,18 +643,18 @@ def curl_e(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     Returns:
         Sparse matrix representation of the operator.
     """
-    n = 1
-    for d in dxes[0]:
-        n *= len(d)
+    nn = 1
+    for dd in dxes[0]:
+        nn *= len(dd)
 
-    Bz = -1j * wavenumber * sparse.eye(n)
+    Bz = -1j * wavenumber * sparse.eye_array(nn)
     Dfx, Dfy = deriv_forward(dxes[0])
     return cross([Dfx, Dfy, Bz])
 
 
-def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
+def curl_h(wavenumber: complex, dxes: dx_lists2_t) -> sparse.sparray:
     """
-    Discretized curl operator for use with the waveguide H field.
+    Discretized curl operator for use with the waveguide H field slice.
 
     Args:
         wavenumber: Wavenumber assuming fields have z-dependence of `exp(-i * wavenumber * z)`
@@ -665,22 +663,22 @@ def curl_h(wavenumber: complex, dxes: dx_lists_t) -> sparse.spmatrix:
     Returns:
         Sparse matrix representation of the operator.
     """
-    n = 1
-    for d in dxes[1]:
-        n *= len(d)
+    nn = 1
+    for dd in dxes[1]:
+        nn *= len(dd)
 
-    Bz = -1j * wavenumber * sparse.eye(n)
+    Bz = -1j * wavenumber * sparse.eye_array(nn)
     Dbx, Dby = deriv_back(dxes[1])
     return cross([Dbx, Dby, Bz])
 
 
 def h_err(
-        h: vcfdfield_t,
+        h: vcfdslice,
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None
         ) -> float:
     """
     Calculates the relative error in the H field
@@ -699,7 +697,7 @@ def h_err(
     ce = curl_e(wavenumber, dxes)
     ch = curl_h(wavenumber, dxes)
 
-    eps_inv = sparse.diags(1 / epsilon)
+    eps_inv = sparse.diags_array(1 / epsilon)
 
     if mu is None:
         op = ce @ eps_inv @ ch @ h - omega ** 2 * h
@@ -710,12 +708,12 @@ def h_err(
 
 
 def e_err(
-        e: vcfdfield_t,
+        e: vcfdslice,
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         ) -> float:
     """
     Calculates the relative error in the E field
@@ -737,21 +735,21 @@ def e_err(
     if mu is None:
         op = ch @ ce @ e - omega ** 2 * (epsilon * e)
     else:
-        mu_inv = sparse.diags(1 / mu)
+        mu_inv = sparse.diags_array(1 / mu)
         op = ch @ mu_inv @ ce @ e - omega ** 2 * (epsilon * e)
 
     return float(norm(op) / norm(e))
 
 
 def sensitivity(
-        e_norm: vcfdfield_t,
-        h_norm: vcfdfield_t,
+        e_norm: vcfdslice,
+        h_norm: vcfdslice,
         wavenumber: complex,
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
-        ) -> vcfdfield_t:
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
+        ) -> vcfdslice_t:
     r"""
       Given a waveguide structure (`dxes`, `epsilon`, `mu`) and mode fields
     (`e_norm`, `h_norm`, `wavenumber`, `omega`), calculates the sensitivity of the wavenumber
@@ -825,11 +823,11 @@ def sensitivity(
     Dbx, Dby = deriv_back(dxes[1])
 
     eps_x, eps_y, eps_z = numpy.split(epsilon, 3)
-    eps_xy = sparse.diags(numpy.hstack((eps_x, eps_y)))
-    eps_z_inv = sparse.diags(1 / eps_z)
+    eps_xy = sparse.diags_array(numpy.hstack((eps_x, eps_y)))
+    eps_z_inv = sparse.diags_array(1 / eps_z)
 
     mu_x, mu_y, _mu_z = numpy.split(mu, 3)
-    mu_yx = sparse.diags(numpy.hstack((mu_y, mu_x)))
+    mu_yx = sparse.diags_array(numpy.hstack((mu_y, mu_x)))
 
     da_exxhyy = vec(dxes[1][0][:, None] * dxes[0][1][None, :])
     da_eyyhxx = vec(dxes[1][1][None, :] * dxes[0][0][:, None])
@@ -843,15 +841,15 @@ def sensitivity(
     norm = hv_yx_conj @ ev_xy
 
     sens_tot = numpy.concatenate([sens_xy1 + sens_xy2, sens_z]) / (2 * wavenumber * norm)
-    return sens_tot
+    return vcfdslice_t(sens_tot)
 
 
 def solve_modes(
         mode_numbers: Sequence[int],
         omega: complex,
-        dxes: dx_lists_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        dxes: dx_lists2_t,
+        epsilon: vfdslice,
+        mu: vfdslice | None = None,
         mode_margin: int = 2,
         ) -> tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     """
@@ -907,7 +905,7 @@ def solve_mode(
         mode_number: int,
         *args: Any,
         **kwargs: Any,
-        ) -> tuple[vcfdfield_t, complex]:
+        ) -> tuple[vcfdfield2_t, complex]:
     """
     Wrapper around `solve_modes()` that solves for a single mode.
 
@@ -921,13 +919,13 @@ def solve_mode(
     """
     kwargs['mode_numbers'] = [mode_number]
     e_xys, wavenumbers = solve_modes(*args, **kwargs)
-    return e_xys[0], wavenumbers[0]
+    return vcfdfield2_t(e_xys[0]), wavenumbers[0]
 
 
 def inner_product(    # TODO documentation
-        e1: vcfdfield_t,
-        h2: vcfdfield_t,
-        dxes: dx_lists_t,
+        e1: vcfdfield2,
+        h2: vcfdfield2,
+        dxes: dx_lists2_t,
         prop_phase: float = 0,
         conj_h: bool = False,
         trapezoid: bool = False,

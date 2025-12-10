@@ -4,13 +4,13 @@ Tools for working with waveguide modes in 3D domains.
 This module relies heavily on `waveguide_2d` and mostly just transforms
 its parameters into 2D equivalents and expands the results back into 3D.
 """
-from typing import Any
+from typing import Any, cast
 from collections.abc import Sequence
 import numpy
 from numpy.typing import NDArray
 from numpy import complexfloating
 
-from ..fdmath import vec, unvec, dx_lists_t, fdfield_t, cfdfield_t
+from ..fdmath import vec, unvec, dx_lists_t, cfdfield_t, fdfield, cfdfield
 from . import operators, waveguide_2d
 
 
@@ -21,8 +21,8 @@ def solve_mode(
         axis: int,
         polarity: int,
         slices: Sequence[slice],
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         ) -> dict[str, complex | NDArray[complexfloating]]:
     """
     Given a 3D grid, selects a slice from the grid and attempts to
@@ -95,9 +95,10 @@ def solve_mode(
     # Expand E, H to full epsilon space we were given
     E = numpy.zeros_like(epsilon, dtype=complex)
     H = numpy.zeros_like(epsilon, dtype=complex)
-    for a, o in enumerate(reverse_order):
-        E[(a, *slices)] = e[o][:, :, None].transpose(reverse_order)
-        H[(a, *slices)] = h[o][:, :, None].transpose(reverse_order)
+    for aa, oo in enumerate(reverse_order):
+        iii = cast('tuple[slice | int]', (aa, *slices))
+        E[iii] = e[oo][:, :, None].transpose(reverse_order)
+        H[iii] = h[oo][:, :, None].transpose(reverse_order)
 
     results = {
         'wavenumber': wavenumber,
@@ -109,15 +110,15 @@ def solve_mode(
 
 
 def compute_source(
-        E: cfdfield_t,
+        E: cfdfield,
         wavenumber: complex,
         omega: complex,
         dxes: dx_lists_t,
         axis: int,
         polarity: int,
         slices: Sequence[slice],
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         ) -> cfdfield_t:
     """
     Given an eigenmode obtained by `solve_mode`, returns the current source distribution
@@ -151,11 +152,11 @@ def compute_source(
 
     masked_e2j = operators.e_boundary_source(mask=vec(mask), omega=omega, dxes=dxes, epsilon=vec(epsilon), mu=vec(mu))
     J = unvec(masked_e2j @ vec(E_expanded), E.shape[1:])
-    return J
+    return cfdfield_t(J)
 
 
 def compute_overlap_e(
-        E: cfdfield_t,
+        E: cfdfield,
         wavenumber: complex,
         dxes: dx_lists_t,
         axis: int,
@@ -195,12 +196,12 @@ def compute_overlap_e(
     Etgt = numpy.zeros_like(Ee)
     Etgt[slices2] = Ee[slices2]
 
-    Etgt /= (Etgt.conj() * Etgt).sum()
-    return Etgt
+    Etgt /= (Etgt.conj() * Etgt).sum()    # type: ignore
+    return cfdfield_t(Etgt)
 
 
 def expand_e(
-        E: cfdfield_t,
+        E: cfdfield,
         wavenumber: complex,
         dxes: dx_lists_t,
         axis: int,
@@ -245,4 +246,4 @@ def expand_e(
     slices_in = (slice(None), *slices)
 
     E_expanded[slices_exp] = phase_E * numpy.array(E)[slices_in]
-    return E_expanded
+    return cfdfield_t(E_expanded)

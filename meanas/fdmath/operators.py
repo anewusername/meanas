@@ -16,7 +16,7 @@ def shift_circ(
         axis: int,
         shape: Sequence[int],
         shift_distance: int = 1,
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     """
     Utility operator for performing a circular shift along a specified axis by a
      specified number of elements.
@@ -44,7 +44,7 @@ def shift_circ(
 
     vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
 
-    d = sparse.csr_matrix(vij, shape=(n, n))
+    d = sparse.csr_array(vij, shape=(n, n))
 
     if shift_distance < 0:
         d = d.T
@@ -56,7 +56,7 @@ def shift_with_mirror(
         axis: int,
         shape: Sequence[int],
         shift_distance: int = 1,
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     """
     Utility operator for performing an n-element shift along a specified axis, with mirror
     boundary conditions applied to the cells beyond the receding edge.
@@ -92,13 +92,13 @@ def shift_with_mirror(
 
     vij = (numpy.ones(n), (i_ind, j_ind.ravel(order='C')))
 
-    d = sparse.csr_matrix(vij, shape=(n, n))
+    d = sparse.csr_array(vij, shape=(n, n))
     return d
 
 
 def deriv_forward(
         dx_e: Sequence[NDArray[floating | complexfloating]],
-        ) -> list[sparse.spmatrix]:
+        ) -> list[sparse.sparray]:
     """
     Utility operators for taking discretized derivatives (forward variant).
 
@@ -114,10 +114,10 @@ def deriv_forward(
 
     dx_e_expanded = numpy.meshgrid(*dx_e, indexing='ij')
 
-    def deriv(axis: int) -> sparse.spmatrix:
-        return shift_circ(axis, shape, 1) - sparse.eye(n)
+    def deriv(axis: int) -> sparse.sparray:
+        return shift_circ(axis, shape, 1) - sparse.eye_array(n)
 
-    Ds = [sparse.diags(+1 / dx.ravel(order='C')) @ deriv(a)
+    Ds = [sparse.diags_array(+1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_e_expanded)]
 
     return Ds
@@ -125,7 +125,7 @@ def deriv_forward(
 
 def deriv_back(
         dx_h: Sequence[NDArray[floating | complexfloating]],
-        ) -> list[sparse.spmatrix]:
+        ) -> list[sparse.sparray]:
     """
     Utility operators for taking discretized derivatives (backward variant).
 
@@ -141,18 +141,18 @@ def deriv_back(
 
     dx_h_expanded = numpy.meshgrid(*dx_h, indexing='ij')
 
-    def deriv(axis: int) -> sparse.spmatrix:
-        return shift_circ(axis, shape, -1) - sparse.eye(n)
+    def deriv(axis: int) -> sparse.sparray:
+        return shift_circ(axis, shape, -1) - sparse.eye_array(n)
 
-    Ds = [sparse.diags(-1 / dx.ravel(order='C')) @ deriv(a)
+    Ds = [sparse.diags_array(-1 / dx.ravel(order='C')) @ deriv(a)
           for a, dx in enumerate(dx_h_expanded)]
 
     return Ds
 
 
 def cross(
-        B: Sequence[sparse.spmatrix],
-        ) -> sparse.spmatrix:
+        B: Sequence[sparse.sparray],
+        ) -> sparse.sparray:
     """
     Cross product operator
 
@@ -164,13 +164,14 @@ def cross(
         Sparse matrix corresponding to (B x), where x is the cross product.
     """
     n = B[0].shape[0]
-    zero = sparse.csr_matrix((n, n))
-    return sparse.bmat([[zero, -B[2], B[1]],
-                        [B[2], zero, -B[0]],
-                        [-B[1], B[0], zero]])
+    zero = sparse.csr_array((n, n))
+    return sparse.block_array([
+            [zero, -B[2], B[1]],
+            [B[2], zero, -B[0]],
+            [-B[1], B[0], zero]])
 
 
-def vec_cross(b: vfdfield_t) -> sparse.spmatrix:
+def vec_cross(b: vfdfield_t) -> sparse.sparray:
     """
     Vector cross product operator
 
@@ -182,11 +183,11 @@ def vec_cross(b: vfdfield_t) -> sparse.spmatrix:
         Sparse matrix corresponding to (b x), where x is the cross product.
 
     """
-    B = [sparse.diags(c) for c in numpy.split(b, 3)]
+    B = [sparse.diags_array(c) for c in numpy.split(b, 3)]
     return cross(B)
 
 
-def avg_forward(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
+def avg_forward(axis: int, shape: Sequence[int]) -> sparse.sparray:
     """
     Forward average operator `(x4 = (x4 + x5) / 2)`
 
@@ -201,10 +202,10 @@ def avg_forward(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
         raise Exception(f'Invalid shape: {shape}')
 
     n = numpy.prod(shape)
-    return 0.5 * (sparse.eye(n) + shift_circ(axis, shape))
+    return 0.5 * (sparse.eye_array(n) + shift_circ(axis, shape))
 
 
-def avg_back(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
+def avg_back(axis: int, shape: Sequence[int]) -> sparse.sparray:
     """
     Backward average operator `(x4 = (x4 + x3) / 2)`
 
@@ -220,7 +221,7 @@ def avg_back(axis: int, shape: Sequence[int]) -> sparse.spmatrix:
 
 def curl_forward(
         dx_e: Sequence[NDArray[floating | complexfloating]],
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     """
     Curl operator for use with the E field.
 
@@ -236,7 +237,7 @@ def curl_forward(
 
 def curl_back(
         dx_h: Sequence[NDArray[floating | complexfloating]],
-        ) -> sparse.spmatrix:
+        ) -> sparse.sparray:
     """
     Curl operator for use with the H field.
 

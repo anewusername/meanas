@@ -64,10 +64,10 @@ def rayleigh_quotient_iteration(
         (eigenvalues, eigenvectors)
     """
     try:
-        (operator - sparse.eye(operator.shape[0]))
+        (operator - sparse.eye_array(operator.shape[0]))
 
-        def shift(eigval: float) -> sparse:
-            return eigval * sparse.eye(operator.shape[0])
+        def shift(eigval: float) -> sparse.sparray:
+            return eigval * sparse.eye_array(operator.shape[0])
 
         if solver is None:
             solver = spalg.spsolve
@@ -130,7 +130,7 @@ def signed_eigensolve(
 
     # Try to combine, use general LinearOperator if we fail
     try:
-        shifted_operator = operator + shift * sparse.eye(operator.shape[0])
+        shifted_operator = operator + shift * sparse.eye_array(operator.shape[0])
     except TypeError:
         shifted_operator = operator + spalg.LinearOperator(shape=operator.shape,
                                                            matvec=lambda v: shift * v)

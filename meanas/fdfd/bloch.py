@@ -106,7 +106,7 @@ import scipy.optimize
 from scipy.linalg import norm
 import scipy.sparse.linalg as spalg
 
-from ..fdmath import fdfield_t, cfdfield_t
+from ..fdmath import fdfield, cfdfield, cfdfield_t
 
 
 logger = logging.getLogger(__name__)
@@ -183,8 +183,8 @@ def generate_kmn(
 def maxwell_operator(
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None
+        epsilon: fdfield,
+        mu: fdfield | None = None
         ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate the Maxwell operator
@@ -276,7 +276,7 @@ def maxwell_operator(
 def hmn_2_exyz(
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t,
+        epsilon: fdfield,
         ) -> Callable[[NDArray[numpy.complex128]], cfdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
@@ -308,7 +308,8 @@ def hmn_2_exyz(
                - m * hin_n) * k_mag
 
         # divide by epsilon
-        return numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)
+        exyz = numpy.moveaxis(ifftn(d_xyz, axes=range(3)) / epsilon, 3, 0)
+        return cfdfield_t(exyz)
 
     return operator
 
@@ -316,7 +317,7 @@ def hmn_2_exyz(
 def hmn_2_hxyz(
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t
+        epsilon: fdfield,
         ) -> Callable[[NDArray[numpy.complex128]], cfdfield_t]:
     """
     Generate an operator which converts a vectorized spatial-frequency-space
@@ -343,8 +344,8 @@ def hmn_2_hxyz(
     def operator(h: NDArray[numpy.complex128]) -> cfdfield_t:
         hin_m, hin_n = (hi.reshape(shape) for hi in numpy.split(h, 2))
         h_xyz = (m * hin_m
-               + n * hin_n)     # noqa: E128
-        return numpy.array([ifftn(hi) for hi in numpy.moveaxis(h_xyz, 3, 0)])
+               + n * hin_n)
+        return cfdfield_t(numpy.array([ifftn(hi) for hi in numpy.moveaxis(h_xyz, 3, 0)]))
 
     return operator
 
@@ -352,8 +353,8 @@ def hmn_2_hxyz(
 def inverse_maxwell_operator_approx(
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         ) -> Callable[[NDArray[numpy.complex128]], NDArray[numpy.complex128]]:
     """
     Generate an approximate inverse of the Maxwell operator,
@@ -440,8 +441,8 @@ def find_k(
         tolerance: float,
         direction: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         band: int = 0,
         k_bounds: tuple[float, float] = (0, 0.5),
         k_guess: float | None = None,
@@ -508,8 +509,8 @@ def eigsolve(
         num_modes: int,
         k0: ArrayLike,
         G_matrix: ArrayLike,
-        epsilon: fdfield_t,
-        mu: fdfield_t | None = None,
+        epsilon: fdfield,
+        mu: fdfield | None = None,
         tolerance: float = 1e-7,
         max_iters: int = 10000,
         reset_iters: int = 100,
@@ -649,7 +650,7 @@ def eigsolve(
 
         def Qi_func(theta: float, Qi_memo=Qi_memo, ZtZ=ZtZ, DtD=DtD, symZtD=symZtD) -> float:   # noqa: ANN001
             if Qi_memo[0] == theta:
-                return cast(float, Qi_memo[1])
+                return cast('float', Qi_memo[1])
 
             c = numpy.cos(theta)
             s = numpy.sin(theta)
@@ -668,8 +669,8 @@ def eigsolve(
                 else:
                     raise Exception('Inexplicable singularity in trace_func') from err
             Qi_memo[0] = theta
-            Qi_memo[1] = cast(float, Qi)
-            return cast(float, Qi)
+            Qi_memo[1] = cast('float', Qi)
+            return cast('float', Qi)
 
         def trace_func(theta: float, ZtAZ=ZtAZ, DtAD=DtAD, symZtAD=symZtAD) -> float:           # noqa: ANN001
             c = numpy.cos(theta)
@@ -801,7 +802,12 @@ def _symmetrize(A: NDArray[numpy.complex128]) -> NDArray[numpy.complex128]:
 
 
 
-def inner_product(eL, hL, eR, hR) -> complex:
+def inner_product(
+        eL: cfdfield,
+        hL: cfdfield,
+        eR: cfdfield,
+        hR: cfdfield,
+        ) -> complex:
     # assumes x-axis propagation
 
     assert numpy.array_equal(eR.shape, hR.shape)
@@ -829,7 +835,12 @@ def inner_product(eL, hL, eR, hR) -> complex:
     return eRxhL_x.sum() - eLxhR_x.sum()
 
 
-def trq(eI, hI, eO, hO) -> tuple[complex, complex]:
+def trq(
+        eI: cfdfield,
+        hI: cfdfield,
+        eO: cfdfield,
+        hO: cfdfield,
+        ) -> tuple[complex, complex]:
     pp = inner_product(eO,  hO, eI,  hI)
     pn = inner_product(eO,  hO, eI, -hI)
     np = inner_product(eO, -hO, eI,  hI)

@@ -13,7 +13,7 @@ from copy import deepcopy
 import numpy
 from numpy.typing import NDArray, DTypeLike
 
-from ..fdmath import fdfield_t, dx_lists_t
+from ..fdmath import fdfield, fdfield_t, dx_lists_t
 from ..fdmath.functional import deriv_forward, deriv_back
 
 
@@ -97,7 +97,7 @@ def updates_with_cpml(
         cpml_params: Sequence[Sequence[dict[str, Any] | None]],
         dt: float,
         dxes: dx_lists_t,
-        epsilon: fdfield_t,
+        epsilon: fdfield,
         *,
         dtype: DTypeLike = numpy.float32,
         ) -> tuple[Callable[[fdfield_t, fdfield_t, fdfield_t], None],

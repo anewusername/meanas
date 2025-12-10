@@ -1,20 +1,29 @@
+from collections.abc import Sequence
 import numpy
+from numpy.typing import NDArray
+from scipy import sparse
 
-from ..fdmath import vec, unvec, dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import dx_lists2_t, vcfdfield2
 from .waveguide_2d import inner_product
 
 
-def get_tr(ehL, wavenumbers_L, ehR, wavenumbers_R, dxes: dx_lists_t):
+def get_tr(
+        ehLs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_L: Sequence[complex],
+        ehRs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_R: Sequence[complex],
+        dxes: dx_lists2_t,
+        ) -> tuple[NDArray[numpy.complex128], NDArray[numpy.complex128]]:
     nL = len(wavenumbers_L)
     nR = len(wavenumbers_R)
     A12 = numpy.zeros((nL, nR), dtype=complex)
     A21 = numpy.zeros((nL, nR), dtype=complex)
     B11 = numpy.zeros((nL,), dtype=complex)
     for ll in range(nL):
-        eL, hL = ehL[ll]
+        eL, hL = ehLs[ll]
         B11[ll] = inner_product(eL, hL, dxes=dxes, conj_h=False)
         for rr in range(nR):
-            eR, hR = ehR[rr]
+            eR, hR = ehRs[rr]
             A12[ll, rr] = inner_product(eL, hR, dxes=dxes, conj_h=False)    # TODO optimize loop?
             A21[ll, rr] = inner_product(eR, hL, dxes=dxes, conj_h=False)
 
@@ -32,9 +41,15 @@ def get_tr(ehL, wavenumbers_L, ehR, wavenumbers_R, dxes: dx_lists_t):
     return tt, rr
 
 
-def get_abcd(eL_xys, wavenumbers_L, eR_xys, wavenumbers_R, **kwargs):
-    t12, r12 = get_tr(eL_xys, wavenumbers_L, eR_xys, wavenumbers_R, **kwargs)
-    t21, r21 = get_tr(eR_xys, wavenumbers_R, eL_xys, wavenumbers_L, **kwargs)
+def get_abcd(
+        ehLs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_L: Sequence[complex],
+        ehRs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_R: Sequence[complex],
+        **kwargs,
+        ) -> sparse.sparray:
+    t12, r12 = get_tr(ehLs, wavenumbers_L, ehRs, wavenumbers_R, **kwargs)
+    t21, r21 = get_tr(ehRs, wavenumbers_R, ehLs, wavenumbers_L, **kwargs)
     t21i = numpy.linalg.pinv(t21)
     A = t12 - r21 @ t21i @ r12
     B = r21 @ t21i
@@ -44,15 +59,16 @@ def get_abcd(eL_xys, wavenumbers_L, eR_xys, wavenumbers_R, **kwargs):
 
 
 def get_s(
-        eL_xys,
-        wavenumbers_L,
-        eR_xys,
-        wavenumbers_R,
+        ehLs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_L: Sequence[complex],
+        ehRs: Sequence[Sequence[vcfdfield2]],
+        wavenumbers_R: Sequence[complex],
         force_nogain: bool = False,
         force_reciprocal: bool = False,
-        **kwargs):
-    t12, r12 = get_tr(eL_xys, wavenumbers_L, eR_xys, wavenumbers_R, **kwargs)
-    t21, r21 = get_tr(eR_xys, wavenumbers_R, eL_xys, wavenumbers_L, **kwargs)
+        **kwargs,
+        ) -> NDArray[numpy.complex128]:
+    t12, r12 = get_tr(ehLs, wavenumbers_L, ehRs, wavenumbers_R, **kwargs)
+    t21, r21 = get_tr(ehRs, wavenumbers_R, ehLs, wavenumbers_L, **kwargs)
 
     ss = numpy.block([[r12, t12],
                       [t21, r21]])

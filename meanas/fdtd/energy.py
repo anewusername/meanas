@@ -1,6 +1,6 @@
 import numpy
 
-from ..fdmath import dx_lists_t, fdfield_t
+from ..fdmath import dx_lists_t, fdfield_t, fdfield
 from ..fdmath.functional import deriv_back
 
 
@@ -8,8 +8,8 @@ from ..fdmath.functional import deriv_back
 
 
 def poynting(
-        e: fdfield_t,
-        h: fdfield_t,
+        e: fdfield,
+        h: fdfield,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     r"""
@@ -84,14 +84,14 @@ def poynting(
     s[0] = numpy.roll(ey, -1, axis=0) * hz - numpy.roll(ez, -1, axis=0) * hy
     s[1] = numpy.roll(ez, -1, axis=1) * hx - numpy.roll(ex, -1, axis=1) * hz
     s[2] = numpy.roll(ex, -1, axis=2) * hy - numpy.roll(ey, -1, axis=2) * hx
-    return s
+    return fdfield_t(s)
 
 
 def poynting_divergence(
-        s: fdfield_t | None = None,
+        s: fdfield | None = None,
         *,
-        e: fdfield_t | None = None,
-        h: fdfield_t | None = None,
+        e: fdfield | None = None,
+        h: fdfield | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -122,15 +122,15 @@ def poynting_divergence(
 
     Dx, Dy, Dz = deriv_back()
     ds = Dx(s[0]) + Dy(s[1]) + Dz(s[2])
-    return ds
+    return fdfield_t(ds)
 
 
 def energy_hstep(
-        e0: fdfield_t,
-        h1: fdfield_t,
-        e2: fdfield_t,
-        epsilon: fdfield_t | None = None,
-        mu: fdfield_t | None = None,
+        e0: fdfield,
+        h1: fdfield,
+        e2: fdfield,
+        epsilon: fdfield | None = None,
+        mu: fdfield | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -150,15 +150,15 @@ def energy_hstep(
         Energy, at the time of the H-field `h1`.
     """
     u = dxmul(e0 * e2, h1 * h1, epsilon, mu, dxes)
-    return u
+    return fdfield_t(u)
 
 
 def energy_estep(
-        h0: fdfield_t,
-        e1: fdfield_t,
-        h2: fdfield_t,
-        epsilon: fdfield_t | None = None,
-        mu: fdfield_t | None = None,
+        h0: fdfield,
+        e1: fdfield,
+        h2: fdfield,
+        epsilon: fdfield | None = None,
+        mu: fdfield | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -178,17 +178,17 @@ def energy_estep(
         Energy, at the time of the E-field `e1`.
     """
     u = dxmul(e1 * e1, h0 * h2, epsilon, mu, dxes)
-    return u
+    return fdfield_t(u)
 
 
 def delta_energy_h2e(
         dt: float,
-        e0: fdfield_t,
-        h1: fdfield_t,
-        e2: fdfield_t,
-        h3: fdfield_t,
-        epsilon: fdfield_t | None = None,
-        mu: fdfield_t | None = None,
+        e0: fdfield,
+        h1: fdfield,
+        e2: fdfield,
+        h3: fdfield,
+        epsilon: fdfield | None = None,
+        mu: fdfield | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -211,17 +211,17 @@ def delta_energy_h2e(
     de = e2 * (e2 - e0) / dt
     dh = h1 * (h3 - h1) / dt
     du = dxmul(de, dh, epsilon, mu, dxes)
-    return du
+    return fdfield_t(du)
 
 
 def delta_energy_e2h(
         dt: float,
-        h0: fdfield_t,
-        e1: fdfield_t,
-        h2: fdfield_t,
-        e3: fdfield_t,
-        epsilon: fdfield_t | None = None,
-        mu: fdfield_t | None = None,
+        h0: fdfield,
+        e1: fdfield,
+        h2: fdfield,
+        e3: fdfield,
+        epsilon: fdfield | None = None,
+        mu: fdfield | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -244,12 +244,12 @@ def delta_energy_e2h(
     de = e1 * (e3 - e1) / dt
     dh = h2 * (h2 - h0) / dt
     du = dxmul(de, dh, epsilon, mu, dxes)
-    return du
+    return fdfield_t(du)
 
 
 def delta_energy_j(
-        j0: fdfield_t,
-        e1: fdfield_t,
+        j0: fdfield,
+        e1: fdfield,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     """
@@ -267,14 +267,14 @@ def delta_energy_j(
           * dxes[0][0][:, None, None]
           * dxes[0][1][None, :, None]
           * dxes[0][2][None, None, :])
-    return du
+    return fdfield_t(du)
 
 
 def dxmul(
-        ee: fdfield_t,
-        hh: fdfield_t,
-        epsilon: fdfield_t | float | None = None,
-        mu: fdfield_t | float | None = None,
+        ee: fdfield,
+        hh: fdfield,
+        epsilon: fdfield | float | None = None,
+        mu: fdfield | float | None = None,
         dxes: dx_lists_t | None = None,
         ) -> fdfield_t:
     if epsilon is None:
@@ -292,4 +292,4 @@ def dxmul(
               * dxes[1][0][:, None, None]
               * dxes[1][1][None, :, None]
               * dxes[1][2][None, None, :])
-    return result
+    return fdfield_t(result)

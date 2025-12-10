@@ -1,13 +1,15 @@
 """
 Functions for performing near-to-farfield transformation (and the reverse).
 """
-from typing import Any, cast
-from collections.abc import Sequence
+from typing import Any, cast, TYPE_CHECKING
 import numpy
 from numpy.fft import fft2, fftshift, fftfreq, ifft2, ifftshift
 from numpy import pi
 
 from ..fdmath import cfdfield_t
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def near_to_farfield(
@@ -63,7 +65,7 @@ def near_to_farfield(
         padded_size = (2**numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
         padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
-    padded_shape = cast(Sequence[int], padded_size)
+    padded_shape = cast('Sequence[int]', padded_size)
 
     En_fft = [fftshift(fft2(fftshift(Eni), s=padded_shape)) for Eni in E_near]
     Hn_fft = [fftshift(fft2(fftshift(Hni), s=padded_shape)) for Hni in H_near]
@@ -172,7 +174,7 @@ def far_to_nearfield(
         padded_size = (2 ** numpy.ceil(numpy.log2(s))).astype(int)
     if not hasattr(padded_size, '__len__'):
         padded_size = (padded_size, padded_size)            # type: ignore  # checked if sequence
-    padded_shape = cast(Sequence[int], padded_size)
+    padded_shape = cast('Sequence[int]', padded_size)
 
     k = 2 * pi
     kxs = fftshift(fftfreq(s[0], 1 / (s[0] * dkx)))

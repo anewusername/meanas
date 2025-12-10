@@ -11,7 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 from numpy.linalg import norm
 import scipy.sparse.linalg
 
-from ..fdmath import dx_lists_t, vfdfield_t, vcfdfield_t
+from ..fdmath import dx_lists_t, vfdfield, vcfdfield, vcfdfield_t
 from . import operators
 
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def _scipy_qmr(
-        A: scipy.sparse.csr_matrix,
+        A: scipy.sparse.csr_array,
         b: ArrayLike,
         **kwargs: Any,
         ) -> NDArray[numpy.float64]:
@@ -66,16 +66,16 @@ def _scipy_qmr(
 def generic(
         omega: complex,
         dxes: dx_lists_t,
-        J: vcfdfield_t,
-        epsilon: vfdfield_t,
-        mu: vfdfield_t | None = None,
+        J: vcfdfield,
+        epsilon: vfdfield,
+        mu: vfdfield | None = None,
         *,
-        pec: vfdfield_t | None = None,
-        pmc: vfdfield_t | None = None,
+        pec: vfdfield | None = None,
+        pmc: vfdfield | None = None,
         adjoint: bool = False,
         matrix_solver: Callable[..., ArrayLike] = _scipy_qmr,
         matrix_solver_opts: dict[str, Any] | None = None,
-        E_guess: vcfdfield_t | None = None,
+        E_guess: vcfdfield | None = None,
         ) -> vcfdfield_t:
     """
     Conjugate gradient FDFD solver using CSR sparse matrices.
@@ -95,7 +95,7 @@ def generic(
              (at H-field locations; non-zero value indicates PMC is present)
         adjoint: If true, solves the adjoint problem.
         matrix_solver: Called as `matrix_solver(A, b, **matrix_solver_opts) -> x`,
-                where `A`: `scipy.sparse.csr_matrix`;
+                where `A`: `scipy.sparse.csr_array`;
                       `b`: `ArrayLike`;
                       `x`: `ArrayLike`;
                 Default is a wrapped version of `scipy.sparse.linalg.qmr()`
@@ -138,4 +138,4 @@ def generic(
     else:
         x0 = Pr @ x
 
-    return x0
+    return vcfdfield_t(x0)

@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 #from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import fdfd
-from ..fdmath import vec, unvec
+from ..fdmath import vec, unvec, vcfdfield, vfdfield, dx_lists_t
 from .utils import assert_close  # , assert_fields_close
 from .conftest import FixtureRequest
 
@@ -102,16 +102,16 @@ def j_distribution(
 @dataclasses.dataclass()
 class FDResult:
     shape: tuple[int, ...]
-    dxes: list[list[NDArray[numpy.float64]]]
-    epsilon: NDArray[numpy.float64]
+    dxes: dx_lists_t
+    epsilon: vfdfield
     omega: complex
-    j: NDArray[numpy.complex128]
-    e: NDArray[numpy.complex128]
-    pmc: NDArray[numpy.float64] | None
-    pec: NDArray[numpy.float64] | None
+    j: vcfdfield
+    e: vcfdfield
+    pmc: vfdfield | None
+    pec: vfdfield | None
 
 
-@pytest.fixture()
+@pytest.fixture
 def sim(
         request: FixtureRequest,
         shape: tuple[int, ...],
@@ -141,11 +141,11 @@ def sim(
     j_vec = vec(j_distribution)
     eps_vec = vec(epsilon)
     e_vec = fdfd.solvers.generic(
-        J=j_vec,
-        omega=omega,
-        dxes=dxes,
-        epsilon=eps_vec,
-        matrix_solver_opts={'atol': 1e-15, 'rtol': 1e-11},
+        J = j_vec,
+        omega = omega,
+        dxes = dxes,
+        epsilon = eps_vec,
+        matrix_solver_opts = dict(atol=1e-15, rtol=1e-11),
         )
     e = unvec(e_vec, shape[1:])
 

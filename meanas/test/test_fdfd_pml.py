@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 from numpy.testing import assert_allclose
 
 from .. import fdfd
-from ..fdmath import vec, unvec, dx_lists_mut
+from ..fdmath import vec, unvec, dx_lists_mut, vfdfield, cfdfield_t
 #from .utils import assert_close, assert_fields_close
 from .test_fdfd import FDResult
 from .conftest import FixtureRequest
@@ -70,15 +70,15 @@ def src_polarity(request: FixtureRequest) -> int:
     return request.param
 
 
-@pytest.fixture()
+@pytest.fixture
 def j_distribution(
         request: FixtureRequest,
         shape: tuple[int, ...],
-        epsilon: NDArray[numpy.float64],
+        epsilon: vfdfield,
         dxes: dx_lists_mut,
         omega: float,
         src_polarity: int,
-        ) -> NDArray[numpy.complex128]:
+        ) -> cfdfield_t:
     j = numpy.zeros(shape, dtype=complex)
 
     dim = numpy.where(numpy.array(shape[1:]) > 1)[0][0]    # Propagation axis
@@ -109,7 +109,7 @@ def j_distribution(
     return j
 
 
-@pytest.fixture()
+@pytest.fixture
 def epsilon(
         request: FixtureRequest,
         shape: tuple[int, ...],
@@ -144,7 +144,7 @@ def dxes(
     return dxes
 
 
-@pytest.fixture()
+@pytest.fixture
 def sim(
         request: FixtureRequest,
         shape: tuple[int, ...],

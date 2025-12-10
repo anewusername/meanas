@@ -1,5 +1,4 @@
-from typing import Callable
-from collections.abc import Sequence
+from collections.abc import Callable
 import logging
 
 import numpy
@@ -95,10 +94,10 @@ def ricker_pulse(
     logger.warning('meanas.fdtd.misc functions are still very WIP!')    # TODO
     omega = 2 * pi / wl
     freq = 1 / wl
-    r0 = omega / 2
+    # r0 = omega / 2
 
     from scipy.optimize import root_scalar
-    delay_results = root_scalar(lambda xx: (1 - omega * omega * tt * tt / 2) * numpy.exp(-omega * omega / 4 * tt * tt) - turn_on, x0=0, x1=-2 / omega)
+    delay_results = root_scalar(lambda tt: (1 - omega * omega * tt * tt / 2) * numpy.exp(-omega * omega / 4 * tt * tt) - turn_on, x0=0, x1=-2 / omega)
     delay = delay_results.root
     delay = numpy.ceil(delay * freq) / freq     # force delay to integer number of periods to maintain phase
 

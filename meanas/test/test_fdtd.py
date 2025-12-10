@@ -189,7 +189,7 @@ def j_distribution(
     return j
 
 
-@pytest.fixture()
+@pytest.fixture
 def sim(
         request: FixtureRequest,
         shape: tuple[int, ...],
