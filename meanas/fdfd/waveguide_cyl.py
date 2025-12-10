@@ -493,10 +493,6 @@ def _normalized_fields(
 
     norm_factor = sign * norm_amplitude * numpy.exp(1j * norm_angle)
 
-    print('\nAAA\n', waveguide_2d.inner_product(e, h, dxes, prop_phase=prop_phase))
     e *= norm_factor
     h *= norm_factor
-    print(f'{sign=} {norm_amplitude=} {norm_angle=} {prop_phase=}')
-    print(waveguide_2d.inner_product(e, h, dxes, prop_phase=prop_phase))
-
     return e, h
