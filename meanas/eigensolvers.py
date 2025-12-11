@@ -135,7 +135,7 @@ def signed_eigensolve(
         shifted_operator = operator + spalg.LinearOperator(shape=operator.shape,
                                                            matvec=lambda v: shift * v)
 
-    shifted_eigenvalues, eigenvectors = spalg.eigs(shifted_operator, which='LM', k=how_many, ncv=50)
+    shifted_eigenvalues, eigenvectors = spalg.eigs(shifted_operator, which='LM', k=how_many, ncv=2 * how_many + 50)
     eigenvalues = shifted_eigenvalues - shift
 
     k = eigenvalues.argsort()
