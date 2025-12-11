@@ -39,9 +39,10 @@ include = [
     ]
 dynamic = ["version"]
 dependencies = [
+    "gridlock",
     "numpy>=2.0",
     "scipy~=1.14",
-    ]
+]
 
 
 [tool.hatch.version]
@@ -49,7 +50,10 @@ path = "meanas/__init__.py"
 
 [project.optional-dependencies]
 dev = ["pytest", "pdoc", "gridlock"]
-examples = ["gridlock>=2.0"]
+examples = [
+    "gridlock>=2.1",
+    "matplotlib>=3.10.8",
+]
 test = ["pytest"]
 
 
@@ -95,3 +99,6 @@ module = [
     "scipy.sparse.linalg",
     ]
 ignore_missing_imports = true
+
+[tool.uv.sources]
+gridlock = { path = "../gridlock", editable = true }
