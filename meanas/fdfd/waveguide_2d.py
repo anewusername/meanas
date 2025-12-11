@@ -413,7 +413,6 @@ def _normalized_fields(
     shape = [s.size for s in dxes[0]]
 
     # Find time-averaged Sz and normalize to it
-    # H phase is adjusted by a half-cell forward shift for Yee cell, and 1-cell reverse shift for Poynting
     Sz_tavg = inner_product(e, h, dxes=dxes, prop_phase=prop_phase, conj_h=True).real
     assert Sz_tavg > 0, f'Found a mode propagating in the wrong direction! {Sz_tavg=}'
 

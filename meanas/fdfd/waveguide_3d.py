@@ -45,6 +45,7 @@ def solve_mode(
             'E': NDArray[complexfloating],
             'H': NDArray[complexfloating],
             'wavenumber': complex,
+            'wavenumber_2d': complex,
         }
         ```
     """
@@ -196,6 +197,8 @@ def compute_overlap_e(
     Etgt = numpy.zeros_like(Ee)
     Etgt[slices2] = Ee[slices2]
 
+    # note no sqrt() when normalizing below since we want to get 1.0 after overlapping with the
+    # original field, not the normalized one
     Etgt /= (Etgt.conj() * Etgt).sum()    # type: ignore
     return cfdfield_t(Etgt)
 
